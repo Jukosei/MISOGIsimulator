@@ -151,11 +151,31 @@
         function renderHand(p) { const handEl = document.getElementById(`hand${p}`); handEl.innerHTML = ''; gameData[p].hand.forEach(cardData => { handEl.appendChild(createCardElement(cardData)); }); updateDeckCount(p); }
         function drawCard(p) { if (gameData[p].deck.length === 0) return; gameData[p].hand.push(gameData[p].deck.shift()); renderHand(p); }
         function createCardElement(data) {
-            const card = document.createElement('div'); card.className = `card ${data.isStandby ? 'standby' : ''} ${data.isFaceDown ? 'face-down' : ''} ${data.isPersist ? 'persist' : ''}`; card.id = data.id;
-            let menuButtons = `<button class="card-btn" onclick="rotateCard(event, '${data.id}')">状態</button>`; if (data.type === 'Song') { menuButtons += `<button class="card-btn" onclick="togglePersistSong(event, '${data.id}')">持続</button>`; }
-            card.innerHTML = `<span class="badge ${data.type}">${data.type}</span><div style="font-size:11px; margin-top:14px;">${data.code}</div><div class="card-menu"><button class="card-btn" onclick="playCard(event, '${data.id}')">場へ</button>${menuButtons}</div>`;
-            if (!gameData[currentPlayer].hand.some(c => c.id === data.id)) { makeElementDraggable(card); } return card;
-        }
+    const card = document.createElement('div'); 
+    card.className = `card ${data.isStandby ? 'standby' : ''} ${data.isFaceDown ? 'face-down' : ''} ${data.isPersist ? 'persist' : ''}`; 
+    card.id = data.id;
+    
+    // 通常はカードの型番画像を、裏向きの時はback.pngを表示する
+    const imageSrc = data.isFaceDown ? 'images/back.png' : `images/${data.code}.png`;
+    
+    let menuButtons = `<button class="card-btn" onclick="rotateCard(event, '${data.id}')">状態</button>`; 
+    if (data.type === 'Song') { 
+        menuButtons += `<button class="card-btn" onclick="togglePersistSong(event, '${data.id}')">持続</button>`; 
+    }
+    // 背景を透明にして、枠線いっぱいに画像が表示されるようにHTMLを書き換え
+    card.style.background = 'transparent';
+    card.style.boxShadow = 'none';
+    card.innerHTML = `
+        <img src="${imageSrc}" alt="${data.code}" style="width:100%; height:100%; object-fit:contain; pointer-events:none; border-radius:5px;" onerror="this.style.display='none'; this.parentElement.style.background='#e0e0e0'; this.parentElement.innerText='${data.code}';">
+        <div class="card-menu" style="position:absolute; bottom:2px; left:0; width:100%; display:flex; justify-content:center; gap:2px; z-index:30;">
+            <button class="card-btn" onclick="playCard(event, '${data.id}')">場へ</button>
+            ${menuButtons}
+        </div>
+    `;
+    
+    if (!gameData[currentPlayer].hand.some(c => c.id === data.id)) { makeElementDraggable(card); } 
+    return card;
+}
         function playCard(e, id) { e.stopPropagation(); let p = currentPlayer; let cardIndex = gameData[p].hand.findIndex(c => c.id === id); if (cardIndex === -1) return; let cardData = gameData[p].hand[cardIndex]; if (cardData.type === 'Artist') cardData.isStandby = true; gameData[p].hand.splice(cardIndex, 1); let newCard = createCardElement(cardData); let zone = document.getElementById(`field${p}`); newCard.style.left = (15 + zone.children.length * 5) + 'px'; newCard.style.top = (35 + zone.children.length * 3) + 'px'; zone.appendChild(newCard); renderHand(p); }
         function togglePersistSong(e, id) { e.stopPropagation(); let p = currentPlayer; let cardData = gameData[p].allCards[id]; cardData.isPersist = !cardData.isPersist; const cardEl = document.getElementById(id); cardEl.classList.toggle('persist', cardData.isPersist); }
         function endTurn() {
