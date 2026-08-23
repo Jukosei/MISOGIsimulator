@@ -3,19 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>神椿TCG 自由配置シミュレーター</title>
+    <title>神椿TCG シミュレーター</title>
     <style>
         * { touch-action: none; box-sizing: border-box; }
         body { margin: 0; background: #121212; color: #fff; font-family: sans-serif; overflow: hidden; }
-        #top-bar { height: auto; min-height: 50px; background: #222; display: flex; flex-direction: column; padding: 5px; gap: 5px; border-bottom: 2px solid #333; }
-        .bar-row { display: flex; width: 100%; justify-content: space-around; align-items: center; gap: 5px; }
-        .code-input-area { display: flex; width: 100%; padding: 0 5px; gap: 5px; }
-        input[type="text"] { flex: 1; background: #333; border: 1px solid #555; color: #fff; padding: 6px; border-radius: 4px; font-size: 11px; }
-        button { background: #444; color: white; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 11px; font-weight: bold; }
-        button.active { background: #007aff; }
-        button.action-btn { background: #28a745; }
-        button.turn-end-btn { background: #dc3545; }
-        #table { position: relative; height: calc(100vh - 85px); width: 100vw; }
+        #setup-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100vw; height: 100vh; padding: 20px; background: #1a1a1a; position: absolute; top: 0; left: 0; z-index: 100; }
+        .main-title { font-size: 24px; font-weight: bold; letter-spacing: 2px; margin-bottom: 30px; text-align: center; }
+        .mode-select-row { display: flex; gap: 10px; margin-bottom: 30px; }
+        .mode-btn { background: #333; color: #888; border: 1px solid #444; padding: 12px 24px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; transition: all 0.2s; }
+        .mode-btn.active { background: #007aff; color: #fff; border-color: #007aff; }
+        .input-label { font-size: 12px; color: #aaa; align-self: flex-start; max-width: 800px; width: 100%; margin: 0 auto 8px auto; }
+        .textarea-container { width: 100%; max-width: 800px; margin-bottom: 15px; position: relative; }
+        textarea { width: 100%; height: 180px; background: #252525; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 6px; font-size: 13px; line-height: 1.6; resize: none; word-break: break-all; }
+        .action-row { display: flex; flex-direction: column; width: 100%; max-width: 800px; gap: 15px; }
+        .clear-btn { background: #dc3545; color: #fff; border: none; padding: 8px 16px; font-size: 12px; cursor: pointer; border-radius: 4px; align-self: flex-start; }
+        .start-btn { background: #e11d48; color: #fff; border: none; width: 200px; padding: 14px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 4px; margin: 10px auto 0 auto; text-align: center; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3); }
+        #game-screen { display: none; width: 100vw; height: 100vh; }
+        #top-bar { height: 50px; background: #222; display: flex; align-items: center; justify-content: space-around; padding: 5px; border-bottom: 2px solid #333; }
+        #table { position: relative; height: calc(100vh - 50px); width: 100vw; }
         .player-board { position: absolute; width: 100%; height: 100%; display: none; flex-direction: column; padding: 10px; gap: 8px; }
         .player-board.active { display: flex; }
         .zone-title { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
@@ -37,69 +42,123 @@
         .badge.Direction { background: #2563eb; }
         .badge.Song { background: #10b981; }
         .badge.Magic { background: #7c3aed; }
+        .system-btn { background: #444; color: white; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .system-btn.active { background: #007aff; }
+        .system-btn.turn-end { background: #dc3545; }
     </style>
 </head>
 <body>
-    <div id="top-bar">
-        <div class="bar-row">
-            <button id="tabA" class="active" onclick="switchPlayer('A')">プレイヤーA</button>
-            <button id="tabB" onclick="switchPlayer('B')">プレイヤーB</button>
-            <button class="action-btn" onclick="startGame()">ゲーム開始</button>
-            <button class="turn-end-btn" onclick="endTurn()">ターン終了</button>
+    <div id="setup-screen">
+        <div class="main-title">KAMITSUBAKI CARD GAME</div>
+        <div class="mode-select-row">
+            <button id="mode1" class="mode-btn active" onclick="selectMode(1)">1デッキモード</button>
+            <button id="mode2" class="mode-btn" onclick="selectMode(2)">2デッキ対戦モード</button>
         </div>
-        <div class="code-input-area">
-            <input type="text" id="deckCodeInput" placeholder="型番コードを入力（例: AA-01/AM-02/AS-01/AD-01...）">
-            <button onclick="loadDeckFromCode()">コード読込</button>
+        <div class="input-label">デッキリストを / 区切りで入力してください</div>
+        <div class="textarea-container">
+            <textarea id="deckCodeArea" placeholder="例: BA-13/BA-13/DA-14/FA-4/AM-4/BM-6/PD-12..."></textarea>
+        </div>
+        <div class="action-row">
+            <button class="clear-btn" onclick="clearText()">クリア</button>
+            <button class="start-btn" onclick="pressStart()">ゲーム開始</button>
         </div>
     </div>
-    <div id="table">
-        <div id="boardA" class="player-board active">
-            <div>
-                <div class="zone-title">メインフィールド (カードを自由にドラッグして重ねてください)</div>
-                <div id="fieldA" class="field-zone"></div>
-            </div>
-            <div class="bottom-row">
-                <div class="pile-container">
-                    <div class="zone-title">トラッシュ</div>
-                    <div id="trashA" class="pile">トラッシュ<br>0枚</div>
-                </div>
-                <div class="pile-container">
-                    <div class="zone-title">山札</div>
-                    <div id="deckPileA" class="pile" onclick="drawCard('A')">山札:<br>0枚</div>
-                </div>
-                <div style="flex: 1;"><div class="zone-title">手札</div><div id="handA" class="hand-zone"></div></div>
-            </div>
+    <div id="game-screen">
+        <div id="top-bar">
+            <button id="tabA" class="system-btn active" onclick="switchPlayer('A')">プレイヤーA</button>
+            <button id="tabB" class="system-btn" onclick="switchPlayer('B')">プレイヤーB</button>
+            <button class="system-btn turn-end" onclick="endTurn()">ターン終了</button>
+            <button class="system-btn" onclick="backToMenu()" style="background:#555;">メニューに戻る</button>
         </div>
-        <div id="boardB" class="player-board">
-            <div>
-                <div class="zone-title">メインフィールド (カードを自由にドラッグして重ねてください)</div>
-                <div id="fieldB" class="field-zone"></div>
+        <div id="table">
+            <div id="boardA" class="player-board active">
+                <div>
+                    <div class="zone-title">メインフィールド (カードを自由にドラッグして重ねてください)</div>
+                    <div id="fieldA" class="field-zone"></div>
+                </div>
+                <div class="bottom-row">
+                    <div class="pile-container">
+                        <div class="zone-title">トラッシュ</div>
+                        <div id="trashA" class="pile">トラッシュ<br>0枚</div>
+                    </div>
+                    <div class="pile-container">
+                        <div class="zone-title">山札</div>
+                        <div id="deckPileA" class="pile" onclick="drawCard('A')">山札:<br>0枚</div>
+                    </div>
+                    <div style="flex: 1;"><div class="zone-title">手札</div><div id="handA" class="hand-zone"></div></div>
+                </div>
             </div>
-            <div class="bottom-row">
-                <div class="pile-container">
-                    <div class="zone-title">トラッシュ</div>
-                    <div id="trashB" class="pile">トラッシュ<br>0枚</div>
+            <div id="boardB" class="player-board">
+                <div>
+                    <div class="zone-title">メインフィールド (カードを自由にドラッグして重ねてください)</div>
+                    <div id="fieldB" class="field-zone"></div>
                 </div>
-                <div class="pile-container">
-                    <div class="zone-title">山札</div>
-                    <div id="deckPileB" class="pile" onclick="drawCard('B')">山札:<br>0枚</div>
+                <div class="bottom-row">
+                    <div class="pile-container">
+                        <div class="zone-title">トラッシュ</div>
+                        <div id="trashB" class="pile">トラッシュ<br>0枚</div>
+                    </div>
+                    <div class="pile-container">
+                        <div class="zone-title">山札</div>
+                        <div id="deckPileB" class="pile" onclick="drawCard('B')">山札:<br>0枚</div>
+                    </div>
+                    <div style="flex: 1;"><div class="zone-title">手札</div><div id="handB" class="hand-zone"></div></div>
                 </div>
-                <div style="flex: 1;"><div class="zone-title">手札</div><div id="handB" class="hand-zone"></div></div>
             </div>
         </div>
     </div>
     <script>
-        let currentPlayer = 'A';
+        let chosenMode = 1; let currentPlayer = 'A';
         let gameData = { A: { deck: [], hand: [], trash: [], allCards: {} }, B: { deck: [], hand: [], trash: [], allCards: {} } };
+        function selectMode(mode) { chosenMode = mode; document.getElementById('mode1').classList.toggle('active', mode === 1); document.getElementById('mode2').classList.toggle('active', mode === 2); }
+        function clearText() { document.getElementById('deckCodeArea').value = ''; }
+        function backToMenu() { document.getElementById('game-screen').style.display = 'none'; document.getElementById('setup-screen').style.display = 'flex'; }
         function parseCardCode(code) { const typeChar = code.charAt(1).toUpperCase(); switch(typeChar) { case 'A': return 'Artist'; case 'D': return 'Direction'; case 'S': return 'Song'; case 'M': return 'Magic'; default: return 'Other'; } }
-        function loadDeckFromCode() { const input = document.getElementById('deckCodeInput').value.trim(); if (!input) { alert("デッキコードを入力してください。"); return; } const cardCodes = input.split('/').map(c => c.trim().toUpperCase()).filter(c => c.length > 0); if (cardCodes.length !== 60) { alert(`デッキは60枚である必要があります。（現在: ${cardCodes.length}枚）`); return; } let p = currentPlayer; let loadedDeck = cardCodes.map((code, index) => ({ id: `${p}-${index}-${Date.now()}`, code: code, type: parseCardCode(code), isStandby: false, isFaceDown: false, isPersist: false })); gameData[p].deck = loadedDeck; gameData[p].hand = []; gameData[p].trash = []; gameData[p].allCards = {}; loadedDeck.forEach(c => { gameData[p].allCards[c.id] = c; }); document.getElementById(`hand${p}`).innerHTML = ''; document.getElementById(`field${p}`).innerHTML = ''; updateDeckCount(p); updateTrashCount(p); alert(`【プレイヤー${p}】デッキコードを読み込みました！`); }
+        function buildDeckData(p, cardCodes) {
+            let loadedDeck = cardCodes.map((code, index) => ({ id: `${p}-${index}-${Date.now()}`, code: code, type: parseCardCode(code), isStandby: false, isFaceDown: false, isPersist: false }));
+            gameData[p].deck = loadedDeck; gameData[p].hand = []; gameData[p].trash = []; gameData[p].allCards = {}; loadedDeck.forEach(c => { gameData[p].allCards[c.id] = c; });
+            document.getElementById(`hand${p}`).innerHTML = ''; document.getElementById(`field${p}`).innerHTML = ''; updateDeckCount(p); updateTrashCount(p);
+        }
+        function pressStart() {
+            const input = document.getElementById('deckCodeArea').value.trim(); if (!input) { alert("デッキリストコードを入力してください。"); return; }
+            const cardCodes = input.split('/').map(c => c.trim().toUpperCase()).filter(c => c.length > 0); if (cardCodes.length !== 60) { alert(`デッキは60枚である必要があります。（現在: ${cardCodes.length}枚）`); return; }
+            buildDeckData('A', cardCodes);
+            if (chosenMode === 2) { buildDeckData('B', cardCodes); document.getElementById('tabB').style.display = 'inline-block'; } else { gameData.B = { deck: [], hand: [], trash: [], allCards: {} }; document.getElementById('tabB').style.display = 'none'; }
+            document.getElementById('setup-screen').style.display = 'none'; document.getElementById('game-screen').style.display = 'block';
+            switchPlayer('A'); runGameSetup('A'); if (chosenMode === 2) { runGameSetup('B'); }
+        }
         function switchPlayer(p) { currentPlayer = p; document.getElementById('boardA').classList.toggle('active', p === 'A'); document.getElementById('boardB').classList.toggle('active', p === 'B'); document.getElementById('tabA').classList.toggle('active', p === 'A'); document.getElementById('tabB').classList.toggle('active', p === 'B'); }
         function shuffleDeck(p) { let deck = gameData[p].deck; for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; } }
         function updateDeckCount(p) { document.getElementById(`deckPile${p}`).innerHTML = `山札:<br>${gameData[p].deck.length}枚`; }
         function updateTrashCount(p) { document.getElementById(`trash${p}`).innerHTML = `トラッシュ<br>${gameData[p].trash.length}枚`; }
-        function startGame() { let p = currentPlayer; if (gameData[p].deck.length !== 60) { alert(`先にデッキコードを読み込んでください。`); return; } shuffleDeck(p); gameData[p].hand = gameData[p].deck.splice(0, 7); renderHand(p); setTimeout(() => { mulliganProcess(p); }, 100); }
-        function mulliganProcess(p) { let hasArtist = gameData[p].hand.some(card => card.type === 'Artist'); if (!hasArtist) { let confirmMulligan = confirm(`【プレイヤー${p}】手札にArtistがありません！\n確認後にOKで引き直します。`); if (confirmMulligan) { gameData[p].deck = gameData[p].deck.concat(gameData[p].hand); gameData[p].hand = []; shuffleDeck(p); gameData[p].hand = gameData[p].deck.splice(0, 7); renderHand(p); setTimeout(() => { mulliganProcess(p); }, 100); } } }
+        function runGameSetup(p) { shuffleDeck(p); gameData[p].hand = gameData[p].deck.splice(0, 7); renderHand(p); setTimeout(() => { mulliganProcess(p); }, 200); }
+        function mulliganProcess(p) { let hasArtist = gameData[p].hand.some(card => card.type === 'Artist'); if (!hasArtist) { let confirmMulligan = confirm(`【プレイヤー${p}】手札にArtistがありません！確認後にOKで引き直します。`); if (confirmMulligan) { gameData[p].deck = gameData[p].deck.concat(gameData[p].hand); gameData[p].hand = []; shuffleDeck(p); gameData[p].hand = gameData[p].deck.splice(0, 7); renderHand(p); setTimeout(() => { mulliganProcess(p); }, 200); } } }
         function renderHand(p) { const handEl = document.getElementById(`hand${p}`); handEl.innerHTML = ''; gameData[p].hand.forEach(cardData => { handEl.appendChild(createCardElement(cardData)); }); updateDeckCount(p); }
         function drawCard(p) { if (gameData[p].deck.length === 0) return; gameData[p].hand.push(gameData[p].deck.shift()); renderHand(p); }
-function createCardElement(data) { const card = document.createElement('div'); card.className = card ${data.isStandby ? 'standby' : ''} ${data.isFaceDown ? 'face-down' : ''} ${data.isPersist ? 'persist' : ''}; card.id = data.id; let menuButtons = <button class="card-btn" onclick="rotateCard(event, '${data.id}')">状態</button>; if (data.type === 'Song') { menuButtons += <button class="card-btn" onclick="togglePersistSong(event, '${data.id}')">持続</button>; } card.innerHTML = <span class="badge ${data.type}">${data.type}</span><div style="font-size:11px; margin-top:14px;">${data.code}</div><div class="card-menu"><button class="card-btn" onclick="playCard(event, '${data.id}')">場へ</button>${menuButtons}</div>; if (!gameData[currentPlayer].hand.some(c => c.id === data.id)) { makeElementDraggable(card); } return card; }function playCard(e, id) { e.stopPropagation(); let p = currentPlayer; let cardIndex = gameData[p].hand.findIndex(c => c.id === id); if (cardIndex === -1) return; let cardData = gameData[p].hand[cardIndex]; if (cardData.type === 'Artist') cardData.isStandby = true; gameData[p].hand.splice(cardIndex, 1); let newCard = createCardElement(cardData); let zone = document.getElementById(field${p}); newCard.style.left = (15 + zone.children.length * 5) + 'px'; newCard.style.top = (35 + zone.children.length * 3) + 'px'; zone.appendChild(newCard); renderHand(p); }function togglePersistSong(e, id) { e.stopPropagation(); let p = currentPlayer; let cardData = gameData[p].allCards[id]; cardData.isPersist = !cardData.isPersist; const cardEl = document.getElementById(id); cardEl.classList.toggle('persist', cardData.isPersist); }function endTurn() { let p = currentPlayer; let zone = document.getElementById(field${p}); let cardsInField = Array.from(zone.getElementsByClassName('card')); let artists = cardsInField.filter(el => gameData[p].allCards[el.id].type === 'Artist').map(el => { return { id: el.id, left: parseInt(el.style.left), top: parseInt(el.style.top) }; }); cardsInField.forEach(el => { let cardData = gameData[p].allCards[el.id]; if (cardData.type === 'Artist') { cardData.isStandby = false; el.classList.remove('standby'); return; } if (cardData.type === 'Song') { if (cardData.isPersist) { return; } let cardLeft = parseInt(el.style.left); let isAttached = artists.some(art => { return Math.abs(art.left - cardLeft) < 30; }); if (isAttached) { gameData[p].trash.push(cardData); el.remove(); } } }); updateTrashCount(p); alert(【プレイヤー${p}】ターン終了しました。\n通常のSongをトラッシュし、持続Song・装備Magicは維持したまま、ArtistをActiveに戻しました。); }function rotateCard(e, id) { e.stopPropagation(); document.getElementById(id).classList.toggle('standby'); }function makeElementDraggable(el) { let startX = 0, startY = 0, initialX = 0, initialY = 0; el.addEventListener('mousedown', dragStart); el.addEventListener('touchstart', dragStart, { passive: false }); function dragStart(e) { if (e.target.tagName === 'BUTTON') return; el.parentElement.appendChild(el); const clientX = e.type === 'touchstart' ? e.touches.clientX : e.clientX; const clientY = e.type === 'touchstart' ? e.touches.clientY : e.clientY; startX = clientX; startY = clientY; initialX = el.offsetLeft; initialY = el.offsetTop; if (e.type === 'touchstart') { document.addEventListener('touchmove', dragMove, { passive: false }); document.addEventListener('touchend', dragEnd); } else { document.addEventListener('mousemove', dragMove); document.addEventListener('mouseup', dragEnd); } } function dragMove(e) { e.preventDefault(); const clientX = e.type === 'touchmove' ? e.touches.clientX : e.clientX; const clientY = e.type === 'touchmove' ? e.touches.clientY : e.clientY; el.style.left = (initialX + (clientX - startX)) + 'px'; el.style.top = (initialY + (clientY - startY)) + 'px'; } function dragEnd() { document.removeEventListener('mousemove', dragMove); document.removeEventListener('mouseup', dragEnd); document.removeEventListener('touchmove', dragMove); document.removeEventListener('touchend', dragEnd); } }
-                                  
+        function createCardElement(data) {
+            const card = document.createElement('div'); card.className = `card ${data.isStandby ? 'standby' : ''} ${data.isFaceDown ? 'face-down' : ''} ${data.isPersist ? 'persist' : ''}`; card.id = data.id;
+            let menuButtons = `<button class="card-btn" onclick="rotateCard(event, '${data.id}')">状態</button>`; if (data.type === 'Song') { menuButtons += `<button class="card-btn" onclick="togglePersistSong(event, '${data.id}')">持続</button>`; }
+            card.innerHTML = `<span class="badge ${data.type}">${data.type}</span><div style="font-size:11px; margin-top:14px;">${data.code}</div><div class="card-menu"><button class="card-btn" onclick="playCard(event, '${data.id}')">場へ</button>${menuButtons}</div>`;
+            if (!gameData[currentPlayer].hand.some(c => c.id === data.id)) { makeElementDraggable(card); } return card;
+        }
+        function playCard(e, id) { e.stopPropagation(); let p = currentPlayer; let cardIndex = gameData[p].hand.findIndex(c => c.id === id); if (cardIndex === -1) return; let cardData = gameData[p].hand[cardIndex]; if (cardData.type === 'Artist') cardData.isStandby = true; gameData[p].hand.splice(cardIndex, 1); let newCard = createCardElement(cardData); let zone = document.getElementById(`field${p}`); newCard.style.left = (15 + zone.children.length * 5) + 'px'; newCard.style.top = (35 + zone.children.length * 3) + 'px'; zone.appendChild(newCard); renderHand(p); }
+        function togglePersistSong(e, id) { e.stopPropagation(); let p = currentPlayer; let cardData = gameData[p].allCards[id]; cardData.isPersist = !cardData.isPersist; const cardEl = document.getElementById(id); cardEl.classList.toggle('persist', cardData.isPersist); }
+        function endTurn() {
+            let p = currentPlayer; let zone = document.getElementById(`field${p}`); let cardsInField = Array.from(zone.getElementsByClassName('card'));
+            let artists = cardsInField.filter(el => gameData[p].allCards[el.id].type === 'Artist').map(el => { return { id: el.id, left: parseInt(el.style.left), top: parseInt(el.style.top) }; });
+            cardsInField.forEach(el => { let cardData = gameData[p].allCards[el.id]; if (cardData.type === 'Artist') { cardData.isStandby = false; el.classList.remove('standby'); return; } if (cardData.type === 'Song') { if (cardData.isPersist) { return; } let cardLeft = parseInt(el.style.left); let isAttached = artists.some(art => { return Math.abs(art.left - cardLeft) < 30; }); if (isAttached) { gameData[p].trash.push(cardData); el.remove(); } } });
+            updateTrashCount(p); alert(`【プレイヤー${p}】ターン終了しました。\n通常のSongをトラッシュし、持続Song・装備Magicは維持したまま、ArtistをActiveに戻しました。`);
+        }
+        function rotateCard(e, id) { e.stopPropagation(); document.getElementById(id).classList.toggle('standby'); }
+        function makeElementDraggable(el) {
+            let startX = 0, startY = 0, initialX = 0, initialY = 0; el.addEventListener('mousedown', dragStart); el.addEventListener('touchstart', dragStart, { passive: false });
+            function dragEnd() {
+                document.removeEventListener('mousemove', dragMove);
+                document.removeEventListener('mouseup', dragEnd);
+                document.removeEventListener('touchmove', dragMove);
+                document.removeEventListener('touchend', dragEnd);
+            }
+        }
+    </script>
+</body>
+</html>
