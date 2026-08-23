@@ -125,11 +125,10 @@
         function clearText(targetNum) { document.getElementById(`deckCodeArea${targetNum}`).value = ''; }
         function backToMenu() { document.getElementById('game-screen').style.display = 'none'; document.getElementById('setup-screen').style.display = 'flex'; }
         function parseCardCode(code) {
-    // 大文字に統一して、ハイフン（-）より前の部分を取り出す（例: "EXD-1" -> "EXD"）
+    // 判定用として、一時的に大文字にしてハイフンで分割する
     const prefix = code.toUpperCase().split('-')[0];
     
-    // 文字列の「最後から1文字目」をタイプ判定に使う
-    // 通常型番 "AA" なら 'A'、特殊型番 "EXD" なら 'D' が綺麗に取れます
+    // 文字列の最後の1文字を取り出してタイプを判定
     const typeChar = prefix.slice(-1); 
     
     switch(typeChar) {
@@ -147,11 +146,13 @@
         }
         function pressStart() {
             const input1 = document.getElementById('deckCodeArea1').value.trim(); if (!input1) { alert("プレイヤー1のデッキリストを入力してください。"); return; }
-            const cardCodes1 = input1.split('/').map(c => c.trim().toUpperCase()).filter(c => c.length > 0); if (cardCodes1.length !== 60) { alert(`プレイヤー1のデッキは60枚である必要があります。（現在: ${cardCodes1.length}枚）`); return; }
+            const cardCodes1 = input1.split('/').map(c => c.trim()).filter(c => c.length > 0);
+            if (cardCodes1.length !== 60) { alert(`プレイヤー1のデッキは60枚である必要があります。（現在: ${cardCodes1.length}枚）`); return; }
             buildDeckData('A', cardCodes1);
             if (chosenMode === 2) {
                 const input2 = document.getElementById('deckCodeArea2').value.trim(); if (!input2) { alert("プレイヤー2のデッキリストを入力してください。"); return; }
-                const cardCodes2 = input2.split('/').map(c => c.trim().toUpperCase()).filter(c => c.length > 0); if (cardCodes2.length !== 60) { alert(`プレイヤー2のデッキは60枚である必要があります。（現在: ${cardCodes2.length}枚）`); return; }
+                const cardCodes2 = input2.split('/').map(c => c.trim()).filter(c => c.length > 0);
+                if (cardCodes2.length !== 60) { alert(`プレイヤー2のデッキは60枚である必要があります。（現在: ${cardCodes2.length}枚）`); return; }
                 buildDeckData('B', cardCodes2); document.getElementById('tabB').style.display = 'inline-block';
             } else { gameData.B = { deck: [], hand: [], trash: [], allCards: {} }; document.getElementById('tabB').style.display = 'none'; }
             document.getElementById('setup-screen').style.display = 'none'; document.getElementById('game-screen').style.display = 'block';
