@@ -124,7 +124,22 @@
         }
         function clearText(targetNum) { document.getElementById(`deckCodeArea${targetNum}`).value = ''; }
         function backToMenu() { document.getElementById('game-screen').style.display = 'none'; document.getElementById('setup-screen').style.display = 'flex'; }
-        function parseCardCode(code) { const typeChar = code.charAt(1).toUpperCase(); switch(typeChar) { case 'A': return 'Artist'; case 'D': return 'Direction'; case 'S': return 'Song'; case 'M': return 'Magic'; default: return 'Other'; } }
+        function parseCardCode(code) {
+    // 大文字に統一して、ハイフン（-）より前の部分を取り出す（例: "EXD-1" -> "EXD"）
+    const prefix = code.toUpperCase().split('-')[0];
+    
+    // 文字列の「最後から1文字目」をタイプ判定に使う
+    // 通常型番 "AA" なら 'A'、特殊型番 "EXD" なら 'D' が綺麗に取れます
+    const typeChar = prefix.slice(-1); 
+    
+    switch(typeChar) {
+        case 'A': return 'Artist';    // 歌手
+        case 'D': return 'Direction'; // 矢印
+        case 'S': return 'Song';      // 楽曲
+        case 'M': return 'Magic';     // 魔術（装備）
+        default: return 'Other';
+    }
+}
         function buildDeckData(p, cardCodes) {
             let loadedDeck = cardCodes.map((code, index) => ({ id: `${p}-${index}-${Date.now()}`, code: code, type: parseCardCode(code), isStandby: false, isFaceDown: false, isPersist: false }));
             gameData[p].deck = loadedDeck; gameData[p].hand = []; gameData[p].trash = []; gameData[p].allCards = {}; loadedDeck.forEach(c => { gameData[p].allCards[c.id] = c; });
