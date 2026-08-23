@@ -6,28 +6,19 @@
     <title>神椿TCG シミュレーター</title>
     <style>
         * { touch-action: none; box-sizing: border-box; }
-        body { margin: 0; background: #121212; color: #fff; font-family: sans-serif; overflow: hidden; }
-        #setup-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100vw; height: 100vh; padding: 20px; background: #1a1a1a; position: absolute; top: 0; left: 0; z-index: 100; }
-        .main-title { 
-            font-size: 56px; 
-            font-weight: 900; 
-            letter-spacing: 10px; 
-            margin-bottom: 35px; 
-            text-align: center; 
-            text-shadow: 0 0 20px rgba(255,255,255,0.1); 
-            display: inline-block;     /* 横幅を引き伸ばすために必要 */
-            transform: scaleX(1.6);    /* 文字を横に1.6倍に引き伸ばす */
-        }
+        body { margin: 0; background: #121212; color: #fff; font-family: sans-serif; overflow-y: auto; overflow-x: hidden; }
+        #setup-screen { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100vw; min-height: 100vh; padding: 40px 20px; background: #1a1a1a; position: absolute; top: 0; left: 0; z-index: 100; }
+        .main-title { font-size: 56px; font-weight: 900; letter-spacing: 10px; margin-bottom: 30px; text-align: center; text-shadow: 0 0 20px rgba(255,255,255,0.1); }
         .mode-select-row { display: flex; gap: 10px; margin-bottom: 30px; }
         .mode-btn { background: #333; color: #888; border: 1px solid #444; padding: 12px 24px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; }
         .mode-btn.active { background: #007aff; color: #fff; border-color: #007aff; }
-        .input-label { font-size: 12px; color: #aaa; align-self: flex-start; max-width: 800px; width: 100%; margin: 0 auto 8px auto; }
-        .textarea-container { width: 100%; max-width: 1200px; margin-bottom: 15px; }
-        textarea { width: 100%; height: 180px; background: #252525; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 6px; font-size: 13px; line-height: 1.6; resize: none; word-break: break-all; }
-        .action-row { display: flex; flex-direction: column; width: 100%; max-width: 1200px; gap: 15px; }
+        .deck-input-block { width: 100%; max-width: 1200px; display: flex; flex-direction: column; margin-bottom: 25px; }
+        .input-label { font-size: 14px; color: #fff; font-weight: bold; margin-bottom: 8px; text-align: center; letter-spacing: 1px; }
+        .textarea-container { width: 100%; margin-bottom: 10px; }
+        textarea { width: 100%; height: 140px; background: #252525; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 6px; font-size: 13px; line-height: 1.6; resize: none; word-break: break-all; }
         .clear-btn { background: #dc3545; color: #fff; border: none; padding: 12px 28px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 4px; align-self: flex-start; }
         .start-btn { background: #e11d48; color: #fff; border: none; width: 280px; padding: 18px; font-size: 20px; font-weight: bold; cursor: pointer; border-radius: 4px; margin: 20px auto 0 auto; text-align: center; box-shadow: 0 4px 16px rgba(225, 29, 72, 0.4); }
-        #game-screen { display: none; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 10; }
+        #game-screen { display: none; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; z-index: 10; background: #121212; }
         #top-bar { height: 50px; background: #222; display: flex; align-items: center; justify-content: space-around; padding: 5px; border-bottom: 2px solid #333; }
         #table { position: relative; height: calc(100vh - 50px); width: 100vw; }
         .player-board { position: absolute; width: 100%; height: 100%; display: none; flex-direction: column; padding: 10px; gap: 8px; }
@@ -60,17 +51,24 @@
     <div id="setup-screen">
         <div class="main-title">禊</div>
         <div class="mode-select-row">
-            <button id="mode1" class="mode-btn active" onclick="selectMode(1)">1デッキモード</button>
-            <button id="mode2" class="mode-btn" onclick="selectMode(2)">2デッキ対戦モード</button>
+            <button id="mode1" class="mode-btn active" onclick="toggleModeSelection(1)">1デッキモード</button>
+            <button id="mode2" class="mode-btn" onclick="toggleModeSelection(2)">2デッキ対戦モード</button>
         </div>
-        <div class="input-label">デッキリストを / 区切りで入力してください</div>
-        <div class="textarea-container">
-            <textarea id="deckCodeArea" placeholder="例: BA-13/BA-13/DA-14/FA-4/AM-4/BM-6/PD-12..."></textarea>
+        <div class="deck-input-block">
+            <div class="input-label" id="label-deck1">デッキリストを / 区切りで入力してください</div>
+            <div class="textarea-container">
+                <textarea id="deckCodeArea1" placeholder="例: BA-13/BA-13/DA-14/FA-4/AM-4/BM-6/PD-12..."></textarea>
+            </div>
+            <button class="clear-btn" onclick="clearText(1)">クリア</button>
         </div>
-        <div class="action-row">
-            <button class="clear-btn" onclick="clearText()">クリア</button>
-            <button class="start-btn" onclick="pressStart()">ゲーム開始</button>
+        <div class="deck-input-block" id="player2-input-block" style="display: none;">
+            <div class="input-label">プレイヤー2のデッキ</div>
+            <div class="textarea-container">
+                <textarea id="deckCodeArea2" placeholder="例: BA-13/BA-13/DA-14/FA-4/AM-4/BM-6/PD-12..."></textarea>
+            </div>
+            <button class="clear-btn" onclick="clearText(2)">クリア</button>
         </div>
+        <button class="start-btn" onclick="pressStart()">ゲーム開始</button>
     </div>
     <div id="game-screen">
         <div id="top-bar">
@@ -119,8 +117,12 @@
     <script>
         let chosenMode = 1; let currentPlayer = 'A';
         let gameData = { A: { deck: [], hand: [], trash: [], allCards: {} }, B: { deck: [], hand: [], trash: [], allCards: {} } };
-        function selectMode(mode) { chosenMode = mode; document.getElementById('mode1').classList.toggle('active', mode === 1); document.getElementById('mode2').classList.toggle('active', mode === 2); }
-        function clearText() { document.getElementById('deckCodeArea').value = ''; }
+        function toggleModeSelection(mode) {
+            chosenMode = mode; document.getElementById('mode1').classList.toggle('active', mode === 1); document.getElementById('mode2').classList.toggle('active', mode === 2);
+            const p2Block = document.getElementById('player2-input-block'); const p1Label = document.getElementById('label-deck1');
+            if (mode === 2) { p2Block.style.display = 'flex'; p1Label.innerText = 'プレイヤー1のデッキ'; } else { p2Block.style.display = 'none'; p1Label.innerText = 'デッキリストを / 区切りで入力してください'; }
+        }
+        function clearText(targetNum) { document.getElementById(`deckCodeArea${targetNum}`).value = ''; }
         function backToMenu() { document.getElementById('game-screen').style.display = 'none'; document.getElementById('setup-screen').style.display = 'flex'; }
         function parseCardCode(code) { const typeChar = code.charAt(1).toUpperCase(); switch(typeChar) { case 'A': return 'Artist'; case 'D': return 'Direction'; case 'S': return 'Song'; case 'M': return 'Magic'; default: return 'Other'; } }
         function buildDeckData(p, cardCodes) {
@@ -129,10 +131,14 @@
             document.getElementById(`hand${p}`).innerHTML = ''; document.getElementById(`field${p}`).innerHTML = ''; updateDeckCount(p); updateTrashCount(p);
         }
         function pressStart() {
-            const input = document.getElementById('deckCodeArea').value.trim(); if (!input) { alert("デッキリストコードを入力してください。"); return; }
-            const cardCodes = input.split('/').map(c => c.trim().toUpperCase()).filter(c => c.length > 0); if (cardCodes.length !== 60) { alert(`デッキは60枚である必要があります。（現在: ${cardCodes.length}枚）`); return; }
-            buildDeckData('A', cardCodes);
-            if (chosenMode === 2) { buildDeckData('B', cardCodes); document.getElementById('tabB').style.display = 'inline-block'; } else { gameData.B = { deck: [], hand: [], trash: [], allCards: {} }; document.getElementById('tabB').style.display = 'none'; }
+            const input1 = document.getElementById('deckCodeArea1').value.trim(); if (!input1) { alert("プレイヤー1のデッキリストを入力してください。"); return; }
+            const cardCodes1 = input1.split('/').map(c => c.trim().toUpperCase()).filter(c => c.length > 0); if (cardCodes1.length !== 60) { alert(`プレイヤー1のデッキは60枚である必要があります。（現在: ${cardCodes1.length}枚）`); return; }
+            buildDeckData('A', cardCodes1);
+            if (chosenMode === 2) {
+                const input2 = document.getElementById('deckCodeArea2').value.trim(); if (!input2) { alert("プレイヤー2のデッキリストを入力してください。"); return; }
+                const cardCodes2 = input2.split('/').map(c => c.trim().toUpperCase()).filter(c => c.length > 0); if (cardCodes2.length !== 60) { alert(`プレイヤー2のデッキは60枚である必要があります。（現在: ${cardCodes2.length}枚）`); return; }
+                buildDeckData('B', cardCodes2); document.getElementById('tabB').style.display = 'inline-block';
+            } else { gameData.B = { deck: [], hand: [], trash: [], allCards: {} }; document.getElementById('tabB').style.display = 'none'; }
             document.getElementById('setup-screen').style.display = 'none'; document.getElementById('game-screen').style.display = 'block';
             switchPlayer('A'); runGameSetup('A'); if (chosenMode === 2) { runGameSetup('B'); }
         }
