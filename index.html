@@ -8,7 +8,14 @@
         * { touch-action: none; box-sizing: border-box; }
         body { margin: 0; background: #121212; color: #fff; font-family: sans-serif; overflow: hidden; }
         #setup-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100vw; height: 100vh; padding: 20px; background: #1a1a1a; position: absolute; top: 0; left: 0; z-index: 100; }
-        .main-title { font-size: 24px; font-weight: bold; letter-spacing: 2px; margin-bottom: 30px; text-align: center; }
+        .main-title { 
+            font-size: 56px;           /* 文字サイズを2倍以上に大きく */
+            font-weight: 900;          /* 圧倒的に太い最強のウェイトに */
+            letter-spacing: 10px;       /* 漢字が映える適度な余白 */
+            margin-bottom: 35px; 
+            text-align: center; 
+            text-shadow: 0 0 20px rgba(255,255,255,0.1); /* ほんのり高級感を出す光の演出 */
+        }
         .mode-select-row { display: flex; gap: 10px; margin-bottom: 30px; }
         .mode-btn { background: #333; color: #888; border: 1px solid #444; padding: 12px 24px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; }
         .mode-btn.active { background: #007aff; color: #fff; border-color: #007aff; }
