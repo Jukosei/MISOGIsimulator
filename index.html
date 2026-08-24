@@ -344,15 +344,27 @@
             document.getElementById(`hand${p}`).innerHTML = ''; document.getElementById(`field${p}`).innerHTML = ''; updateDeckCount(p); updateTrashCount(p);
         }
         function pressStart() {
-            const input1 = document.getElementById('deckCodeArea1').value.trim(); if (!input1) { alert("プレイヤー1のデッキリストを入力してください。"); return; }
-            const cardCodes = input.split('/').map(c => c.trim()).filter(c => c.length > 0);
-            if (chosenMode === 2) {
-                const input2 = document.getElementById('deckCodeArea2').value.trim(); if (!input2) { alert("プレイヤー2のデッキリストを入力してください。"); return; }
-                const cardCodes2 = input2.split('/').map(c => c.trim()).filter(c => c.length > 0);
-            } else { gameData.B = { deck: [], hand: [], trash: [], allCards: {} }; document.getElementById('tabB').style.display = 'none'; }
-            document.getElementById('setup-screen').style.display = 'none'; document.getElementById('game-screen').style.display = 'block';
-            switchPlayer('A'); runGameSetup('A'); if (chosenMode === 2) { runGameSetup('B'); }
-        }
+    // 【重要】この1行を関数の先頭に必ず追加してください！
+    const input = document.getElementById('deck-input');
+
+    // もし input が取得できなかったときのための安全ガード
+    if (!input) {
+        alert("入力エリアが見つかりません。");
+        return;
+    }
+
+    // これ以降の既存の処理（deckTextの取得など）
+    let deckText = input.value;
+    
+    // 以前お伝えした画面切り替え処理がここにあるか確認
+    document.getElementById('setup-screen').style.display = 'none';
+    document.getElementById('game-screen').style.display = 'grid'; // gridレイアウトに切り替え
+    
+    // 元々あったゲームセットアップの関数（もしあれば呼び出す）
+    if (typeof runGameSetup === "function") {
+        runGameSetup();
+    }
+}
         function switchPlayer(p) { currentPlayer = p; document.getElementById('boardA').classList.toggle('active', p === 'A'); document.getElementById('boardB').classList.toggle('active', p === 'B'); document.getElementById('tabA').classList.toggle('active', p === 'A'); document.getElementById('tabB').classList.toggle('active', p === 'B'); }
         function shuffleDeck(p) { let deck = gameData[p].deck; for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; } }
         function updateDeckCount(p) { document.getElementById(`deckPile${p}`).innerHTML = `山札:<br>${gameData[p].deck.length}枚`; }
