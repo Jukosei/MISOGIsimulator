@@ -18,7 +18,100 @@
         textarea { width: 100%; height: 140px; background: #252525; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 6px; font-size: 13px; line-height: 1.6; resize: none; word-break: break-all; }
         .clear-btn { background: #dc3545; color: #fff; border: none; padding: 12px 28px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 4px; align-self: flex-start; }
         .start-btn { background: #e11d48; color: #fff; border: none; width: 280px; padding: 18px; font-size: 20px; font-weight: bold; cursor: pointer; border-radius: 4px; margin: 20px auto 0 auto; text-align: center; box-shadow: 0 4px 16px rgba(225, 29, 72, 0.4); }
-        #game-screen { display: none; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; z-index: 10; background: #121212; }
+        /* 全体レイアウト：ゲーム画面を左75%、右25%のグリッドで分割 */
+#game-screen {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    height: 100vh;
+    width: 100vw;
+    background: #0c0c0e; /* より深い神椿の漆黒 */
+    color: #fff;
+    font-family: 'Orbitron', 'Noto Sans JP', sans-serif;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+/* メインプレイエリア（ステージ、Direction、手札を縦に並べる） */
+.main-play-area {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding-right: 10px;
+}
+
+/* 各ゾーンの共通コンテナ */
+.zone-container {
+    background: rgba(20, 20, 25, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05); /* 極細の枠線 */
+    border-radius: 6px;
+    padding: 10px;
+    position: relative;
+}
+
+/* タイトル（ステージ、Directionなどの文字） */
+.zone-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #666; /* 目立ちすぎないグレー */
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 4px;
+}
+
+/* カードを並べる列（ステージ、Direction用） */
+.field-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* 綺麗な5等分スロット */
+    gap: 10px;
+    min-height: 160px; /* カードの高さに合わせる */
+}
+
+/* カードの受け皿（点線の枠） */
+.pile {
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+.pile:hover {
+    border-color: #0070ff; /* ホバー時に神椿ブルーに光る */
+    background: rgba(0, 112, 255, 0.05);
+}
+
+/* チェンジなどの補助テキスト */
+.zone-sub-title {
+    font-size: 10px;
+    color: #444;
+}
+
+/* 手札エリア */
+.hand-zone {
+    display: flex;
+    gap: 8px;
+    min-height: 140px;
+    overflow-x: auto; /* 手札が増えたら横スクロール */
+    padding: 5px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+/* 右側サイドパネル（ボタンやカウンター） */
+.side-panel {
+    display: flex;
+    flex-direction: row; /* ボタン群とメーター群を横に並べる */
+    gap: 10px;
+    background: #121216;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    border-radius: 6px;
+}
+
         #top-bar { height: 50px; background: #222; display: flex; align-items: center; justify-content: space-around; padding: 5px; border-bottom: 2px solid #333; }
         #table { position: relative; height: calc(100vh - 50px); width: 100vw; }
         .player-board { position: absolute; width: 100%; height: 100%; display: none; flex-direction: column; padding: 10px; gap: 8px; }
