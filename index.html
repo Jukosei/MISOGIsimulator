@@ -20,10 +20,12 @@
         .start-btn { background: #e11d48; color: #fff; border: none; width: 280px; padding: 18px; font-size: 20px; font-weight: bold; cursor: pointer; border-radius: 4px; margin: 20px auto 0 auto; text-align: center; box-shadow: 0 4px 16px rgba(225, 29, 72, 0.4); }
         /* 全体レイアウト：ゲーム画面を左75%、右25%のグリッドで分割 */
 #game-screen {
-    display: grid;
-    grid-template-columns: 3fr 1fr;
+    #game-screen {
+    display: none; /* 最初は隠しておく */
+    grid-template-columns: 1fr 3fr;
     height: 100vh;
     width: 100vw;
+｝
     background: #0c0c0e; /* より深い神椿の漆黒 */
     color: #fff;
     font-family: 'Orbitron', 'Noto Sans JP', sans-serif;
@@ -113,21 +115,12 @@
 }
 
         #top-bar { height: 50px; background: #222; display: flex; align-items: center; justify-content: space-around; padding: 5px; border-bottom: 2px solid #333; }
-        #table { position: relative; height: calc(100vh - 50px); width: 100vw; }
         .player-board { position: absolute; width: 100%; height: 100%; display: none; flex-direction: column; padding: 10px; gap: 8px; }
         .player-board.active { display: flex; }
-        .zone-title {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.15em; /* 文字の間隔を大胆に広げる */
-    color: #888;
 }
-        .field-zone { background: rgba(255,255,255,0.03); border: 1px dashed #444; border-radius: 6px; padding: 5px; min-height: 240px; position: relative; }
         .hand-zone { background: #1a1a2e; border: 1px solid #335; border-radius: 6px; padding: 8px; height: 115px; display: flex; gap: 8px; overflow-x: auto; touch-action: pan-x; }
         .bottom-row { display: flex; gap: 10px; align-items: flex-end; }
         .pile-container { display: flex; flex-direction: column; gap: 5px; }
-        .pile { width: 64px; height: 90px; border: 2px dashed #555; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #aaa; background: #151515; text-align: center; position: relative; }
         #trashA, #trashB { border-color: #633; background: #221515; color: #f87171; }
         .card { width: 64px; height: 90px; background: #e0e0e0; color: #000; border-radius: 5px; position: absolute; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 4px; font-size: 9px; font-weight: bold; text-align: center; box-shadow: 2px 2px 6px rgba(0,0,0,0.5); user-select: none; z-index: 10; transition: transform 0.1s; }
         .hand-zone .card { position: relative; top: 0 !important; left: 0 !important; flex-shrink: 0; }
@@ -169,58 +162,164 @@
         </div>
         <button class="start-btn" onclick="pressStart()">ゲーム開始</button>
     </div>
-    <div id="game-screen">
-        <div id="top-bar">
-            <button id="tabA" class="system-btn active" onclick="switchPlayer('A')">プレイヤーA</button>
-            <button id="tabB" class="system-btn" onclick="switchPlayer('B')">プレイヤーB</button>
-            <button class="system-btn turn-end" onclick="endTurn()">ターン終了</button>
-            <button class="system-btn" onclick="backToMenu()" style="background:#555;">メニューに戻る</button>
-        </div>
-        <div id="table">
-            <div id="boardA" class="player-board active">
-                <div>
-                    <div class="zone-title">メインフィールド (カードを自由にドラッグして重ねてください)</div>
-                    <div id="fieldA" class="field-zone"></div>
-                </div>
-                <div class="bottom-row">
-                    <div class="pile-container">
-                        <div class="zone-title">トラッシュ</div>
-                        <div id="trashA" class="pile">トラッシュ<br>0枚</div>
-                    </div>
-                    <div class="pile-container">
-                        <div class="zone-title">山札</div>
-                        <div id="deckPileA" class="pile" onclick="drawCard('A')">山札:<br>0枚</div>
-                    </div>
-                    <div style="flex: 1;"><div class="zone-title">手札</div><div id="handA" class="hand-zone"></div></div>
-                </div>
-            </div>
-            <div id="boardB" class="player-board">
-                <div>
-                    <div class="zone-title">メインフィールド (カードを自由にドラッグして重ねてください)</div>
-                    <div id="fieldB" class="field-zone"></div>
-                </div>
-                <div class="bottom-row">
-                    <div class="pile-container">
-                        <div class="zone-title">トラッシュ</div>
-                        <div id="trashB" class="pile">トラッシュ<br>0枚</div>
-                    </div>
-                    <div class="pile-container">
-                        <div class="zone-title">山札</div>
-                        <div id="deckPileB" class="pile" onclick="drawCard('B')">山札:<br>0枚</div>
-                    </div>
-                    <div style="flex: 1;"><div class="zone-title">手札</div><div id="handB" class="hand-zone"></div></div>
-                </div>
-            </div>
-        </div>
+      <!-- ここから新しい対戦画面（#game-screen） -->
+    <!-- 172行目のここから差し替え -->
+  <div id="game-screen">
+    
+    <!-- 画面上部の操作バー（プレイヤーの画面切り替え用） -->
+    <div id="top-bar">
+      <button id="tabA" class="system-btn active" onclick="switchPlayer('A')">プレイヤーA</button>
+      <button id="tabB" class="system-btn" onclick="switchPlayer('B')">プレイヤーB</button>
+      <button class="system-btn" onclick="backToMenu()" style="background:#555;">メニューに戻る</button>
     </div>
+
+    <!-- ===== プレイヤーAの盤面 ===== -->
+    <div id="boardA" class="player-board active" style="display: grid; grid-template-columns: 3fr 1fr; width: 100%; height: calc(100vh - 50px);">
+      <!-- 左側：メインプレイエリア -->
+      <div class="main-play-area">
+        <!-- 1. ステージエリア -->
+        <div class="zone-container">
+          <div class="zone-title">ステージ</div>
+          <div class="field-row" id="fieldA-stage">
+            <div class="pile" id="stageA-slot-1"><span class="zone-sub-title">チェンジ</span></div>
+            <div class="pile" id="stageA-slot-2"><span class="zone-sub-title">チェンジ</span></div>
+            <div class="pile" id="stageA-slot-3"><span class="zone-sub-title">チェンジ</span></div>
+            <div class="pile" id="stageA-slot-4"><span class="zone-sub-title">チェンジ</span></div>
+            <div class="pile" id="stageA-slot-5"><span class="zone-sub-title">チェンジ</span></div>
+          </div>
+        </div>
+        <!-- 2. Directionエリア -->
+        <div class="zone-container">
+          <div class="zone-title">Direction</div>
+          <div class="field-row" id="fieldA-direction">
+            <div class="pile" id="directionA-slot-1"></div>
+            <div class="pile" id="directionA-slot-2"></div>
+            <div class="pile" id="directionA-slot-3"></div>
+            <div class="pile" id="directionA-slot-4"></div>
+            <div class="pile" id="directionA-slot-5"></div>
+          </div>
+        </div>
+        <!-- 5. 手札エリア -->
+        <div class="zone-container">
+          <div class="zone-title">手札</div>
+          <div id="handA" class="hand-zone"></div>
+        </div>
+      </div>
+      <!-- 右側：サイドパネル -->
+      <div class="side-panel">
+        <div class="system-menu-block">
+          <button class="system-btn" onclick="searchVolNoise('A')">VOL.ノイズからサーチ</button>
+          <button class="system-btn" onclick="trashAllHand('A')">手札を全てトラッシュ</button>
+          <button class="system-btn" onclick="mulliganProcess('A')">マリガン</button>
+          <button class="system-btn" onclick="resetGame()">リセット</button>
+          <button class="system-btn turn-end" onclick="endTurn('A')">ターン終了</button>
+          <button class="system-btn" onclick="rollDice('A')">ダイスを振る</button>
+          <button class="system-btn" onclick="drawCard('A')">山札の下から1枚ドロー</button>
+          <button class="system-btn" onclick="sortHand('A')">ソート</button>
+        </div>
+        <div class="deck-count-display">
+          <div class="count-box" id="deckPileA" onclick="drawCard('A')">山札:<br>0枚</div>
+          <div class="count-box" id="trashA" style="margin-top: 10px; border-color: #f87171;">トラッシュ:<br>0枚</div>
+        </div>
+        <div class="vol-noise-counter-rack">
+          <div class="counter-item">
+            <div class="counter-icon">VOL</div>
+            <div class="counter-controls">
+              <button class="count-btn" onclick="adjustCounter('A', 'vol', -1)">-</button>
+              <span class="count-value" id="counterA-vol">0</span>
+              <button class="count-btn" onclick="adjustCounter('A', 'vol', 1)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== プレイヤーBの盤面 ===== -->
+    <div id="boardB" class="player-board" style="display: none; grid-template-columns: 3fr 1fr; width: 100%; height: calc(100vh - 50px);">
+      <!-- 左側：メインプレイエリア -->
+      <div class="main-play-area">
+        <!-- 1. ステージエリア -->
+        <div class="zone-container">
+          <div class="zone-title">ステージ</div>
+          <div class="field-row" id="fieldB-stage">
+            <div class="pile" id="stageB-slot-1"><span class="zone-sub-title">チェンジ</span></div>
+            <div class="pile" id="stageB-slot-2"><span class="zone-sub-title">チェンジ</span></div>
+            <div class="pile" id="stageB-slot-3"><span class="zone-sub-title">チェンジ</span></div>
+            <div class="pile" id="stageB-slot-4"><span class="zone-sub-title">チェンジ</span></div>
+            <div class="pile" id="stageB-slot-5"><span class="zone-sub-title">チェンジ</span></div>
+          </div>
+        </div>
+        <!-- 2. Directionエリア -->
+        <div class="zone-container">
+          <div class="zone-title">Direction</div>
+          <div class="field-row" id="fieldB-direction">
+            <div class="pile" id="directionB-slot-1"></div>
+            <div class="pile" id="directionB-slot-2"></div>
+            <div class="pile" id="directionB-slot-3"></div>
+            <div class="pile" id="directionB-slot-4"></div>
+            <div class="pile" id="directionB-slot-5"></div>
+          </div>
+        </div>
+        <!-- 5. 手札エリア -->
+        <div class="zone-container">
+          <div class="zone-title">手札</div>
+          <div id="handB" class="hand-zone"></div>
+        </div>
+      </div>
+      <!-- 右側：サイドパネル -->
+      <div class="side-panel">
+        <div class="system-menu-block">
+          <button class="system-btn" onclick="searchVolNoise('B')">VOL.ノイズからサーチ</button>
+          <button class="system-btn" onclick="trashAllHand('B')">手札を全てトラッシュ</button>
+          <button class="system-btn" onclick="mulliganProcess('B')">マリガン</button>
+          <button class="system-btn" onclick="resetGame()">リセット</button>
+          <button class="system-btn turn-end" onclick="endTurn('B')">ターン終了</button>
+          <button class="system-btn" onclick="rollDice('B')">ダイスを振る</button>
+          <button class="system-btn" onclick="drawCard('B')">山札の下から1枚ドロー</button>
+          <button class="system-btn" onclick="sortHand('B')">ソート</button>
+        </div>
+        <div class="deck-count-display">
+          <div class="count-box" id="deckPileB" onclick="drawCard('B')">山札:<br>0枚</div>
+          <div class="count-box" id="trashB" style="margin-top: 10px; border-color: #f87171;">トラッシュ:<br>0枚</div>
+        </div>
+        <div class="vol-noise-counter-rack">
+          <div class="counter-item">
+            <div class="counter-icon">VOL</div>
+            <div class="counter-controls">
+              <button class="count-btn" onclick="adjustCounter('B', 'vol', -1)">-</button>
+              <span class="count-value" id="counterB-vol">0</span>
+              <button class="count-btn" onclick="adjustCounter('B', 'vol', 1)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- 215行目：#game-screen の閉じタグ -->
     <script>
         let chosenMode = 1; let currentPlayer = 'A';
         let gameData = { A: { deck: [], hand: [], trash: [], allCards: {} }, B: { deck: [], hand: [], trash: [], allCards: {} } };
         function toggleModeSelection(mode) {
-            chosenMode = mode; document.getElementById('mode1').classList.toggle('active', mode === 1); document.getElementById('mode2').classList.toggle('active', mode === 2);
-            const p2Block = document.getElementById('player2-input-block'); const p1Label = document.getElementById('label-deck1');
-            if (mode === 2) { p2Block.style.display = 'flex'; p1Label.innerText = 'プレイヤー1のデッキ'; } else { p2Block.style.display = 'none'; p1Label.innerText = 'デッキリストを / 区切りで入力してください'; }
-        }
+    chosenMode = mode;
+    
+    // ボタンのアクティブクラス切り替え
+    const m1 = document.getElementById('mode1');
+    const m2 = document.getElementById('mode2');
+    if (m1) m1.classList.toggle('active', mode === 1);
+    if (m2) m2.classList.toggle('active', mode === 2);
+    
+    // プレイヤー2の入力ブロックとプレイヤー1のラベルを取得
+    const p2Block = document.getElementById('player2-input-block');
+    const p1Label = document.getElementById('label-deck1');
+    
+    // エラーを防ぐための安全ガード付き切り替え処理
+    if (p2Block) {
+        p2Block.style.display = (mode === 2) ? 'flex' : 'none';
+    }
+    if (p1Label) {
+        p1Label.innerText = (mode === 2) ? 'プレイヤー1のデッキ' : 'デッキリストを / 区切りで入力してください';
+    }
+}
         function clearText(targetNum) { document.getElementById(`deckCodeArea${targetNum}`).value = ''; }
         function backToMenu() { document.getElementById('game-screen').style.display = 'none'; document.getElementById('setup-screen').style.display = 'flex'; }
         function parseCardCode(code) {
@@ -305,6 +404,17 @@
             function dragMove(e) { e.preventDefault(); const clientX = e.type === 'touchmove' ? e.touches.clientX : e.clientX; const clientY = e.type === 'touchmove' ? e.touches.clientY : e.clientY; el.style.left = (initialX + (clientX - startX)) + 'px'; el.style.top = (initialY + (clientY - startY)) + 'px'; }
             function dragEnd() { document.removeEventListener('mousemove', dragMove); document.removeEventListener('mouseup', dragEnd); document.removeEventListener('touchmove', dragMove); document.removeEventListener('touchend', dragEnd); }
         }
+        // VOLノイズカウンターの数値を増減させる関数
+       function adjustCounter(player, type, amount) {
+            const targetId = `counter${player}-${type}`;
+            const element = document.getElementById(targetId);
+       if (element) {
+            let currentVal = parseInt(element.innerText) || 0;
+            let newVal = currentVal + amount;
+            if (newVal < 0) newVal = 0; // マイナスにならないようにガード
+            element.innerText = newVal;
+    }
+}
     </script>
 </body>
 </html>
