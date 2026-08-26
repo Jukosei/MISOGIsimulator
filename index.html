@@ -48,14 +48,16 @@
             margin: 0 auto;
         }
 
+        /* 「禊」の文字を大きく表示するスタイル */
         h1 {
-            font-size: 1.8rem;
-            margin-bottom: 20px;
+            font-size: 3.5rem;
+            margin-bottom: 25px;
             text-align: center;
-            letter-spacing: 2px;
+            letter-spacing: 6px;
             border-bottom: 2px solid var(--accent-color);
             padding-bottom: 10px;
             width: 100%;
+            font-weight: 900;
         }
 
         .form-group {
@@ -71,7 +73,7 @@
         }
         textarea {
             width: 100%;
-            height: 180px;
+            height: 120px;
             background-color: var(--card-bg);
             border: 1px solid #444;
             border-radius: 6px;
@@ -101,13 +103,6 @@
             cursor: pointer;
             transition: opacity 0.2s;
             margin-top: 10px;
-        }
-
-        .btn-secondary {
-            background-color: #444;
-            font-size: 0.85rem;
-            padding: 8px;
-            margin-bottom: 10px;
         }
 
         #game-screen {
@@ -143,7 +138,7 @@
             border: 1px dashed #444;
             border-radius: 8px;
             padding: 10px;
-            min-height: 120px;
+            min-height: 140px;
         }
 
         .zone-title {
@@ -170,24 +165,46 @@
             gap: 8px;
             overflow-x: auto;
             padding-bottom: 5px;
-            min-height: 105px;
+            min-height: 120px;
         }
 
         .card {
             width: 75px;
-            height: 105px;
+            height: 112px;
             background-color: #2a2a30;
             border-radius: 6px;
             border: 2px solid #666;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 6px;
-            font-size: 0.7rem;
             cursor: pointer;
             user-select: none;
             position: relative;
             flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .card-info-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0; left: 0;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 4px;
+            background: rgba(0,0,0,0.3);
         }
 
         .card.A { border-color: var(--artist-color); }
@@ -196,12 +213,13 @@
         .card.D { border-color: var(--direction-color); }
 
         .card-type-tag {
-            font-size: 0.55rem;
+            font-size: 0.5rem;
             padding: 1px 3px;
             border-radius: 3px;
             color: #fff;
             text-align: center;
             font-weight: bold;
+            align-self: flex-start;
         }
         .card.A .card-type-tag { background-color: var(--artist-color); }
         .card.S .card-type-tag { background-color: var(--song-color); }
@@ -210,17 +228,18 @@
 
         .card.standby {
             transform: rotate(90deg);
-            margin: 0 15px;
+            margin: 0 18px;
         }
 
         .card-status {
             position: absolute;
             bottom: 2px;
             right: 2px;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.8);
             padding: 1px 3px;
             border-radius: 3px;
-            font-size: 0.55rem;
+            font-size: 0.5rem;
+            z-index: 3;
         }
 
         .modal {
@@ -278,14 +297,16 @@
 </head>
 <body>
 
+    <!-- 1. メニュー画面 -->
     <div id="menu-screen" class="screen active">
-        <h1>神椿カードゲーム SIM</h1>
-        <button type="button" class="btn btn-secondary" onclick="generateSampleDeck()">サンプルデッキコードを自動入力</button>
+        <h1>禊</h1>
+        
         <div class="form-group">
-            <label for="deck-code">デッキコード (60行 / 1行に1枚)</label>
-            <textarea id="deck-code" placeholder="例:&#10;AA-A01&#10;AA-S02"></textarea>
+            <label for="deck-code">デッキコード (スラッシュ「/」区切り または 改行区切り)</label>
+            <textarea id="deck-code" placeholder="例: GA-13/GA-13/DA-34/JS-40/exD-1..."></textarea>
             <div id="deck-count" style="font-size: 0.8rem; color: #888; text-align: right;">0 / 60 枚</div>
         </div>
+
         <div class="form-group">
             <label>対戦の手番</label>
             <div class="radio-group">
@@ -293,9 +314,11 @@
                 <label><input type="radio" name="turn-order" value="second"> 後攻</label>
             </div>
         </div>
+
         <button class="btn" onclick="startGame()">対戦開始</button>
     </div>
 
+    <!-- 2. 対戦画面 -->
     <div id="game-screen" class="screen">
         <div class="info-bar">
             <div>ターン: <span id="turn-count">1</span> (<span id="player-order-display">先攻</span>)</div>
@@ -345,40 +368,54 @@
         };
         let selectedCardInfo = null;
 
+        // デッキコードの入力監視（スラッシュと改行の両方に対応して枚数をカウント）
         document.getElementById('deck-code').addEventListener('input', function() {
-            const lines = this.value.split('\n').filter(line => line.trim() !== '');
-            document.getElementById('deck-count').innerText = `${lines.length} / 60 枚`;
+            const rawText = this.value;
+            // スラッシュ、または改行で分割する
+            const cards = rawText.split(/[\/\n]/).map(c => c.trim()).filter(c => c !== '');
+            document.getElementById('deck-count').innerText = `${cards.length} / 60 枚`;
         });
 
-        function generateSampleDeck() {
-            let sample = [];
-            for(let i=1; i<=20; i++) sample.push(`AA-A${String(i).padStart(2, '0')}`); 
-            for(let i=1; i<=20; i++) sample.push(`AA-S${String(i).padStart(2, '0')}`); 
-            for(let i=1; i<=10; i++) sample.push(`ex-M${String(i).padStart(2, '0')}`); 
-            for(let i=1; i<=10; i++) sample.push(`ex-D${String(i).padStart(2, '0')}`); 
-            document.getElementById('deck-code').value = sample.join('\n');
-            document.getElementById('deck-count').innerText = `60 / 60 枚`;
-        }
-
+        // カードコードからカード種類と画像のファイルパスを自動判別
         function parseCardCode(code) {
             const cleanCode = code.trim();
             const parts = cleanCode.split('-');
-            let typeChar = 'M';
+            let typeChar = 'M'; // 見つからない場合はデフォルトでMagic
+            
             if (parts.length >= 2) {
-                const targetPart = parts[1];
-                typeChar = targetPart.charAt(0).toUpperCase();
+                // ハイフンの右側（例: A13、S15、exD-1の場合はexDの次の1文字など）を取得
+                // ハイフンで区切られた後半パーツの「最初の1文字」をカードの種類（A, S, M, D）とする
+                const rightPart = parts[1];
+                if (rightPart && rightPart.length > 0) {
+                    typeChar = rightPart.charAt(0).toUpperCase();
+                }
+            } else {
+                // ハイフンがないコードや、exD-1 のように特殊な場合の予備判定
+                if (cleanCode.includes('A')) typeChar = 'A';
+                else if (cleanCode.includes('S')) typeChar = 'S';
+                else if (cleanCode.includes('D')) typeChar = 'D';
             }
+            
             const typeMap = { 'A': 'A', 'S': 'S', 'M': 'M', 'D': 'D' };
-            return { code: cleanCode, type: typeMap[typeChar] || 'M' };
+            const imagePath = `images/${cleanCode}.png`;
+
+            return { 
+                code: cleanCode, 
+                type: typeMap[typeChar] || 'M',
+                img: imagePath
+            };
         }
 
         function startGame() {
             const codeText = document.getElementById('deck-code').value;
-            const lines = codeText.split('\n').filter(line => line.trim() !== '');
+            // スラッシュまたは改行でデッキコードを分解
+            const lines = codeText.split(/[\/\n]/).map(line => line.trim()).filter(line => line !== '');
+            
             if (lines.length !== 60) {
-                alert(`枚数が60枚ではありません。（現在: ${lines.length}枚）`);
+                alert(`枚数が60枚ではありません。（現在: ${lines.length}枚）\n60枚ちょうどにしてから開始してください。`);
                 return;
             }
+            
             gameState.deck = lines.map(line => parseCardCode(line));
             gameState.hand = []; gameState.stage = []; gameState.field = []; gameState.trash = [];
             gameState.turn = 1;
@@ -470,6 +507,8 @@
                 if (item.attachedSongs.length > 0) {
                     const songListText = document.createElement('div');
                     songListText.style.fontSize = '0.55rem'; songListText.style.color = 'var(--song-color)';
+                    songListText.style.background = 'rgba(0,0,0,0.8)';
+                    songListText.style.padding = '2px';
                     songListText.innerText = '♪ ' + item.attachedSongs.map(s => s.code).join(', ');
                     cardDom.appendChild(songListText);
                 }
@@ -484,13 +523,26 @@
             const cardDiv = document.createElement('div');
             cardDiv.className = `card ${card.type}`;
             if (status === 'Standby') cardDiv.classList.add('standby');
+            
             const typeNames = { 'A': 'ARTIST', 'S': 'SONG', 'M': 'MAGIC', 'D': 'DIRECTION' };
-            cardDiv.innerHTML = `<div style="font-weight:bold;">${card.code}</div><div class="card-type-tag">${typeNames[card.type]}</div>`;
+            
+            const imgEl = document.createElement('img');
+            imgEl.src = card.img;
+            imgEl.className = 'card-img';
+            imgEl.onerror = () => { imgEl.style.display = 'none'; };
+            cardDiv.appendChild(imgEl);
+
+            const overlay = document.createElement('div');
+            overlay.className = 'card-info-overlay';
+            overlay.innerHTML = `<div style="font-weight:bold; font-size:0.6rem; background:rgba(0,0,0,0.6); padding:1px 2px; border-radius:2px;">${card.code}</div><div class="card-type-tag">${typeNames[card.type]}</div>`;
+            cardDiv.appendChild(overlay);
+
             if (zone === 'stage') {
                 const statusTag = document.createElement('div');
                 statusTag.className = 'card-status'; statusTag.innerText = status === 'Active' ? 'Act' : 'Sby';
                 cardDiv.appendChild(statusTag);
             }
+            
             cardDiv.onclick = () => handleCardClick(zone, index, card, status);
             return cardDiv;
         }
