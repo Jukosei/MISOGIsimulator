@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>禊シミュレーター</title>
+    <title>神椿カードゲーム シミュレーター</title>
     <style>
         :root {
             --bg-color: #121214;
@@ -30,7 +30,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* 画面共通 */
         .screen {
             display: none;
             min-height: 100vh;
@@ -42,7 +41,6 @@
             flex-direction: column;
         }
 
-        /* メニュー画面 */
         #menu-screen {
             justify-content: center;
             align-items: center;
@@ -71,7 +69,6 @@
             font-weight: bold;
             font-size: 0.9rem;
         }
-
         textarea {
             width: 100%;
             height: 180px;
@@ -113,17 +110,11 @@
             margin-bottom: 10px;
         }
 
-        .btn:hover {
-            opacity: 0.9;
-        }
-
-        /* 対戦画面 */
         #game-screen {
             padding: 10px;
             gap: 10px;
         }
 
-        /* 上部インフォバー */
         .info-bar {
             display: flex;
             justify-content: space-between;
@@ -139,7 +130,6 @@
             color: var(--accent-color);
         }
 
-        /* フィールド（メインエリア） */
         .battlefield {
             flex: 1;
             display: grid;
@@ -169,7 +159,6 @@
             gap: 10px;
         }
 
-        /* 手札エリア */
         .hand-container {
             background-color: var(--card-bg);
             border-radius: 8px;
@@ -184,7 +173,6 @@
             min-height: 105px;
         }
 
-        /* カードコンポーネント */
         .card {
             width: 75px;
             height: 105px;
@@ -200,7 +188,6 @@
             user-select: none;
             position: relative;
             flex-shrink: 0;
-            transition: transform 0.2s;
         }
 
         .card.A { border-color: var(--artist-color); }
@@ -221,10 +208,9 @@
         .card.M .card-type-tag { background-color: var(--magic-color); }
         .card.D .card-type-tag { background-color: var(--direction-color); }
 
-        /* 横向き（Standby状態用） */
         .card.standby {
             transform: rotate(90deg);
-            margin: 0 15px; /* 回転時の重なりを防ぐ隙間 */
+            margin: 0 15px;
         }
 
         .card-status {
@@ -237,7 +223,6 @@
             font-size: 0.55rem;
         }
 
-        /* モーダル（マリガン・アクションメニュー） */
         .modal {
             display: none;
             position: fixed;
@@ -260,11 +245,6 @@
             text-align: center;
         }
 
-        .modal-title {
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-        }
-
         .menu-btn {
             display: block;
             width: 100%;
@@ -281,39 +261,31 @@
         .menu-btn:hover { background: #3a3a42; }
         .menu-btn.cancel { background: #555; text-align: center; margin-top: 10px;}
 
-        /* レスポンシブ設計（PCレイアウト） */
         @media (min-width: 768px) {
             #game-screen {
                 display: grid;
                 grid-template-columns: 250px 1fr;
                 grid-template-rows: auto 1fr auto;
                 height: 100vh;
-                max-height: 100vh;
             }
             .info-bar { grid-column: 1 / span 2; }
             .sidebar { grid-column: 1; background: var(--card-bg); padding: 15px; border-radius: 8px; display: flex; flex-direction: column; gap: 15px;}
             .battlefield { grid-column: 2; grid-template-rows: 1fr 1fr; height: 100%; margin: 0;}
             .hand-container { grid-column: 1 / span 2; }
             #hand { overflow-x: visible; flex-wrap: wrap; }
-            .card:hover { transform: translateY(-10px); }
-            .card.standby:hover { transform: rotate(90deg) translateX(10px); }
         }
     </style>
 </head>
 <body>
 
-    <!-- 1. メニュー画面 -->
     <div id="menu-screen" class="screen active">
         <h1>神椿カードゲーム SIM</h1>
-        
         <button type="button" class="btn btn-secondary" onclick="generateSampleDeck()">サンプルデッキコードを自動入力</button>
-
         <div class="form-group">
-            <label for="deck-code">デッキコード (60行 / 1行に1つのカードコード)</label>
-            <textarea id="deck-code" placeholder="例:&#10;AA-A01&#10;AA-S02&#10;ex-M01&#10;ex-D02"></textarea>
-            <div id="deck-count" style="font-size: 0.8rem; color: #888; margin-top: 5px; text-align: right;">0 / 60 枚</div>
+            <label for="deck-code">デッキコード (60行 / 1行に1枚)</label>
+            <textarea id="deck-code" placeholder="例:&#10;AA-A01&#10;AA-S02"></textarea>
+            <div id="deck-count" style="font-size: 0.8rem; color: #888; text-align: right;">0 / 60 枚</div>
         </div>
-
         <div class="form-group">
             <label>対戦の手番</label>
             <div class="radio-group">
@@ -321,375 +293,258 @@
                 <label><input type="radio" name="turn-order" value="second"> 後攻</label>
             </div>
         </div>
-
         <button class="btn" onclick="startGame()">対戦開始</button>
     </div>
 
-    <!-- 2. 対戦画面 -->
     <div id="game-screen" class="screen">
-        <!-- 上部バー -->
         <div class="info-bar">
             <div>ターン: <span id="turn-count">1</span> (<span id="player-order-display">先攻</span>)</div>
             <div class="phase-indicator">フェーズ: <span id="current-phase">ドロー</span></div>
-            <button class="btn" id="next-phase-btn" onclick="nextPhase()" style="width: auto; margin: 0; padding: 6px 12px; font-size: 0.8rem;">次のフェーズへ</button>
+            <button class="btn" id="next-phase-btn" onclick="nextPhase()" style="width: auto; margin:0; padding:6px 12px; font-size:0.8rem;">次のフェーズへ</button>
         </div>
-
-        <!-- PC用サイドバー（スマホ時は非表示推奨だが簡易配置） -->
-        <div class="sidebar" id="game-sidebar">
+        <div class="sidebar">
             <div>山札残り: <span id="deck-left">53</span> 枚</div>
             <div>トラッシュ: <span id="trash-count">0</span> 枚</div>
         </div>
-
-        <!-- バトルフィールド -->
         <div class="battlefield">
-ステージ (Artist / Song)
-          フィールド (Direction / Magic)
+            <div class="zone" id="stage-zone">
+                <div class="zone-title">ステージ (Artist / Song)</div>
+                <div class="card-row" id="stage-row"></div>
+            </div>
+            <div class="zone" id="field-zone">
+                <div class="zone-title">フィールド (Direction / Magic)</div>
+                <div class="card-row" id="field-row"></div>
+            </div>
+        </div>
+        <div class="hand-container">
+            <div class="zone-title">手札 (<span id="hand-count">0</span>枚)</div>
+            <div id="hand"></div>
+        </div>
+    </div>
 
-          手札 (0枚)初期手札（7枚）が配られました。マリガン（引き直し）をしますか？
-          
-          ※すべての手札をデッキに戻してシャッフルし、再度7枚引き直します。
-          
-          マリガンする
-          
-          このまま開始（キープ）
-          
-          カード名
-          
-          閉じる
+    <div id="mulligan-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">マリガン（引き直し）をしますか？</div>
+            <button class="btn" onclick="executeMulligan(true)" style="background:#333; margin-bottom:10px;">マリガンする</button>
+            <button class="btn" onclick="executeMulligan(false)">このまま開始</button>
+        </div>
+    </div>
 
-          // ゲーム状態の管理オブジェクト
-          let gameState = {
-          deck: [],
-          hand: [],
-          stage: [], // { card, status: 'Active'|'Standby', attachedSongs: [] }
-          field: [], // Direction用など
-          trash: [],
-          turn: 1,
-          isFirstPlayer: true,phaseIndex: 0, // 0: ドロー, 1: アクト, 2: エンド
-          phases: ['ドロー', 'アクト', 'エンド']
-          };
+    <div id="action-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title" id="action-card-title">カード名</div>
+            <div id="action-buttons-container"></div>
+            <button class="menu-btn cancel" onclick="closeActionModal()">閉じる</button>
+        </div>
+    </div>
+    <script>
+        let gameState = {
+            deck: [], hand: [], stage: [], field: [], trash: [],
+            turn: 1, isFirstPlayer: true, phaseIndex: 0,
+            phases: ['ドロー', 'アクト', 'エンド']
+        };
+        let selectedCardInfo = null;
 
-          // カード選択時の一時保持
-          let selectedCardInfo = null;
+        document.getElementById('deck-code').addEventListener('input', function() {
+            const lines = this.value.split('\n').filter(line => line.trim() !== '');
+            document.getElementById('deck-count').innerText = `${lines.length} / 60 枚`;
+        });
 
-          // デッキコードの枚数カウンター監視
-          document.getElementById('deck-code').addEventListener('input', function() {
-          const lines = this.value.split('\n').filter(line => line.trim() !== '');
-          document.getElementById('deck-count').innerText = ${lines.length} / 60 枚;
-          });
+        function generateSampleDeck() {
+            let sample = [];
+            for(let i=1; i<=20; i++) sample.push(`AA-A${String(i).padStart(2, '0')}`); 
+            for(let i=1; i<=20; i++) sample.push(`AA-S${String(i).padStart(2, '0')}`); 
+            for(let i=1; i<=10; i++) sample.push(`ex-M${String(i).padStart(2, '0')}`); 
+            for(let i=1; i<=10; i++) sample.push(`ex-D${String(i).padStart(2, '0')}`); 
+            document.getElementById('deck-code').value = sample.join('\n');
+            document.getElementById('deck-count').innerText = `60 / 60 枚`;
+        }
 
-          // カードコードの解析処理 (英字-数字)
-          function parseCardCode(code) {
-          const cleanCode = code.trim();
-          const parts = cleanCode.split('-');
-          if (parts.length !== 2) return { code: cleanCode, type: 'M', pack: '?' }; // 不正な形は暫定
-          Magic
-
-          const prefix = parts[1].charAt(0).toUpperCase(); // ハイフン直後の1文字
-          const typeMap = { 'A': 'A', 'S': 'S', 'M': 'M', 'D': 'D' };
-
-          return {
-          code: cleanCode,
-          type: typeMap[prefix] || 'M', // A, S, M, D を判別
-          pack: parts[0]
-          };
-          }
-
-          // ゲーム開始処理
-          function startGame() {
-          const codeText = document.getElementById('deck-code').value;
-          const lines = codeText.split('\n').filter(line => line.trim() !== '');
-
-          if (lines.length !== 60) {
-          alert(デッキ枚数が60枚ではありません。（現在: ${lines.length}枚）\n60行にしてから開始してください。);
-          return;
-          }
-
-          // 初期化
-          gameState.deck = lines.map(line => parseCardCode(line));
-          gameState.hand = [];
-          gameState.stage = [];
-          gameState.field = [];
-          gameState.trash = [];
-          gameState.turn = 1;
-          gameState.isFirstPlayer = document.querySelector('input[name="turn-order"]:checked').value === 'first';
-
-          // 画面切り替え
-          document.getElementById('menu-screen').classList.remove('active');
-          document.getElementById('game-screen').classList.add('active');
-          document.getElementById('player-order-display').innerText = gameState.isFirstPlayer ? "先攻" : "後攻";
-
-          // シャッフルして7枚引く
-          shuffle(gameState.deck);
-          drawCards(7);
-          
-          // マリガンモーダルオープン
-          openModal('mulligan-modal');
-          renderGame();
-          }
-
-          // 配列シャッフル
-          function shuffle(array) {
-          for (let i = array.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [array[i], array[j]] = [array[j], array[i]];
-          }
-          }
-
-          // カードドロー
-          function drawCards(count) {
-          for (let i = 0; i < count; i++) {
-                              if (gameState.deck.length > 0) {
-            gameState.hand.push(gameState.deck.pop());
+        function parseCardCode(code) {
+            const cleanCode = code.trim();
+            const parts = cleanCode.split('-');
+            let typeChar = 'M';
+            if (parts.length >= 2) {
+                const targetPart = parts[1];
+                typeChar = targetPart.charAt(0).toUpperCase();
             }
-            }
-            }
+            const typeMap = { 'A': 'A', 'S': 'S', 'M': 'M', 'D': 'D' };
+            return { code: cleanCode, type: typeMap[typeChar] || 'M' };
+        }
 
-            // マリガンの実行
-            function executeMulligan(wantMulligan) {
+        function startGame() {
+            const codeText = document.getElementById('deck-code').value;
+            const lines = codeText.split('\n').filter(line => line.trim() !== '');
+            if (lines.length !== 60) {
+                alert(`枚数が60枚ではありません。（現在: ${lines.length}枚）`);
+                return;
+            }
+            gameState.deck = lines.map(line => parseCardCode(line));
+            gameState.hand = []; gameState.stage = []; gameState.field = []; gameState.trash = [];
+            gameState.turn = 1;
+            gameState.isFirstPlayer = document.querySelector('input[name="turn-order"]:checked').value === 'first';
+            
+            document.getElementById('menu-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            document.getElementById('player-order-display').innerText = gameState.isFirstPlayer ? "先攻" : "後攻";
+            shuffle(gameState.deck);
+            drawCards(7);
+            openModal('mulligan-modal');
+            renderGame();
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function drawCards(count) {
+            for (let i = 0; i < count; i++) {
+                if (gameState.deck.length > 0) gameState.hand.push(gameState.deck.pop());
+            }
+        }
+
+        function executeMulligan(wantMulligan) {
             closeModal('mulligan-modal');
             if (wantMulligan) {
-            // 手札を戻してシャッフルして引き直し
-            gameState.deck.push(...gameState.hand);
-            gameState.hand = [];
-            shuffle(gameState.deck);
-            drawCards(7);renderGame();
+                gameState.deck.push(...gameState.hand);
+                gameState.hand = [];
+                shuffle(gameState.deck);
+                drawCards(7);
+                renderGame();
             }
-            // 1ターン目のドローフェーズ開始
             startDrawPhase();
-            }
-
-            // ドローフェーズの自動処理
-            function startDrawPhase() {
+        }
+        function startDrawPhase() {
             gameState.phaseIndex = 0;
             updatePhaseDisplay();
-
-            // ルール：先攻の1ターン目はドローしない
             if (gameState.turn === 1 && gameState.isFirstPlayer) {
-            alert("先攻1ターン目のため、ドローフェーズのドローはスキップされます。");
+                alert("先攻1ターン目のためドローはスキップされます。");
             } else {
-            drawCards(1);
-            }renderGame();
+                drawCards(1);
             }
+            renderGame();
+        }
 
-            // フェーズ変更管理
-            function nextPhase() {
-            gameState.phaseIndex++;if (gameState.phaseIndex >= gameState.phases.length) {
-            // エンドフェーズ処理を実行して次のターンへ
-            runEndPhaseLogic();
-            gameState.turn++;startDrawPhase();
-            return;
+        function nextPhase() {
+            gameState.phaseIndex++;
+            if (gameState.phaseIndex >= gameState.phases.length) {
+                runEndPhaseLogic();
+                gameState.turn++;
+                startDrawPhase();
+                return;
             }
             updatePhaseDisplay();
-            }
+        }
 
-            function updatePhaseDisplay() {
+        function updatePhaseDisplay() {
             document.getElementById('current-phase').innerText = gameState.phases[gameState.phaseIndex];
-            const nextBtn = document.getElementById('next-phase-btn');
-            if (gameState.phaseIndex === 2) {nextBtn.innerText = "ターン終了 (次ターンへ)";
-            }else{
-            nextBtn.innerText = "次のフェーズへ";
-            }
-            }
+            document.getElementById('next-phase-btn').innerText = gameState.phaseIndex === 2 ? "ターン終了" : "次のフェーズへ";
+        }
 
-            // エンドフェーズの自動処理ルール
-            function runEndPhaseLogic() {
-            alert("エンドフェーズ：使用されたSongカードをトラッシュし、Standby状態のArtistをActiveに戻します。");
-
-            // 1. Artistが使用した(装備した)Songカードをすべてトラッシュへ
+        function runEndPhaseLogic() {
             gameState.stage.forEach(artistObj => {
-            if (artistObj.attachedSongs && artistObj.attachedSongs.length > 0) {
-            gameState.trash.push(...artistObj.attachedSongs);
-            artistObj.attachedSongs = [];
-            }
-            // 2. Standby状態のArtistをすべてActiveにする
-            if (artistObj.status === 'Standby') {
-            artistObj.status = 'Active';
-            }
+                if (artistObj.attachedSongs && artistObj.attachedSongs.length > 0) {
+                    gameState.trash.push(...artistObj.attachedSongs);
+                    artistObj.attachedSongs = [];
+                }
+                if (artistObj.status === 'Standby') artistObj.status = 'Active';
             });
-
             renderGame();
-            }
+        }
 
-            // UI描画
-            function renderGame() {
-            // カウンター系
+        function renderGame() {
             document.getElementById('turn-count').innerText = gameState.turn;
             document.getElementById('deck-left').innerText = gameState.deck.length;
             document.getElementById('trash-count').innerText = gameState.trash.length;
             document.getElementById('hand-count').innerText = gameState.hand.length;
 
-            // 手札のレンダリング
-            const handEl = document.getElementById('hand');
-            handEl.innerHTML = '';
-            gameState.hand.forEach((card, index) => {
-            handEl.appendChild(createCardDOM(card, 'hand', index));
-            });
+            const handEl = document.getElementById('hand'); handEl.innerHTML = '';
+            gameState.hand.forEach((card, index) => { handEl.appendChild(createCardDOM(card, 'hand', index)); });
 
-            // ステージのレンダリング (Artist)
-            const stageRow = document.getElementById('stage-row');
-            stageRow.innerHTML = '';
+            const stageRow = document.getElementById('stage-row'); stageRow.innerHTML = '';
             gameState.stage.forEach((item, index) => {
-            const cardDom = createCardDOM(item.card, 'stage', index, item.status);
-
-            // 使用中のSongがあれば中にテキスト追記
-            if (item.attachedSongs.length > 0) {
-            const songListText = document.createElement('div');
-            songListText.style.fontSize = '0.55rem';
-            songListText.style.color = 'var(--song-color)';
-            songListText.innerText = '♪ ' + item.attachedSongs.map(s => s.code).join(', ');
-            cardDom.appendChild(songListText);
-            }
-            stageRow.appendChild(cardDom);
+                const cardDom = createCardDOM(item.card, 'stage', index, item.status);
+                if (item.attachedSongs.length > 0) {
+                    const songListText = document.createElement('div');
+                    songListText.style.fontSize = '0.55rem'; songListText.style.color = 'var(--song-color)';
+                    songListText.innerText = '♪ ' + item.attachedSongs.map(s => s.code).join(', ');
+                    cardDom.appendChild(songListText);
+                }
+                stageRow.appendChild(cardDom);
             });
 
-            // フィールドのレンダリング (Direction / Magic)
-            const fieldRow = document.getElementById('field-row');
-            fieldRow.innerHTML = '';
-            gameState.field.forEach((card, index) => {
-            fieldRow.appendChild(createCardDOM(card, 'field', index));
-            });
-            }
+            const fieldRow = document.getElementById('field-row'); fieldRow.innerHTML = '';
+            gameState.field.forEach((card, index) => { fieldRow.appendChild(createCardDOM(card, 'field', index)); });
+        }
 
-            // カードDOM要素の生成
-            function createCardDOM(card, zone, index, status = 'Active') {
+        function createCardDOM(card, zone, index, status = 'Active') {
             const cardDiv = document.createElement('div');
-            cardDiv.className = card ${card.type};
-            if (status === 'Standby') {
-            cardDiv.classList.add('standby');
-            }
-
+            cardDiv.className = `card ${card.type}`;
+            if (status === 'Standby') cardDiv.classList.add('standby');
             const typeNames = { 'A': 'ARTIST', 'S': 'SONG', 'M': 'MAGIC', 'D': 'DIRECTION' };
-
-            cardDiv.innerHTML = <div style="font-weight:bold;">${card.code}</div> <div class="card-type-tag">${typeNames[card.type]}</div>;
-
+            cardDiv.innerHTML = `<div style="font-weight:bold;">${card.code}</div><div class="card-type-tag">${typeNames[card.type]}</div>`;
             if (zone === 'stage') {
-            const statusTag = document.createElement('div');
-            statusTag.className = 'card-status';
-            statusTag.innerText = status === 'Active' ? 'Act' : 'Sby';
-            cardDiv.appendChild(statusTag);
+                const statusTag = document.createElement('div');
+                statusTag.className = 'card-status'; statusTag.innerText = status === 'Active' ? 'Act' : 'Sby';
+                cardDiv.appendChild(statusTag);
             }
-
-            // カードクリック時のアクション展開
             cardDiv.onclick = () => handleCardClick(zone, index, card, status);
-
             return cardDiv;
-            }
+        }
 
-            // カードクリック時のメニュー分岐
-            function handleCardClick(zone, index, card, status) {
-            // アクトフェーズ以外は警告を出すが自由度のため動かすことは可能にする
-            if (gameState.phaseIndex !== 1) {
-            if(!confirm(現在アクトフェーズではありません（現在:${gameState.phases[gameState.phaseIndex]}）。操作を続けますか？)) {
-            return;
-            }
-            }
-
+        function handleCardClick(zone, index, card, status) {
             selectedCardInfo = { zone, index, card, status };
             const container = document.getElementById('action-buttons-container');
             container.innerHTML = '';
-            document.getElementById('action-card-title').innerText = ${card.code}
-            (${zone.toUpperCase()});
+            document.getElementById('action-card-title').innerText = `${card.code} (${zone.toUpperCase()})`;
 
             if (zone === 'hand') {
-            // 手札からの行動候補
-            if (card.type === 'A') {
-            createMenuBtn(container, 'ステージに出す (Artist)', () => {
-            gameState.stage.push({ card: card, status: 'Active', attachedSongs: [] });
-            gameState.hand.splice(index, 1);
-            closeActionModal();
-            });
-            } else if (card.type === 'S') {
-            // 場にArtistがいる場合のみ装備可能に
-            if (gameState.stage.length === 0) {
-            createMenuBtn(container, '使用不可 (ステージにArtistがいません)', null, true);
-            } else {
-            gameState.stage.forEach((artistObj, aIdx) => {
-            createMenuBtn(container, Artist [${artistObj.card.code}] にSongを使用, () => {
-            artistObj.attachedSongs.push(card);
-            gameState.hand.splice(index, 1);
-            closeActionModal();
-            });
-            });
-            }
-            } else if (card.type === 'M') {
-            createMenuBtn(container, 'Magicを使用 (トラッシュへ)', () => {
-            gameState.trash.push(card);
-            gameState.hand.splice(index, 1);
-            closeActionModal();
-            });
-            createMenuBtn(container, 'フィールドに一時置きする', () => {
-            gameState.field.push(card);
-            gameState.hand.splice(index, 1);
-            closeActionModal();
-            });
-            } else if (card.type === 'D') {
-            createMenuBtn(container, 'Directionを場に出す', () => {
-            gameState.field.push(card);
-            gameState.hand.splice(index, 1);
-            closeActionModal();
-            });
-            }
-
-            // 共通：手札から直接トラッシュ
-            createMenuBtn(container, '手札からトラッシュに捨てる', () => {
-            gameState.trash.push(card);
-            gameState.hand.splice(index, 1);
-            closeActionModal();
-            });
-
+                if (card.type === 'A') {
+                    createMenuBtn(container, 'ステージに出す (Artist)', () => {
+                        gameState.stage.push({ card: card, status: 'Active', attachedSongs: [] });
+                        gameState.hand.splice(index, 1); closeActionModal();
+                    });
+                } else if (card.type === 'S') {
+                    gameState.stage.forEach((artistObj, aIdx) => {
+                        createMenuBtn(container, `Artist [${artistObj.card.code}] に使用`, () => {
+                            artistObj.attachedSongs.push(card); gameState.hand.splice(index, 1); closeActionModal();
+                        });
+                    });
+                } else if (card.type === 'M' || card.type === 'D') {
+                    createMenuBtn(container, '場/フィールドに出す', () => {
+                        gameState.field.push(card); gameState.hand.splice(index, 1); closeActionModal();
+                    });
+                }
+                createMenuBtn(container, 'トラッシュに捨てる', () => {
+                    gameState.trash.push(card); gameState.hand.splice(index, 1); closeActionModal();
+                });
             } else if (zone === 'stage') {
-            // ステージ上のカードに対する行動
-            if (status === 'Active') {
-            createMenuBtn(container, 'Active ➔ Standby状態にする (横置)', () => {
-            gameState.stage[index].status = 'Standby';
-            closeActionModal();
-            });
-            } else {
-            createMenuBtn(container, 'Standby ➔ Active状態にする (縦置)', () => {
-            gameState.stage[index].status = 'Active';
-            closeActionModal();
-            });
-            }
-
-            createMenuBtn(container, 'このArtistをトラッシュに送る', () => {
-            // 同時に使用していたSongもトラッシュ
-            gameState.trash.push(gameState.stage[index].card);
-            if(gameState.stage[index].attachedSongs) {
-            gameState.trash.push(...gameState.stage[index].attachedSongs);
-            }
-            gameState.stage.splice(index, 1);
-            closeActionModal();
-            });
-
+                createMenuBtn(container, status === 'Active' ? 'Standby(横置)にする' : 'Active(縦置)にする', () => {
+                    gameState.stage[index].status = status === 'Active' ? 'Standby' : 'Active'; closeActionModal();
+                });
+                createMenuBtn(container, 'トラッシュに送る', () => {
+                    gameState.trash.push(gameState.stage[index].card);
+                    if(gameState.stage[index].attachedSongs) gameState.trash.push(...gameState.stage[index].attachedSongs);
+                    gameState.stage.splice(index, 1); closeActionModal();
+                });
             } else if (zone === 'field') {
-            // フィールド(Directionなど)の行動
-            createMenuBtn(container, '使用/破壊してトラッシュへ送る', () => {
-            gameState.trash.push(gameState.field[index]);
-            gameState.field.splice(index, 1);
-            closeActionModal();
-            });
+                createMenuBtn(container, 'トラッシュへ送る', () => {
+                    gameState.trash.push(gameState.field[index]); gameState.field.splice(index, 1); closeActionModal();
+                });
             }
-
             openModal('action-modal');
-            }
+        }
 
-            // メニュー内ボタンの簡易生成
-            function createMenuBtn(parent, text, onClickFn, disabled = false) {
-            const btn = document.createElement('button');
-            btn.className = 'menu-btn';btn.innerText = text;if (disabled) {
-            btn.style.opacity = 0.4;btn.style.cursor = 'not-allowed';
-            } else {btn.onclick = () => {
-            onClickFn();
-            renderGame();
-            };
-            }
-            parent.appendChild(btn);
-            }
-
-            // モーダル制御
-            function openModal(id) { document.getElementById(id).classList.add('active'); }
-            function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-            function closeActionModal() { closeModal('action-modal'); }
-
-            
+        function createMenuBtn(parent, text, onClickFn) {
+            const btn = document.createElement('button'); btn.className = 'menu-btn'; btn.innerText = text;
+            btn.onclick = () => { onClickFn(); renderGame(); }; parent.appendChild(btn);
+        }
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function closeActionModal() { closeModal('action-modal'); }
+    </script>
+</body>
+</html>
