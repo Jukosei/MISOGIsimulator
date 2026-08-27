@@ -30,12 +30,14 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* 画面共通：基本は非表示にする */
         .screen {
             display: none;
             min-height: 100vh;
             padding: 20px;
         }
 
+        /* activeクラスがついた画面だけを表示する */
         .screen.active {
             display: flex;
             flex-direction: column;
@@ -48,7 +50,6 @@
             margin: 0 auto;
         }
 
-        /* 「禊」の文字を大きく表示するスタイル */
         h1 {
             font-size: 3.5rem;
             margin-bottom: 25px;
@@ -325,20 +326,24 @@
             <div class="phase-indicator">フェーズ: <span id="current-phase">ドロー</span></div>
             <button class="btn" id="next-phase-btn" onclick="nextPhase()" style="width: auto; margin:0; padding:6px 12px; font-size:0.8rem;">次のフェーズへ</button>
         </div>
-        <div class="sidebar">
-            <div>山札残り: <span id="deck-left">53</span> 枚</div>
-            <div>トラッシュ: <span id="trash-count">0</span> 枚</div>
-        </div>
-        <div class="battlefield">
-            <div class="zone" id="stage-zone">
-                <div class="zone-title">ステージ (Artist / Song)</div>
-                <div class="card-row" id="stage-row"></div>
+        
+        <div style="display: flex; flex: 1; gap: 10px; flex-direction: column; overflow: hidden;" class="main-layout-container">
+            <div class="sidebar">
+                <div>山札残り: <span id="deck-left">53</span> 枚</div>
+                <div>トラッシュ: <span id="trash-count">0</span> 枚</div>
             </div>
-            <div class="zone" id="field-zone">
-                <div class="zone-title">フィールド (Direction / Magic)</div>
-                <div class="card-row" id="field-row"></div>
+            <div class="battlefield">
+                <div class="zone" id="stage-zone">
+                    <div class="zone-title">ステージ (Artist / Song)</div>
+                    <div class="card-row" id="stage-row"></div>
+                </div>
+                <div class="zone" id="field-zone">
+                    <div class="zone-title">フィールド (Direction / Magic)</div>
+                    <div class="card-row" id="field-row"></div>
+                </div>
             </div>
         </div>
+
         <div class="hand-container">
             <div class="zone-title">手札 (<span id="hand-count">0</span>枚)</div>
             <div id="hand"></div>
@@ -368,29 +373,24 @@
         };
         let selectedCardInfo = null;
 
-        // デッキコードの入力監視（スラッシュと改行の両方に対応して枚数をカウント）
         document.getElementById('deck-code').addEventListener('input', function() {
             const rawText = this.value;
-            // スラッシュ、または改行で分割する
             const cards = rawText.split(/[\/\n]/).map(c => c.trim()).filter(c => c !== '');
             document.getElementById('deck-count').innerText = `${cards.length} / 60 枚`;
         });
 
-        // カードコードからカード種類と画像のファイルパスを自動判別
         function parseCardCode(code) {
             const cleanCode = code.trim();
             const parts = cleanCode.split('-');
-            let typeChar = 'M'; // 見つからない場合はデフォルトでMagic
+            let typeChar = 'M';
             
             if (parts.length >= 2) {
                 // ハイフンの右側（例: A13、S15、exD-1の場合はexDの次の1文字など）を取得
-                // ハイフンで区切られた後半パーツの「最初の1文字」をカードの種類（A, S, M, D）とする
                 const rightPart = parts[1];
                 if (rightPart && rightPart.length > 0) {
                     typeChar = rightPart.charAt(0).toUpperCase();
                 }
             } else {
-                // ハイフンがないコードや、exD-1 のように特殊な場合の予備判定
                 if (cleanCode.includes('A')) typeChar = 'A';
                 else if (cleanCode.includes('S')) typeChar = 'S';
                 else if (cleanCode.includes('D')) typeChar = 'D';
@@ -406,9 +406,9 @@
             };
         }
 
+        // 画面の表示・非表示をここで完全に切り替えます
         function startGame() {
             const codeText = document.getElementById('deck-code').value;
-            // スラッシュまたは改行でデッキコードを分解
             const lines = codeText.split(/[\/\n]/).map(line => line.trim()).filter(line => line !== '');
             
             if (lines.length !== 60) {
@@ -421,9 +421,11 @@
             gameState.turn = 1;
             gameState.isFirstPlayer = document.querySelector('input[name="turn-order"]:checked').value === 'first';
             
+            // クラス「active」を付け替えて、メニューを消して対戦画面だけを表示
             document.getElementById('menu-screen').classList.remove('active');
             document.getElementById('game-screen').classList.add('active');
             document.getElementById('player-order-display').innerText = gameState.isFirstPlayer ? "先攻" : "後攻";
+            
             shuffle(gameState.deck);
             drawCards(7);
             openModal('mulligan-modal');
