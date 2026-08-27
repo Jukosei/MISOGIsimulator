@@ -30,16 +30,16 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* 画面共通：基本は非表示にする */
+        /* 画面共通：最優先（!important）で最初は絶対に非表示にする */
         .screen {
-            display: none;
+            display: none !important;
             min-height: 100vh;
             padding: 20px;
         }
 
-        /* activeクラスがついた画面だけを表示する */
+        /* activeクラスがついた画面だけを表示する（スマホ表示時の基本） */
         .screen.active {
-            display: flex;
+            display: flex !important;
             flex-direction: column;
         }
 
@@ -281,9 +281,11 @@
         .menu-btn:hover { background: #3a3a42; }
         .menu-btn.cancel { background: #555; text-align: center; margin-top: 10px;}
 
+        /* PCレイアウト用の設定（ここを安全に修正しました） */
         @media (min-width: 768px) {
-            #game-screen {
-                display: grid;
+            /* 対戦画面が「active」の時だけPC用グリッドレイアウトを有効化する */
+            #game-screen.active {
+                display: grid !important;
                 grid-template-columns: 250px 1fr;
                 grid-template-rows: auto 1fr auto;
                 height: 100vh;
@@ -327,23 +329,20 @@
             <button class="btn" id="next-phase-btn" onclick="nextPhase()" style="width: auto; margin:0; padding:6px 12px; font-size:0.8rem;">次のフェーズへ</button>
         </div>
         
-        <div style="display: flex; flex: 1; gap: 10px; flex-direction: column; overflow: hidden;" class="main-layout-container">
-            <div class="sidebar">
-                <div>山札残り: <span id="deck-left">53</span> 枚</div>
-                <div>トラッシュ: <span id="trash-count">0</span> 枚</div>
+        <div class="sidebar">
+            <div>山札残り: <span id="deck-left">53</span> 枚</div>
+            <div>トラッシュ: <span id="trash-count">0</span> 枚</div>
+        </div>
+        <div class="battlefield">
+            <div class="zone" id="stage-zone">
+                <div class="zone-title">ステージ (Artist / Song)</div>
+                <div class="card-row" id="stage-row"></div>
             </div>
-            <div class="battlefield">
-                <div class="zone" id="stage-zone">
-                    <div class="zone-title">ステージ (Artist / Song)</div>
-                    <div class="card-row" id="stage-row"></div>
-                </div>
-                <div class="zone" id="field-zone">
-                    <div class="zone-title">フィールド (Direction / Magic)</div>
-                    <div class="card-row" id="field-row"></div>
-                </div>
+            <div class="zone" id="field-zone">
+                <div class="zone-title">フィールド (Direction / Magic)</div>
+                <div class="card-row" id="field-row"></div>
             </div>
         </div>
-
         <div class="hand-container">
             <div class="zone-title">手札 (<span id="hand-count">0</span>枚)</div>
             <div id="hand"></div>
@@ -385,7 +384,6 @@
             let typeChar = 'M';
             
             if (parts.length >= 2) {
-                // ハイフンの右側（例: A13、S15、exD-1の場合はexDの次の1文字など）を取得
                 const rightPart = parts[1];
                 if (rightPart && rightPart.length > 0) {
                     typeChar = rightPart.charAt(0).toUpperCase();
@@ -406,7 +404,6 @@
             };
         }
 
-        // 画面の表示・非表示をここで完全に切り替えます
         function startGame() {
             const codeText = document.getElementById('deck-code').value;
             const lines = codeText.split(/[\/\n]/).map(line => line.trim()).filter(line => line !== '');
@@ -421,7 +418,6 @@
             gameState.turn = 1;
             gameState.isFirstPlayer = document.querySelector('input[name="turn-order"]:checked').value === 'first';
             
-            // クラス「active」を付け替えて、メニューを消して対戦画面だけを表示
             document.getElementById('menu-screen').classList.remove('active');
             document.getElementById('game-screen').classList.add('active');
             document.getElementById('player-order-display').innerText = gameState.isFirstPlayer ? "先攻" : "後攻";
