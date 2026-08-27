@@ -14,6 +14,7 @@
             --song-color: #be2edd;
             --magic-color: #f0932b;
             --direction-color: #6ab04c;
+            --token-color: #f1c40f;
         }
 
         * {
@@ -30,14 +31,12 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* 画面共通：最優先（!important）で最初は絶対に非表示にする */
         .screen {
             display: none !important;
             min-height: 100vh;
-            padding: 20px;
+            padding: 15px;
         }
 
-        /* activeクラスがついた画面だけを表示する（スマホ表示時の基本） */
         .screen.active {
             display: flex !important;
             flex-direction: column;
@@ -60,7 +59,6 @@
             width: 100%;
             font-weight: 900;
         }
-
         .form-group {
             width: 100%;
             margin-bottom: 20px;
@@ -72,6 +70,7 @@
             font-weight: bold;
             font-size: 0.9rem;
         }
+
         textarea {
             width: 100%;
             height: 120px;
@@ -109,6 +108,9 @@
         #game-screen {
             padding: 10px;
             gap: 10px;
+            height: 100vh;
+            max-height: 100vh;
+            justify-content: space-between;
         }
 
         .info-bar {
@@ -116,9 +118,9 @@
             justify-content: space-between;
             align-items: center;
             background-color: var(--card-bg);
-            padding: 10px 15px;
+            padding: 8px 12px;
             border-radius: 8px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .phase-indicator {
@@ -126,39 +128,68 @@
             color: var(--accent-color);
         }
 
+        .sidebar {
+            background: var(--card-bg);
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 0.8rem;
+        }
+
+        .counter-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(0,0,0,0.3);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .count-btn {
+            background: #444;
+            color: white;
+            border: none;
+            padding: 2px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+        }
         .battlefield {
             flex: 1;
-            display: grid;
-            grid-template-rows: auto auto;
-            gap: 15px;
-            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            margin: 5px 0;
         }
 
         .zone {
-            background-color: rgba(255, 255, 255, 0.03);
+            background-color: rgba(255, 255, 255, 0.02);
             border: 1px dashed #444;
             border-radius: 8px;
-            padding: 10px;
-            min-height: 140px;
+            padding: 8px;
+            min-height: 130px;
         }
 
         .zone-title {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: #888;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             text-transform: uppercase;
         }
 
         .card-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
         }
 
         .hand-container {
             background-color: var(--card-bg);
             border-radius: 8px;
-            padding: 10px;
+            padding: 8px;
         }
 
         #hand {
@@ -166,12 +197,12 @@
             gap: 8px;
             overflow-x: auto;
             padding-bottom: 5px;
-            min-height: 120px;
+            min-height: 115px;
         }
 
         .card {
-            width: 75px;
-            height: 112px;
+            width: 72px;
+            height: 108px;
             background-color: #2a2a30;
             border-radius: 6px;
             border: 2px solid #666;
@@ -190,8 +221,7 @@
             height: 100%;
             object-fit: cover;
             position: absolute;
-            top: 0;
-            left: 0;
+            top: 0; left: 0;
             z-index: 1;
         }
 
@@ -205,7 +235,7 @@
             flex-direction: column;
             justify-content: space-between;
             padding: 4px;
-            background: rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.35);
         }
 
         .card.A { border-color: var(--artist-color); }
@@ -214,11 +244,10 @@
         .card.D { border-color: var(--direction-color); }
 
         .card-type-tag {
-            font-size: 0.5rem;
-            padding: 1px 3px;
-            border-radius: 3px;
+            font-size: 0.45rem;
+            padding: 1px 2px;
+            border-radius: 2px;
             color: #fff;
-            text-align: center;
             font-weight: bold;
             align-self: flex-start;
         }
@@ -229,17 +258,16 @@
 
         .card.standby {
             transform: rotate(90deg);
-            margin: 0 18px;
+            margin: 0 16px;
         }
 
         .card-status {
             position: absolute;
-            bottom: 2px;
-            right: 2px;
+            bottom: 2px; right: 2px;
             background: rgba(0,0,0,0.8);
             padding: 1px 3px;
             border-radius: 3px;
-            font-size: 0.5rem;
+            font-size: 0.45rem;
             z-index: 3;
         }
 
@@ -281,35 +309,28 @@
         .menu-btn:hover { background: #3a3a42; }
         .menu-btn.cancel { background: #555; text-align: center; margin-top: 10px;}
 
-        /* PCレイアウト用の設定（ここを安全に修正しました） */
         @media (min-width: 768px) {
-            /* 対戦画面が「active」の時だけPC用グリッドレイアウトを有効化する */
             #game-screen.active {
                 display: grid !important;
-                grid-template-columns: 250px 1fr;
+                grid-template-columns: 260px 1fr;
                 grid-template-rows: auto 1fr auto;
-                height: 100vh;
             }
             .info-bar { grid-column: 1 / span 2; }
-            .sidebar { grid-column: 1; background: var(--card-bg); padding: 15px; border-radius: 8px; display: flex; flex-direction: column; gap: 15px;}
-            .battlefield { grid-column: 2; grid-template-rows: 1fr 1fr; height: 100%; margin: 0;}
+            .sidebar { grid-column: 1; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 12px; padding: 15px;}
+            .battlefield { grid-column: 2; height: 100%; margin: 0; overflow-y: auto;}
             .hand-container { grid-column: 1 / span 2; }
-            #hand { overflow-x: visible; flex-wrap: wrap; }
         }
     </style>
 </head>
 <body>
 
-    <!-- 1. メニュー画面 -->
     <div id="menu-screen" class="screen active">
         <h1>禊</h1>
-        
         <div class="form-group">
             <label for="deck-code">デッキコード (スラッシュ「/」区切り または 改行区切り)</label>
             <textarea id="deck-code" placeholder="例: GA-13/GA-13/DA-34/JS-40/exD-1..."></textarea>
             <div id="deck-count" style="font-size: 0.8rem; color: #888; text-align: right;">0 / 60 枚</div>
         </div>
-
         <div class="form-group">
             <label>対戦の手番</label>
             <div class="radio-group">
@@ -317,11 +338,9 @@
                 <label><input type="radio" name="turn-order" value="second"> 後攻</label>
             </div>
         </div>
-
         <button class="btn" onclick="startGame()">対戦開始</button>
     </div>
 
-    <!-- 2. 対戦画面 -->
     <div id="game-screen" class="screen">
         <div class="info-bar">
             <div>ターン: <span id="turn-count">1</span> (<span id="player-order-display">先攻</span>)</div>
@@ -330,19 +349,37 @@
         </div>
         
         <div class="sidebar">
-            <div>山札残り: <span id="deck-left">53</span> 枚</div>
-            <div>トラッシュ: <span id="trash-count">0</span> 枚</div>
+            <div>🎴 ③ デッキ: <span id="deck-left">60</span> 枚</div>
+            <div>🗑️ ④ トラッシュ: <span id="trash-count">0</span> 枚</div>
+            
+            <div class="counter-group">
+                <span>🔮 ⑤ 魔力: <span id="token-mana">0</span></span>
+                <button class="count-btn" onclick="changeToken('mana', 1)">+</button>
+                <button class="count-btn" onclick="changeToken('mana', -1)">-</button>
+            </div>
+            <div class="counter-group">
+                <span>⭐ ⑥ VOL: <span id="token-vol">0</span></span>
+                <button class="count-btn" onclick="changeToken('vol', 1)">+</button>
+                <button class="count-btn" onclick="changeToken('vol', -1)">-</button>
+            </div>
+            <div class="counter-group">
+                <span>⚠️ ⑦ ノイズ: <span id="token-noise">0</span> / 5</span>
+                <button class="count-btn" onclick="changeToken('noise', 1)">+</button>
+                <button class="count-btn" onclick="changeToken('noise', -1)">-</button>
+            </div>
         </div>
+
         <div class="battlefield">
             <div class="zone" id="stage-zone">
-                <div class="zone-title">ステージ (Artist / Song)</div>
+                <div class="zone-title">① ステージ (Artist / Song) <span id="stage-count" style="color:#aaa;">(0/5)</span></div>
                 <div class="card-row" id="stage-row"></div>
             </div>
             <div class="zone" id="field-zone">
-                <div class="zone-title">フィールド (Direction / Magic)</div>
+                <div class="zone-title">② 場 (Direction) <span id="field-count-label" style="color:#aaa;">(0/5)</span></div>
                 <div class="card-row" id="field-row"></div>
             </div>
         </div>
+
         <div class="hand-container">
             <div class="zone-title">手札 (<span id="hand-count">0</span>枚)</div>
             <div id="hand"></div>
@@ -368,7 +405,8 @@
         let gameState = {
             deck: [], hand: [], stage: [], field: [], trash: [],
             turn: 1, isFirstPlayer: true, phaseIndex: 0,
-            phases: ['ドロー', 'アクト', 'エンド']
+            phases: ['ドロー', 'アクト', 'エンド'],
+            tokens: { mana: 0, vol: 0, noise: 0 }
         };
         let selectedCardInfo = null;
 
@@ -377,6 +415,13 @@
             const cards = rawText.split(/[\/\n]/).map(c => c.trim()).filter(c => c !== '');
             document.getElementById('deck-count').innerText = `${cards.length} / 60 枚`;
         });
+
+        function changeToken(type, amount) {
+            gameState.tokens[type] += amount;
+            if (gameState.tokens[type] < 0) gameState.tokens[type] = 0;
+            if (type === 'noise' && gameState.tokens.noise > 5) gameState.tokens.noise = 5;
+            document.getElementById(`token-${type}`).innerText = gameState.tokens[type];
+        }
 
         function parseCardCode(code) {
             const cleanCode = code.trim();
@@ -397,31 +442,28 @@
             const typeMap = { 'A': 'A', 'S': 'S', 'M': 'M', 'D': 'D' };
             const imagePath = `images/${cleanCode}.png`;
 
-            return { 
-                code: cleanCode, 
-                type: typeMap[typeChar] || 'M',
-                img: imagePath
-            };
+            return { code: cleanCode, type: typeMap[typeChar] || 'M', img: imagePath };
         }
 
         function startGame() {
             const codeText = document.getElementById('deck-code').value;
             const lines = codeText.split(/[\/\n]/).map(line => line.trim()).filter(line => line !== '');
-            
             if (lines.length !== 60) {
-                alert(`枚数が60枚ではありません。（現在: ${lines.length}枚）\n60枚ちょうどにしてから開始してください。`);
+                alert(`枚数が60枚ではありません。（現在: ${lines.length}枚）`);
                 return;
             }
-            
             gameState.deck = lines.map(line => parseCardCode(line));
             gameState.hand = []; gameState.stage = []; gameState.field = []; gameState.trash = [];
-            gameState.turn = 1;
-            gameState.isFirstPlayer = document.querySelector('input[name="turn-order"]:checked').value === 'first';
+            gameState.turn = 1; gameState.tokens = { mana: 0, vol: 0, noise: 0 };
             
             document.getElementById('menu-screen').classList.remove('active');
             document.getElementById('game-screen').classList.add('active');
             document.getElementById('player-order-display').innerText = gameState.isFirstPlayer ? "先攻" : "後攻";
             
+            document.getElementById('token-mana').innerText = 0;
+            document.getElementById('token-vol').innerText = 0;
+            document.getElementById('token-noise').innerText = 0;
+
             shuffle(gameState.deck);
             drawCards(7);
             openModal('mulligan-modal');
@@ -495,6 +537,9 @@
             document.getElementById('deck-left').innerText = gameState.deck.length;
             document.getElementById('trash-count').innerText = gameState.trash.length;
             document.getElementById('hand-count').innerText = gameState.hand.length;
+            
+            document.getElementById('stage-count').innerText = `(${gameState.stage.length}/5)`;
+            document.getElementById('field-count-label').innerText = `(${gameState.field.length}/5)`;
 
             const handEl = document.getElementById('hand'); handEl.innerHTML = '';
             gameState.hand.forEach((card, index) => { handEl.appendChild(createCardDOM(card, 'hand', index)); });
@@ -553,22 +598,30 @@
 
             if (zone === 'hand') {
                 if (card.type === 'A') {
-                    createMenuBtn(container, 'ステージに出す (Artist)', () => {
+                    createMenuBtn(container, '① ステージに出す (Artist)', () => {
+                        if(gameState.stage.length >= 5) { alert("ステージには5枚までしか登場させられません！"); return; }
                         gameState.stage.push({ card: card, status: 'Active', attachedSongs: [] });
                         gameState.hand.splice(index, 1); closeActionModal();
                     });
                 } else if (card.type === 'S') {
                     gameState.stage.forEach((artistObj, aIdx) => {
-                        createMenuBtn(container, `Artist [${artistObj.card.code}] に使用`, () => {
+                        createMenuBtn(container, `Artist [${artistObj.card.code}] にSongを使用`, () => {
                             artistObj.attachedSongs.push(card); gameState.hand.splice(index, 1); closeActionModal();
                         });
                     });
-                } else if (card.type === 'M' || card.type === 'D') {
-                    createMenuBtn(container, '場/フィールドに出す', () => {
+                } else if (card.type === 'M') {
+                    createMenuBtn(container, 'Magicを使用 (トラッシュへ)', () => {
+                        gameState.trash.push(card); gameState.hand.splice(index, 1); closeActionModal();
+                    });
+                } else if (card.type === 'D') {
+                    createMenuBtn(container, '② 場(フィールド)に出す (Direction)', () => {
+                        if(gameState.field.length >= 5) { alert("場には5枚までしか置けません！"); return; }
+                        const isDuplicate = gameState.field.some(c => c.code === card.code);
+                        if(isDuplicate) { alert("場に同じ名前のカードは1枚までしか置けません！"); return; }
                         gameState.field.push(card); gameState.hand.splice(index, 1); closeActionModal();
                     });
                 }
-                createMenuBtn(container, 'トラッシュに捨てる', () => {
+                createMenuBtn(container, '手札からトラッシュに捨てる', () => {
                     gameState.trash.push(card); gameState.hand.splice(index, 1); closeActionModal();
                 });
             } else if (zone === 'stage') {
