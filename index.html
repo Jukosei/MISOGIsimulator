@@ -31,9 +31,10 @@
         .screen { display: none !important; min-height: 100vh; padding: 15px; }
         .screen.active { display: flex !important; flex-direction: column; }
 
+        /* メニュー画面全体の配置（中央上寄りにバランス調整） */
         #menu-screen {
             justify-content: flex-start; align-items: center;
-            width: 100%; max-width: 1000px; margin: 0 auto; padding: 40px 20px;
+            max-width: 800px; margin: 0 auto; padding: 40px 20px;
         }
 
         h1 {
@@ -50,26 +51,23 @@
 
         .tab-btn.active { background-color: var(--tab-active); }
         .deck-hint { font-size: 0.85rem; color: #cccccc; margin-bottom: 20px; text-align: center; font-weight: bold; }
-        
-        /* 入力エリアを横並び(row)にして横長に広げる設定 */
-        .inputs-container { display: flex; flex-direction: row; gap: 20px; width: 100%; justify-content: center; }
-        .form-group { flex: 1; display: flex; flex-direction: column; align-items: flex-start; max-width: 100%; }
-        .form-group label { font-size: 0.9rem; color: #ffffff; margin-bottom: 10px; font-weight: bold; align-self: center; }
+        .inputs-container { display: flex; flex-direction: column; gap: 15px; width: 100%; }
+        .form-group { width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .form-group label { font-size: 0.9rem; color: #ffffff; margin-bottom: 10px; font-weight: bold; text-align: center; }
 
-        /* テキストエリアの横幅を広げ、高さを低くして「横長」に修正 */
         textarea {
-            width: 100%; height: 90px; background: #18181c;
+            width: 100%; max-width: 700px; height: 140px; background: #18181c;
             border: 1px solid #333; border-radius: 6px; color: #fff; padding: 12px;
             font-family: monospace; resize: none; font-size: 0.9rem;
         }
 
         textarea:focus { border-color: #555; outline: none; }
-        .clear-btn-wrap { width: 100%; display: flex; justify-content: flex-start; margin-top: 8px; margin-bottom: 15px; }
+        .clear-btn-wrap { width: 100%; max-width: 700px; display: flex; justify-content: flex-start; margin-top: 8px; margin-bottom: 15px; }
         .btn-clear { padding: 8px 24px; background-color: #dc3545; color: white; border: none; border-radius: 4px; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
         .btn-start {
             width: 240px; padding: 16px; background-color: var(--accent-color); color: white;
             border: none; border-radius: 6px; font-size: 1.1rem; font-weight: bold; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 26, 85, 0.3); text-align: center; margin: 20px auto 0; display: block;
+            box-shadow: 0 4px 15px rgba(255, 26, 85, 0.3); text-align: center; margin-top: 15px;
         }
 
         #game-screen.active {
@@ -121,7 +119,6 @@
 </head>
 <body>
 
-    <!-- 1. 新型メニュー画面 -->
     <div id="menu-screen" class="screen active">
         <h1>禊</h1>
         
@@ -132,9 +129,7 @@
 
         <div class="deck-hint">デッキリストを / 区切りで入力してください</div>
 
-        <!-- 左右横並びで横長になるコンテナ構造 -->
         <div class="inputs-container">
-            <!-- プレイヤー1 -->
             <div class="form-group" id="group-deck1">
                 <label id="label-deck1">プレイヤー1のデッキ</label>
                 <textarea id="deck-code" placeholder="GA-13/GA-13/DA-34/JS-40..."></textarea>
@@ -143,7 +138,6 @@
                 </div>
             </div>
             
-            <!-- プレイヤー2 -->
             <div class="form-group" id="group-deck2">
                 <label>プレイヤー2のデッキ</label>
                 <textarea id="deck-code2" placeholder="FA-15/FA-15/BM-3/GD-9..."></textarea>
@@ -155,7 +149,6 @@
 
         <button class="btn-start" onclick="startGame()">ゲーム開始</button>
     </div>
-    <!-- 2. 対戦画面 -->
     <div id="game-screen" class="screen">
         <div class="info-bar">
             <div>ターン: <span id="turn-count">1</span> (<span id="player-order-display">先攻</span>)</div>
@@ -242,7 +235,15 @@
         let gameGlobal = { turn: 1, isFirstPlayer: true, phaseIndex: 0, phases: ['ドロー', 'アクト', 'エンド'] };
         let selectedCardInfo = null;
 
-        // モードタブの切り替え挙動
+        document.getElementById('deck-code').addEventListener('input', function() {
+            const cards = this.value.split(/[\/\n]/).map(c => c.trim()).filter(c => c !== '');
+            document.getElementById('deck-count').innerText = `${cards.length} / 60 枚`;
+        });
+        document.getElementById('deck-code2').addEventListener('input', function() {
+            const cards = this.value.split(/[\/\n]/).map(c => c.trim()).filter(c => c !== '');
+            document.getElementById('deck-count2').innerText = `${cards.length} / 60 枚`;
+        });
+
         function setMode(mode) {
             currentMode = mode;
             if (mode === 1) {
@@ -250,17 +251,14 @@
                 document.getElementById('tab-2deck').classList.remove('active');
                 document.getElementById('group-deck2').style.display = 'none';
                 document.getElementById('label-deck1').style.display = 'none';
-                document.querySelector('.inputs-container').style.flexDirection = 'column';
             } else {
                 document.getElementById('tab-2deck').classList.add('active');
                 document.getElementById('tab-1deck').classList.remove('active');
                 document.getElementById('group-deck2').style.display = 'flex';
                 document.getElementById('label-deck1').style.display = 'block';
-                document.querySelector('.inputs-container').style.flexDirection = 'row';
             }
         }
 
-        // 指定の入力欄のみをクリア
         function clearDeckInput(playerNum) {
             if (playerNum === 1) document.getElementById('deck-code').value = '';
             else if (playerNum === 2) document.getElementById('deck-code2').value = '';
@@ -290,7 +288,7 @@
         function parseCardCode(code) {
             const cleanCode = code.trim(); const parts = cleanCode.split('-'); let typeChar = 'M';
             if (parts.length >= 2) {
-                const rightPart = parts; // 配列のフリーズバグ修復済み
+                const rightPart = parts; 
                 if (rightPart && rightPart.length > 0) typeChar = rightPart.charAt(0).toUpperCase();
             } else {
                 if (cleanCode.includes('A')) typeChar = 'A'; else if (cleanCode.includes('S')) typeChar = 'S'; else if (cleanCode.includes('D')) typeChar = 'D';
