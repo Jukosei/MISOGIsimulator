@@ -9,11 +9,13 @@
             --bg-color: #121214;
             --card-bg: #1e1e24;
             --text-color: #ffffff;
-            --accent-color: #ff0055;
+            --accent-color: #ff1a55;
             --artist-color: #22a6b3;
             --song-color: #be2edd;
             --magic-color: #f0932b;
             --direction-color: #6ab04c;
+            --tab-active: #007bff;
+            --tab-inactive: #3a3a42;
         }
 
         * {
@@ -30,7 +32,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* 画面共通設定 */
         .screen {
             display: none !important;
             min-height: 100vh;
@@ -42,72 +43,129 @@
             flex-direction: column;
         }
 
-        /* メニュー画面 */
+        /* 改良版メニュー画面 */
         #menu-screen {
             justify-content: center;
             align-items: center;
-            max-width: 500px;
-            margin: 50px auto;
-            padding: 20px;
-            background: var(--card-bg);
-            border-radius: 8px;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background: transparent;
         }
 
         h1 {
-            font-size: 3.5rem;
-            margin-bottom: 25px;
+            font-size: 4rem;
+            margin-bottom: 30px;
             text-align: center;
-            letter-spacing: 6px;
-            border-bottom: 2px solid var(--accent-color);
-            padding-bottom: 10px;
+            letter-spacing: 8px;
             width: 100%;
             font-weight: 900;
-        }
-        .form-group {
-            width: 100%;
-            margin-bottom: 20px;
+            color: #ffffff;
         }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
+        /* モード選択タブ */
+        .mode-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
             font-size: 0.9rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #ffffff;
+            background-color: var(--tab-inactive);
+            transition: background-color 0.2s;
+        }
+
+        .tab-btn.active {
+            background-color: var(--tab-active);
+        }
+
+        .deck-hint {
+            font-size: 0.85rem;
+            color: #cccccc;
+            margin-bottom: 12px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .inputs-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 5px;
+            font-weight: bold;
         }
 
         textarea {
             width: 100%;
-            height: 100px;
-            background: #111;
-            border: 1px solid #444;
+            height: 150px;
+            background: #18181c;
+            border: 1px solid #333;
             border-radius: 6px;
             color: #fff;
-            padding: 10px;
+            padding: 12px;
             font-family: monospace;
             resize: none;
+            font-size: 0.9rem;
         }
 
-        .radio-group {
-            display: flex;
-            gap: 20px;
-            background: #111;
-            padding: 12px;
-            border-radius: 6px;
+        textarea:focus {
+            border-color: #555;
+            outline: none;
         }
 
-        .btn {
+        .clear-btn-container {
             width: 100%;
-            padding: 14px;
-            background: var(--accent-color);
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 30px;
+        }
+
+        .btn-clear {
+            padding: 8px 24px;
+            background-color: #dc3545;
             color: white;
             border: none;
-            border-radius: 6px;
-            font-size: 1rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
             font-weight: bold;
             cursor: pointer;
         }
 
-        /* 対戦画面全体のレイアウト */
+        .btn-start {
+            width: 240px;
+            padding: 16px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 26, 85, 0.3);
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        /* 対戦画面レイアウト */
         #game-screen.active {
             display: grid !important;
             grid-template-columns: 100px 1fr 160px 110px;
@@ -128,7 +186,6 @@
             font-size: 0.9rem;
         }
 
-        /* 左サイドバー */
         .left-sidebar {
             grid-column: 1;
             display: flex;
@@ -167,8 +224,6 @@
             cursor: pointer;
             font-weight: bold;
         }
-
-        /* 中央：プレイマット領域 */
         .battlefield {
             grid-column: 2;
             display: flex;
@@ -229,7 +284,7 @@
             cursor: pointer;
             z-index: 10;
         }
-        /* 右サイドバー：操作ボタン */
+
         .right-sidebar {
             grid-column: 3;
             background: var(--card-bg);
@@ -262,18 +317,9 @@
             text-align: center;
         }
 
-        .control-btn:hover {
-            background: #3a3a45;
-        }
+        .control-btn:hover { background: #3a3a45; }
+        .control-btn.end-turn { background: #d35400; font-weight: bold; border: none; margin-top: auto; }
 
-        .control-btn.end-turn {
-            background: #d35400;
-            font-weight: bold;
-            border: none;
-            margin-top: auto;
-        }
-
-        /* 右端サイドバー：トークン */
         .token-sidebar {
             grid-column: 4;
             background: var(--card-bg);
@@ -285,216 +331,79 @@
             align-items: center;
         }
 
-        .token-container {
-            text-align: center;
-            width: 100%;
-        }
-
-        .token-icon {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 0.65rem;
-            font-weight: bold;
-            margin: 0 auto 5px;
-            border: 2px solid #555;
-        }
-
+        .token-container { text-align: center; width: 100%; }
+        .token-icon { width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.65rem; font-weight: bold; margin: 0 auto 5px; border: 2px solid #555; }
         .vol-icon { background: #f1c40f; color: #000; }
         .mana-icon { background: #2980b9; color: #fff; }
         .noise-icon { background: #e74c3c; color: #fff; }
         .counter-icon { background: #8e44ad; color: #fff; }
+        .token-controls { display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .token-btn { background: #333; color: white; border: none; width: 22px; height: 22px; border-radius: 3px; cursor: pointer; font-weight: bold; }
+        .token-value { font-size: 1.1rem; font-weight: bold; min-width: 15px; }
 
-        .token-controls {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
+        .hand-container { grid-column: 1 / span 4; background: var(--card-bg); border-radius: 8px; padding: 10px; }
+        #hand-row { display: flex; gap: 10px; overflow-x: auto; min-height: 110px; align-items: center; }
 
-        .token-btn {
-            background: #333;
-            color: white;
-            border: none;
-            width: 22px;
-            height: 22px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+        .card { width: 72px; height: 108px; background: #25252b; border-radius: 5px; border: 2px solid #666; cursor: pointer; position: relative; overflow: hidden; flex-shrink: 0; }
+        .card-img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
+        .card-info-overlay { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 2; display: flex; flex-direction: column; justify-content: flex-end; padding: 4px; background: rgba(0,0,0,0.4); }
+        .card-code-label { font-size: 0.55rem; background: rgba(0,0,0,0.7); padding: 1px 2px; border-radius: 2px; text-align: center; }
+        .card.A { border-color: var(--artist-color); } .card.S { border-color: var(--song-color); } .card.M { border-color: var(--magic-color); } .card.D { border-color: var(--direction-color); }
+        .card.standby { transform: rotate(90deg); margin: 0 15px; }
+        .song-overlay { position: absolute; bottom: 2px; left: 2px; right: 2px; background: rgba(0,0,0,0.8); color: var(--song-color); font-size: 0.5rem; padding: 1px; border-radius: 2px; text-align: center; z-index: 3; }
 
-        .token-value {
-            font-size: 1.1rem;
-            font-weight: bold;
-            min-width: 15px;
-        }
-
-        /* 下部：手札 */
-        .hand-container {
-            grid-column: 1 / span 4;
-            background: var(--card-bg);
-            border-radius: 8px;
-            padding: 10px;
-        }
-
-        #hand-row {
-            display: flex;
-            gap: 10px;
-            overflow-x: auto;
-            min-height: 110px;
-            align-items: center;
-        }
-
-        /* カード要素 */
-        .card {
-            width: 72px;
-            height: 108px;
-            background: #25252b;
-            border-radius: 5px;
-            border: 2px solid #666;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .card-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
-
-        .card-info-overlay {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: 2;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding: 4px;
-            background: rgba(0, 0, 0, 0.4);
-        }
-
-        .card-code-label {
-            font-size: 0.55rem;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 1px 2px;
-            border-radius: 2px;
-            text-align: center;
-        }
-
-        .card.A { border-color: var(--artist-color); }
-        .card.S { border-color: var(--song-color); }
-        .card.M { border-color: var(--magic-color); }
-        .card.D { border-color: var(--direction-color); }
-
-        .card.standby {
-            transform: rotate(90deg);
-            margin: 0 15px;
-        }
-
-        .song-overlay {
-            position: absolute;
-            bottom: 2px;
-            left: 2px;
-            right: 2px;
-            background: rgba(0, 0, 0, 0.8);
-            color: var(--song-color);
-            font-size: 0.5rem;
-            padding: 1px;
-            border-radius: 2px;
-            text-align: center;
-            z-index: 3;
-        }
-
-        /* モーダル共通 */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 350px;
-            text-align: center;
-        }
-
-        .menu-btn {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            background: #2a2a30;
-            color: white;
-            border: 1px solid #444;
-            margin-bottom: 6px;
-            border-radius: 4px;
-            cursor: pointer;
-            text-align: left;
-            font-size: 0.85rem;
-        }
-
-        .menu-btn.cancel {
-            background: #555;
-            text-align: center;
-            margin-top: 10px;
-        }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--card-bg); padding: 20px; border-radius: 8px; width: 90%; max-width: 350px; text-align: center; }
+        .menu-btn { display: block; width: 100%; padding: 10px; background: #2a2a30; color: white; border: 1px solid #444; margin-bottom: 6px; border-radius: 4px; cursor: pointer; text-align: left; font-size: 0.85rem; }
+        .menu-btn.cancel { background: #555; text-align: center; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <!-- 1. メニュー画面 -->
+    <!-- 1. 新型メニュー画面 -->
     <div id="menu-screen" class="screen active">
         <h1>禊</h1>
-        <div class="form-group">
-            <label for="deck-code">デッキコード (スラッシュ「/」区切り または 改行区切り)</label>
-            <textarea id="deck-code" placeholder="例: GA-13/GA-13/DA-34/JS-40..."></textarea>
-            <div id="deck-count" style="font-size: 0.8rem; color: #888; text-align: right;">0 / 60 枚</div>
+        
+        <!-- モード選択タブ -->
+        <div class="mode-tabs">
+            <button class="tab-btn active" id="tab-1deck" onclick="setMode(1)">1デッキモード</button>
+            <button class="tab-btn" id="tab-2deck" onclick="setMode(2)">2デッキモード</button>
         </div>
-        <div class="form-group">
-            <label>対戦の手番</label>
-            <div class="radio-group">
-                <label><input type="radio" name="turn-order" value="first" checked> 先攻</label>
-                <label><input type="radio" name="turn-order" value="second"> 後攻</label>
+
+        <div class="deck-hint">デッキリストを / 区切りで入力してください</div>
+
+        <!-- デッキコード入力エリア -->
+        <div class="inputs-container">
+            <div class="form-group" id="group-deck1">
+                <label id="label-deck1" style="display:none;">プレイヤー1 のデッキ</label>
+                <textarea id="deck-code" placeholder="例: GA-13/GA-13/DA-34/JS-40..."></textarea>
+                <div id="deck-count" style="font-size: 0.8rem; color: #888; text-align: right; margin-top:4px;">0 / 60 枚</div>
+            </div>
+            
+            <div class="form-group" id="group-deck2" style="display: none;">
+                <label>プレイヤー2 のデッキ</label>
+                <textarea id="deck-code2" placeholder="例: FA-15/FA-15/BM-3/GD-9..."></textarea>
+                <div id="deck-count2" style="font-size: 0.8rem; color: #888; text-align: right; margin-top:4px;">0 / 60 枚</div>
             </div>
         </div>
-        <button class="btn" onclick="startGame()">対戦開始</button>
-    </div>
 
+        <!-- クリアボタン -->
+        <div class="clear-btn-container">
+            <button class="btn-clear" onclick="clearDeckInputs()">クリア</button>
+        </div>
+
+        <!-- ゲーム開始ボタン -->
+        <button class="btn-start" onclick="startGame()">ゲーム開始</button>
+    </div>
     <!-- 2. 対戦画面 -->
     <div id="game-screen" class="screen">
-        <!-- 上部インフォバー -->
         <div class="info-bar">
             <div>ターン: <span id="turn-count">1</span> (<span id="player-order-display">先攻</span>)</div>
             <div class="phase-indicator">フェーズ: <span id="current-phase">ドロー</span></div>
-            <div>山札: <span id="deck-left">60</span>枚 / トラッシュ: <span id="trash-count">0</span>枚</div>
+            <div>山札: <span id="deck-left">60</span>枚 / トラッシュ: <span id="trash-count">0</span>枚 <span id="mode-display" style="margin-left:10px; color:#888;"></span></div>
         </div>
         
-        <!-- 左サイドバー -->
         <div class="left-sidebar">
             <div class="temp-box">
                 <div class="temp-title">テンポラリー</div>
@@ -514,9 +423,7 @@
             </div>
         </div>
 
-        <!-- 中央プレイマット -->
         <div class="battlefield">
-            <!-- ステージ5枠 -->
             <div class="zone">
                 <div class="zone-title">ステージ (Artist / Song)</div>
                 <div class="slots-row">
@@ -527,7 +434,6 @@
                     <div class="card-slot" id="stage-slot-4"><button class="slot-btn" onclick="changeStageCard(4)">ﾁｪﾝｼﾞ</button></div>
                 </div>
             </div>
-            <!-- Direction5枠 -->
             <div class="zone">
                 <div class="zone-title">Direction</div>
                 <div class="slots-row">
@@ -539,7 +445,7 @@
                 </div>
             </div>
         </div>
-        <!-- 右サイドバー -->
+
         <div class="right-sidebar">
             <div class="sidebar-title">プレイマット</div>
             <button class="control-btn" onclick="shuffleDeck()">山札シャッフル</button>
@@ -551,121 +457,98 @@
             <button class="control-btn end-turn" onclick="nextPhase(); nextPhase();">ターンエンド</button>
             <button class="control-btn" onclick="rollDice()">ダイスを振る</button>
             <button class="control-btn" onclick="drawFromBottom()">山札の下から1枚</button>
-            <button class="control-btn" onclick="alert('ソート（未実装）')">ソート</button>
+            <button class="control-btn" id="btn-switch-deck" onclick="switchActiveDeck()" style="display:none; background:#007bff; border:none; font-weight:bold;">相手のデッキへ切替</button>
         </div>
 
-        <!-- 右端サイドバー：トークン -->
         <div class="token-sidebar">
-            <div class="token-container">
-                <div class="token-icon vol-icon">VOL</div>
-                <div class="token-controls">
-                    <button class="token-btn" onclick="changeToken('vol', -1)">-</button>
-                    <span class="token-value" id="token-vol">0</span>
-                    <button class="token-btn" onclick="changeToken('vol', 1)">+</button>
-                </div>
-            </div>
-            <div class="token-container">
-                <div class="token-icon mana-icon">魔力</div>
-                <div class="token-controls">
-                    <button class="token-btn" onclick="changeToken('mana', -1)">-</button>
-                    <span class="token-value" id="token-mana">0</span>
-                    <button class="token-btn" onclick="changeToken('mana', 1)">+</button>
-                </div>
-            </div>
-            <div class="token-container">
-                <div class="token-icon noise-icon">ノイズ</div>
-                <div class="token-controls">
-                    <button class="token-btn" onclick="changeToken('noise', -1)">-</button>
-                    <span class="token-value" id="token-noise">0</span>
-                    <button class="token-btn" onclick="changeToken('noise', 1)">+</button>
-                </div>
-            </div>
-            <div class="token-container">
-                <div class="token-icon counter-icon">汎用</div>
-                <div class="token-controls">
-                    <button class="token-btn" onclick="changeToken('generic', -1)">-</button>
-                    <span class="token-value" id="token-generic">0</span>
-                    <button class="token-btn" onclick="changeToken('generic', 1)">+</button>
-                </div>
-            </div>
+            <div class="token-container"><div class="token-icon vol-icon">VOL</div><div class="token-controls"><button class="token-btn" onclick="changeToken('vol', -1)">-</button><span class="token-value" id="token-vol">0</span><button class="token-btn" onclick="changeToken('vol', 1)">+</button></div></div>
+            <div class="token-container"><div class="token-icon mana-icon">魔力</div><div class="token-controls"><button class="token-btn" onclick="changeToken('mana', -1)">-</button><span class="token-value" id="token-mana">0</span><button class="token-btn" onclick="changeToken('mana', 1)">+</button></div></div>
+            <div class="token-container"><div class="token-icon noise-icon">ノイズ</div><div class="token-controls"><button class="token-btn" onclick="changeToken('noise', -1)">-</button><span class="token-value" id="token-noise">0</span><button class="token-btn" onclick="changeToken('noise', 1)">+</button></div></div>
+            <div class="token-container"><div class="token-icon counter-icon">汎用</div><div class="token-controls"><button class="token-btn" onclick="changeToken('generic', -1)">-</button><span class="token-value" id="token-generic">0</span><button class="token-btn" onclick="changeToken('generic', 1)">+</button></div></div>
         </div>
 
-        <!-- 最下部手札固定エリア -->
-        <div class="hand-container">
-            <div class="zone-title" style="font-size:0.7rem; color:#888; margin-bottom:4px;">手札</div>
-            <div id="hand-row"></div>
-        </div>
+        <div class="hand-container"><div class="zone-title" style="font-size:0.7rem; color:#888; margin-bottom:4px;">手札</div><div id="hand-row"></div></div>
     </div>
 
-    <!-- 各種確認ポップアップ -->
-    <div id="mulligan-modal" class="modal">
-        <div class="modal-content">
-            <h3 style="margin-bottom:15px; font-size:1rem;">マリガンをしますか？</h3>
-            <button class="btn" onclick="executeMulligan(true)" style="background:#333; margin-bottom:10px;">マリガンする</button>
-            <button class="btn" onclick="executeMulligan(false)">このまま開始</button>
-        </div>
-    </div>
-
-    <div id="action-modal" class="modal">
-        <div class="modal-content">
-            <h3 id="action-card-title" style="margin-bottom:15px; font-size:1.1rem;">カード名</h3>
-            <div id="action-buttons-container"></div>
-            <button class="menu-btn cancel" onclick="closeActionModal()">閉じる</button>
-        </div>
-    </div>
+    <div id="mulligan-modal" class="modal"><div class="modal-content"><h3 style="margin-bottom:15px; font-size:1rem;">マリガンをしますか？</h3><button class="btn" onclick="executeMulligan(true)" style="background:#333; margin-bottom:10px;">マリガンする</button><button class="btn" onclick="executeMulligan(false)">このまま開始</button></div></div>
+    <div id="action-modal" class="modal"><div class="modal-content"><h3 id="action-card-title" style="margin-bottom:15px; font-size:1.1rem;">カード名</h3><div id="action-buttons-container"></div><button class="menu-btn cancel" onclick="closeActionModal()">閉じる</button></div></div>
     <script>
-        let gameState = {
-            deck: [],
-            hand: [],
-            stage: [null, null, null, null, null],
-            field: [null, null, null, null, null],
-            trash: [],
-            temporary: 0,
-            directionTemp: 0,
-            turn: 1,
-            isFirstPlayer: true,
-            phaseIndex: 0,
-            phases: ['ドロー', 'アクト', 'エンド'],
-            tokens: { vol: 0, mana: 0, noise: 0, generic: 0 }
+        let currentMode = 1; // 1: 1デッキモード, 2: 2デッキモード
+        let activePlayer = 1; // 2デッキモード時の操作中プレイヤー
+
+        // 各プレイヤーの状態を分離して保持できるように拡張
+        let playerStates = {
+            1: { deck: [], hand: [], stage: [null,null,null,null,null], field: [null,null,null,null,null], trash: [], temporary: 0, directionTemp: 0, tokens: { vol: 0, mana: 0, noise: 0, generic: 0 } },
+            2: { deck: [], hand: [], stage: [null,null,null,null,null], field: [null,null,null,null,null], trash: [], temporary: 0, directionTemp: 0, tokens: { vol: 0, mana: 0, noise: 0, generic: 0 } }
         };
+
+        let gameGlobal = { turn: 1, isFirstPlayer: true, phaseIndex: 0, phases: ['ドロー', 'アクト', 'エンド'] };
         let selectedCardInfo = null;
 
+        // 枚数カウント処理の監視
         document.getElementById('deck-code').addEventListener('input', function() {
             const cards = this.value.split(/[\/\n]/).map(c => c.trim()).filter(c => c !== '');
             document.getElementById('deck-count').innerText = `${cards.length} / 60 枚`;
         });
+        document.getElementById('deck-code2').addEventListener('input', function() {
+            const cards = this.value.split(/[\/\n]/).map(c => c.trim()).filter(c => c !== '');
+            document.getElementById('deck-count2').innerText = `${cards.length} / 60 枚`;
+        });
+
+        // モードの切り替え制御
+        function setMode(mode) {
+            currentMode = mode;
+            if (mode === 1) {
+                document.getElementById('tab-1deck').classList.add('active');
+                document.getElementById('tab-2deck').classList.remove('active');
+                document.getElementById('group-deck2').style.display = 'none';
+                document.getElementById('label-deck1').style.display = 'none';
+            } else {
+                document.getElementById('tab-2deck').classList.add('active');
+                document.getElementById('tab-1deck').classList.remove('active');
+                document.getElementById('group-deck2').style.display = 'block';
+                document.getElementById('label-deck1').style.display = 'block';
+            }
+        }
+
+        // クリアボタンの動作
+        function clearDeckInputs() {
+            document.getElementById('deck-code').value = '';
+            document.getElementById('deck-code2').value = '';
+            document.getElementById('deck-count').innerText = '0 / 60 枚';
+            document.getElementById('deck-count2').innerText = '0 / 60 枚';
+        }
 
         function changeToken(type, amount) {
-            gameState.tokens[type] += amount;
-            if (gameState.tokens[type] < 0) gameState.tokens[type] = 0;
-            if (type === 'noise' && gameState.tokens.noise > 5) gameState.tokens.noise = 5;
-            document.getElementById(`token-${type}`).innerText = gameState.tokens[type];
+            let state = playerStates[activePlayer];
+            state.tokens[type] += amount;
+            if (state.tokens[type] < 0) state.tokens[type] = 0;
+            if (type === 'noise' && state.tokens.noise > 5) state.tokens.noise = 5;
+            document.getElementById(`token-${type}`).innerText = state.tokens[type];
         }
 
         function changeTemp(type, amount) {
-            gameState[type] += amount;
-            if (gameState[type] < 0) gameState[type] = 0;
-            document.getElementById(`temp-${type}`).innerText = gameState[type];
+            let state = playerStates[activePlayer];
+            state[type] += amount; if (state[type] < 0) state[type] = 0;
+            document.getElementById(`temp-${type}`).innerText = state[type];
         }
 
-        function rollDice() {
-            alert(`🎲 ダイスの出目: ${Math.floor(Math.random() * 6) + 1}`);
-        }
+        function rollDice() { alert(`🎲 ダイスの出目: ${Math.floor(Math.random() * 6) + 1}`); }
 
         function shuffleDeck() {
-            for (let i = gameState.deck.length - 1; i > 0; i--) {
+            let state = playerStates[activePlayer];
+            for (let i = state.deck.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [gameState.deck[i], gameState.deck[j]] = [gameState.deck[j], gameState.deck[i]];
+                [state.deck[i], state.deck[j]] = [state.deck[j], state.deck[i]];
             }
             renderGame();
         }
-
-        function parseCardCode(code) {
+                function parseCardCode(code) {
             const cleanCode = code.trim();
             const parts = cleanCode.split('-');
             let typeChar = 'M';
             if (parts.length >= 2) {
-                const rightPart = parts[1]; // 配列バグの修復確認済み
+                const rightPart = parts[1];
                 if (rightPart && rightPart.length > 0) {
                     typeChar = rightPart.charAt(0).toUpperCase();
                 }
@@ -674,239 +557,158 @@
                 else if (cleanCode.includes('S')) typeChar = 'S';
                 else if (cleanCode.includes('D')) typeChar = 'D';
             }
-            return { code: cleanCode, type: typeChar, img: `images/${cleanCode}.png` };
+            const typeMap = { 'A': 'A', 'S': 'S', 'M': 'M', 'D': 'D' };
+            return { code: cleanCode, type: typeMap[typeChar] || 'M', img: `images/${cleanCode}.png` };
         }
 
         function startGame() {
-            const lines = document.getElementById('deck-code').value.split(/[\/\n]/).map(line => line.trim()).filter(line => line !== '');
-            if (lines.length !== 60) {
-                alert(`枚数が60枚ではありません。（現在: ${lines.length}枚）`);
-                return;
+            const lines1 = document.getElementById('deck-code').value.split(/[\/\n]/).map(line => line.trim()).filter(line => line !== '');
+            if (lines1.length !== 60) { alert(`プレイヤー1の枚数が60枚ではありません。（現在: ${lines1.length}枚）`); return; }
+            playerStates[1].deck = lines1.map(line => parseCardCode(line));
+
+            if (currentMode === 2) {
+                const lines2 = document.getElementById('deck-code2').value.split(/[\/\n]/).map(line => line.trim()).filter(line => line !== '');
+                if (lines2.length !== 60) { alert(`プレイヤー2の枚数が60枚ではありません。（現在: ${lines2.length}枚）`); return; }
+                playerStates[2].deck = lines2.map(line => parseCardCode(line));
+                document.getElementById('btn-switch-deck').style.display = 'block';
+            } else {
+                document.getElementById('btn-switch-deck').style.display = 'none';
             }
-            gameState.deck = lines.map(line => parseCardCode(line));
-            gameState.hand = [];
-            gameState.stage = [null, null, null, null, null];
-            gameState.field = [null, null, null, null, null];
-            gameState.trash = [];
-            gameState.temporary = 0;
-            gameState.directionTemp = 0;
-            gameState.tokens = { vol: 0, mana: 0, noise: 0, generic: 0 };
-            gameState.turn = 1;
-            gameState.isFirstPlayer = document.querySelector('input[name="turn-order"]:checked').value === 'first';
+
+            activePlayer = 1; gameGlobal.turn = 1; gameGlobal.phaseIndex = 0;
+            gameGlobal.isFirstPlayer = document.querySelector('input[name="turn-order"]:checked').value === 'first';
             
             document.getElementById('menu-screen').classList.remove('active');
             document.getElementById('game-screen').classList.add('active');
-            document.getElementById('player-order-display').innerText = gameState.isFirstPlayer ? "先攻" : "後攻";
+            document.getElementById('player-order-display').innerText = gameGlobal.isFirstPlayer ? "先攻" : "後攻";
+
+            shuffleDeck(); drawCards(7);
+            if(currentMode === 2) { activePlayer = 2; shuffleDeck(); drawCards(7); activePlayer = 1; }
             
-            shuffleDeck();
-            drawCards(7);
             openModal('mulligan-modal');
             renderGame();
         }
 
         function drawCards(count) {
-            for (let i = 0; i < count; i++) {
-                if (gameState.deck.length > 0) gameState.hand.push(gameState.deck.pop());
-            }
+            let state = playerStates[activePlayer];
+            for (let i = 0; i < count; i++) { if (state.deck.length > 0) state.hand.push(state.deck.pop()); }
         }
 
         function drawFromBottom() {
-            if (gameState.deck.length > 0) {
-                gameState.hand.push(gameState.deck.shift());
-                alert("山札の下から1枚ドローしました。");
-                renderGame();
-            } else {
-                alert("山札がありません。");
-            }
+            let state = playerStates[activePlayer];
+            if (state.deck.length > 0) { state.hand.push(state.deck.shift()); alert("山札の下から1枚ドローしました。"); renderGame(); }
+            else { alert("山札がありません。"); }
         }
 
-        function executeMulligan(wantMulligan) {
-            closeModal('mulligan-modal');
-            if (wantMulligan) {
-                gameState.deck.push(...gameState.hand);
-                gameState.hand = [];
-                shuffleDeck();
-                drawCards(7);
-            }
-            gameState.phaseIndex = 0;
-            if (gameState.turn === 1 && gameState.isFirstPlayer) {
-                alert("先攻1ターン目のためドローはスキップされます。");
-            } else {
-                drawCards(1);
-            }
+        function switchActiveDeck() {
+            activePlayer = activePlayer === 1 ? 2 : 1;
+            alert(`操作を プレイヤー${activePlayer} の盤面に切り替えました。`);
             renderGame();
         }
+        function executeMulligan(wantMulligan) {
+            closeModal('mulligan-modal');
+            let state = playerStates[activePlayer];
+            if (wantMulligan) { state.deck.push(...state.hand); state.hand = []; shuffleDeck(); drawCards(7); }
+            gameGlobal.phaseIndex = 0;
+            if (gameGlobal.turn === 1 && gameGlobal.isFirstPlayer && activePlayer === 1) {
+                alert("先攻1ターン目のためドローはスキップされます。");
+            } else { drawCards(1); }
+            renderGame();
+        }
+
         function discardAllHand() {
-            if(confirm("手札をすべてトラッシュしますか？")) {
-                gameState.trash.push(...gameState.hand);
-                gameState.hand = [];
-                renderGame();
-            }
+            let state = playerStates[activePlayer];
+            if(confirm("手札をすべてトラッシュしますか？")) { state.trash.push(...state.hand); state.hand = []; renderGame(); }
         }
 
         function nextPhase() {
-            gameState.phaseIndex++;
-            if (gameState.phaseIndex >= gameState.phases.length) {
-                gameState.stage.forEach(item => {
-                    if (item) {
-                        item.attachedSongs = [];
-                        if (item.status === 'Standby') item.status = 'Active';
-                    }
+            gameGlobal.phaseIndex++;
+            if (gameGlobal.phaseIndex >= gameGlobal.phases.length) {
+                [1, 2].forEach(p => {
+                    playerStates[p].stage.forEach(item => { if (item) { item.attachedSongs = []; if (item.status === 'Standby') item.status = 'Active'; } });
                 });
-                gameState.turn++;
-                gameState.phaseIndex = 0;
-                drawCards(1);
+                gameGlobal.turn++; gameGlobal.phaseIndex = 0;
+                let orig = activePlayer; activePlayer = 1; drawCards(1); activePlayer = 2; drawCards(1); activePlayer = orig;
             }
-            document.getElementById('current-phase').innerText = gameState.phases[gameState.phaseIndex];
+            document.getElementById('current-phase').innerText = gameGlobal.phases[gameGlobal.phaseIndex];
             renderGame();
         }
-
         function renderGame() {
-            document.getElementById('turn-count').innerText = gameState.turn;
-            document.getElementById('deck-left').innerText = gameState.deck.length;
-            document.getElementById('trash-count').innerText = gameState.trash.length;
+            let state = playerStates[activePlayer];
+            document.getElementById('turn-count').innerText = gameGlobal.turn;
+            document.getElementById('deck-left').innerText = state.deck.length;
+            document.getElementById('trash-count').innerText = state.trash.length;
+            document.getElementById('mode-display').innerText = currentMode === 2 ? `[操作中: P${activePlayer}]` : "";
+
+            document.getElementById('temp-temporary').innerText = state.temporary;
+            document.getElementById('temp-directionTemp').innerText = state.directionTemp;
+            ['vol', 'mana', 'noise', 'generic'].forEach(t => { document.getElementById(`token-${t}`).innerText = state.tokens[t]; });
 
             for (let i = 0; i < 5; i++) {
-                const slot = document.getElementById(`stage-slot-${i}`);
-                slot.innerHTML = `<button class="slot-btn" onclick="changeStageCard(${i})">ﾁｪﾝｼﾞ</button>`;
-                const item = gameState.stage[i];
+                const slot = document.getElementById(`stage-slot-${i}`); slot.innerHTML = `<button class="slot-btn" onclick="changeStageCard(${i})">ﾁｪﾝｼﾞ</button>`;
+                const item = state.stage[i];
                 if (item) {
                     const cardDom = createCardDOM(item.card, 'stage', i, item.status);
                     if (item.attachedSongs.length > 0) {
-                        const songText = document.createElement('div');
-                        songText.className = 'song-overlay';
-                        songText.innerText = '♪ ' + item.attachedSongs.map(s => s.code).join(', ');
-                        cardDom.appendChild(songText);
+                        const songText = document.createElement('div'); songText.className = 'song-overlay'; songText.innerText = '♪ ' + item.attachedSongs.map(s => s.code).join(', '); cardDom.appendChild(songText);
                     }
                     slot.appendChild(cardDom);
                 }
             }
-
             for (let i = 0; i < 5; i++) {
-                const slot = document.getElementById(`field-slot-${i}`);
-                slot.innerHTML = '';
-                const card = gameState.field[i];
-                if (card) slot.appendChild(createCardDOM(card, 'field', i));
+                const slot = document.getElementById(`field-slot-${i}`); slot.innerHTML = ''; const card = state.field[i]; if (card) slot.appendChild(createCardDOM(card, 'field', i));
             }
-
-            const handRow = document.getElementById('hand-row');
-            handRow.innerHTML = '';
-            gameState.hand.forEach((card, index) => {
-                handRow.appendChild(createCardDOM(card, 'hand', index));
-            });
+            const handRow = document.getElementById('hand-row'); handRow.innerHTML = '';
+            state.hand.forEach((card, index) => { handRow.appendChild(createCardDOM(card, 'hand', index)); });
         }
 
         function createCardDOM(card, zone, index, status = 'Active') {
-            const cardDiv = document.createElement('div');
-            cardDiv.className = `card ${card.type}`;
-            if (status === 'Standby') cardDiv.classList.add('standby');
-            
-            const imgEl = document.createElement('img');
-            imgEl.src = card.img;
-            imgEl.className = 'card-img';
-            imgEl.onerror = () => { imgEl.style.display = 'none'; };
-            cardDiv.appendChild(imgEl);
-
-            const overlay = document.createElement('div');
-            overlay.className = 'card-info-overlay';
-            overlay.innerHTML = `<div class="card-code-label">${card.code}</div>`;
-            cardDiv.appendChild(overlay);
-
-            cardDiv.onclick = (e) => {
-                e.stopPropagation();
-                handleCardClick(zone, index, card, status);
-            };
-            return cardDiv;
+            const cardDiv = document.createElement('div'); cardDiv.className = `card ${card.type}`; if (status === 'Standby') cardDiv.classList.add('standby');
+            const imgEl = document.createElement('img'); imgEl.src = card.img; imgEl.className = 'card-img'; imgEl.onerror = () => { imgEl.style.display = 'none'; }; cardDiv.appendChild(imgEl);
+            const overlay = document.createElement('div'); overlay.className = 'card-info-overlay'; overlay.innerHTML = `<div class="card-code-label">${card.code}</div>`; cardDiv.appendChild(overlay);
+            cardDiv.onclick = (e) => { e.stopPropagation(); handleCardClick(zone, index, card, status); }; return cardDiv;
         }
-
         function handleCardClick(zone, index, card, status) {
-            selectedCardInfo = { zone, index, card, status };
-            const container = document.getElementById('action-buttons-container');
-            container.innerHTML = '';
-            document.getElementById('action-card-title').innerText = card.code;
-
+            let state = playerStates[activePlayer];
+            selectedCardInfo = { zone, index, card, status }; const container = document.getElementById('action-buttons-container'); container.innerHTML = ''; document.getElementById('action-card-title').innerText = card.code;
             if (zone === 'hand') {
                 if (card.type === 'A') {
                     createMenuBtn(container, 'ステージの空き枠に出す', () => {
-                        const emptyIdx = gameState.stage.findIndex(slot => slot === null);
-                        if (emptyIdx === -1) { alert("ステージに空き枠がありません！"); return; }
-                        gameState.stage[emptyIdx] = { card: card, status: 'Active', attachedSongs: [] };
-                        gameState.hand.splice(index, 1);
-                        closeActionModal();
+                        const emptyIdx = state.stage.findIndex(slot => slot === null); if (emptyIdx === -1) { alert("ステージに空き枠がありません！"); return; }
+                        state.stage[emptyIdx] = { card: card, status: 'Active', attachedSongs: [] }; state.hand.splice(index, 1); closeActionModal();
                     });
                 } else if (card.type === 'S') {
-                    gameState.stage.forEach((item, sIdx) => {
-                        if (item) {
-                            createMenuBtn(container, `枠 [${sIdx+1}] のArtistにSongを使用`, () => {
-                                item.attachedSongs.push(card);
-                                gameState.hand.splice(index, 1);
-                                closeActionModal();
-                            });
-                        }
+                    state.stage.forEach((item, sIdx) => {
+                        if (item) { createMenuBtn(container, `枠 [${sIdx+1}] のArtistにSongを使用`, () => { item.attachedSongs.push(card); state.hand.splice(index, 1); closeActionModal(); }); }
                     });
                 } else if (card.type === 'D') {
                     createMenuBtn(container, 'Direction枠の空きに出す', () => {
-                        const emptyIdx = gameState.field.findIndex(slot => slot === null);
-                        if (emptyIdx === -1) { alert("Direction枠に空きがありません！"); return; }
-                        gameState.field[emptyIdx] = card;
-                        gameState.hand.splice(index, 1);
-                        closeActionModal();
+                        const emptyIdx = state.field.findIndex(slot => slot === null); if (emptyIdx === -1) { alert("Direction枠に空きがありません！"); return; }
+                        state.field[emptyIdx] = card; state.hand.splice(index, 1); closeActionModal();
                     });
                 } else if (card.type === 'M') {
-                    createMenuBtn(container, 'Magicを使用 (トラッシュへ)', () => {
-                        gameState.trash.push(card);
-                        gameState.hand.splice(index, 1);
-                        closeActionModal();
-                    });
+                    createMenuBtn(container, 'Magicを使用 (トラッシュへ)', () => { state.trash.push(card); state.hand.splice(index, 1); closeActionModal(); });
                 }
-                createMenuBtn(container, 'トラッシュに捨てる', () => {
-                    gameState.trash.push(card);
-                    gameState.hand.splice(index, 1);
-                    closeActionModal();
-                });
+                createMenuBtn(container, 'トラッシュに捨てる', () => { state.trash.push(card); state.hand.splice(index, 1); closeActionModal(); });
             } else if (zone === 'stage') {
-                createMenuBtn(container, status === 'Active' ? 'Standby(横置)にする' : 'Active(縦置)にする', () => {
-                    gameState.stage[index].status = status === 'Active' ? 'Standby' : 'Active';
-                    closeActionModal();
-                });
-                createMenuBtn(container, 'トラッシュへ送る', () => {
-                    gameState.trash.push(gameState.stage[index].card);
-                    gameState.trash.push(...gameState.stage[index].attachedSongs);
-                    gameState.stage[index] = null;
-                    closeActionModal();
-                });
+                createMenuBtn(container, status === 'Active' ? 'Standby(横置)にする' : 'Active(縦置)にする', () => { state.stage[index].status = status === 'Active' ? 'Standby' : 'Active'; closeActionModal(); });
+                createMenuBtn(container, 'トラッシュへ送る', () => { state.trash.push(state.stage[index].card); state.trash.push(...state.stage[index].attachedSongs); state.stage[index] = null; closeActionModal(); });
             } else if (zone === 'field') {
-                createMenuBtn(container, 'トラッシュへ送る', () => {
-                    gameState.trash.push(gameState.field[index]);
-                    gameState.field[index] = null;
-                    closeActionModal();
-                });
+                createMenuBtn(container, 'トラッシュへ送る', () => { state.trash.push(state.field[index]); state.field[index] = null; closeActionModal(); });
             }
             openModal('action-modal');
         }
 
         function changeStageCard(index) {
-            if(gameState.stage[index] === null) {
-                alert("この枠にはカードがありません。");
-                return;
-            }
+            let state = playerStates[activePlayer];
+            if(state.stage[index] === null) { alert("この枠にはカードがありません。"); return; }
             if(confirm(`枠 [${index+1}] のカードを手札に戻しますか？（チェンジ）`)) {
-                gameState.hand.push(gameState.stage[index].card);
-                gameState.trash.push(...gameState.stage[index].attachedSongs);
-                gameState.stage[index] = null;
-                renderGame();
+                state.hand.push(state.stage[index].card); state.trash.push(...state.stage[index].attachedSongs); state.stage[index] = null; renderGame();
             }
         }
 
         function createMenuBtn(parent, text, onClickFn) {
-            const btn = document.createElement('button');
-            btn.className = 'menu-btn';
-            btn.innerText = text;
-            btn.onclick = () => {
-                onClickFn();
-                renderGame();
-            };
-            parent.appendChild(btn);
+            const btn = document.createElement('button'); btn.className = 'menu-btn'; btn.innerText = text; btn.onclick = () => { onClickFn(); renderGame(); }; parent.appendChild(btn);
         }
         function openModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
