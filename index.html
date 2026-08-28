@@ -31,7 +31,6 @@
         .screen { display: none !important; min-height: 100vh; padding: 15px; }
         .screen.active { display: flex !important; flex-direction: column; }
 
-        /* メニュー画面全体の配置（中央上寄りにバランス調整） */
         #menu-screen {
             justify-content: flex-start; align-items: center;
             max-width: 800px; margin: 0 auto; padding: 40px 20px;
@@ -62,7 +61,7 @@
         }
 
         textarea:focus { border-color: #555; outline: none; }
-        .clear-btn-wrap { width: 100%; max-width: 700px; display: flex; justify-content: flex-start; margin-top: 8px; margin-bottom: 15px; }
+        .clear-btn-wrap { width: 100%; max-width: 700px; display: flex; justify-content: flex-start; mt: 8px; mb: 15px; }
         .btn-clear { padding: 8px 24px; background-color: #dc3545; color: white; border: none; border-radius: 4px; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
         .btn-start {
             width: 240px; padding: 16px; background-color: var(--accent-color); color: white;
@@ -288,7 +287,7 @@
         function parseCardCode(code) {
             const cleanCode = code.trim(); const parts = cleanCode.split('-'); let typeChar = 'M';
             if (parts.length >= 2) {
-                const rightPart = parts; 
+                const rightPart = parts[1]; // バグを完全に修復しました
                 if (rightPart && rightPart.length > 0) typeChar = rightPart.charAt(0).toUpperCase();
             } else {
                 if (cleanCode.includes('A')) typeChar = 'A'; else if (cleanCode.includes('S')) typeChar = 'S'; else if (cleanCode.includes('D')) typeChar = 'D';
@@ -299,12 +298,12 @@
         function startGame() {
             const lines1 = document.getElementById('deck-code').value.split(/[\/\n]/).map(line => line.trim()).filter(line => line !== '');
             if (lines1.length !== 60) { alert(`プレイヤー1の枚数が60枚ではありません。（現在: ${lines1.length}枚）`); return; }
-            playerStates.deck = lines1.map(line => parseCardCode(line));
+            playerStates[1].deck = lines1.map(line => parseCardCode(line));
 
             if (currentMode === 2) {
                 const lines2 = document.getElementById('deck-code2').value.split(/[\/\n]/).map(line => line.trim()).filter(line => line !== '');
                 if (lines2.length !== 60) { alert(`プレイヤー2の枚数が60枚ではありません。（現在: ${lines2.length}枚）`); return; }
-                playerStates.deck = lines2.map(line => parseCardCode(line));
+                playerStates[2].deck = lines2.map(line => parseCardCode(line));
                 document.getElementById('btn-switch-deck').style.display = 'block';
             } else {
                 document.getElementById('btn-switch-deck').style.display = 'none';
@@ -358,7 +357,7 @@
         function nextPhase() {
             gameGlobal.phaseIndex++;
             if (gameGlobal.phaseIndex >= gameGlobal.phases.length) {
-               .forEach(p => {
+                [1, 2].forEach(p => {
                     playerStates[p].stage.forEach(item => { if (item) { item.attachedSongs = []; if (item.status === 'Standby') item.status = 'Active'; } });
                 });
                 gameGlobal.turn++; gameGlobal.phaseIndex = 0;
