@@ -23,7 +23,7 @@
             flex-direction: column;
             align-items: center;
             width: 100%;
-            max-width: 1100px; /* 横幅をさらにワイドに広げました */
+            max-width: 1100px;
             padding: 40px 20px;
             box-sizing: border-box;
         }
@@ -59,7 +59,6 @@
             border-color: #007bff;
         }
 
-        /* 入力エリア全体のラッパー */
         .input-section {
             width: 100%;
             display: flex;
@@ -68,7 +67,6 @@
             gap: 25px;
         }
 
-        /* 各デッキ入力ブロック */
         .deck-code-area {
             width: 100%;
             display: flex;
@@ -90,7 +88,7 @@
 
         textarea {
             width: 100%;
-            height: 160px; /* 縦幅も少しゆとりを持たせて調整 */
+            height: 160px;
             background-color: #1a1a1a;
             border: 1px solid #333333;
             border-radius: 6px;
@@ -143,7 +141,6 @@
             background-color: #cc0028;
         }
 
-        /* 対戦画面 */
         .game-screen {
             display: none;
             flex-direction: column;
@@ -173,44 +170,39 @@
 </head>
 <body>
 
-    <!-- メインメニュー画面 -->
     <div class="container" id="menuScreen">
         <div class="title">禊</div>
 
-        <!-- モード選択ボタン -->
         <div class="mode-selection">
             <button class="mode-btn" id="btn1Deck" onclick="selectMode(1)">1デッキモード</button>
-            <button class="mode-btn active" id="btn2Deck" onclick="selectMode(2)">2デッキ対戦モード</button>
+            <button class="mode-btn" id="btn2Deck" onclick="selectMode(2)">2デッキ対戦モード</button>
         </div>
 
-        <!-- 入力エリア -->
         <div class="input-section">
-            <!-- プレイヤー1の入力欄 -->
             <div class="deck-code-area" id="areaPlayer1">
                 <div class="label-text" id="labelPlayer1">プレイヤー1のデッキ</div>
                 <div class="textarea-container">
-                    <textarea id="deckInput1" placeholder="ここにデッキコードを入力してください"></textarea>
+                    <!-- 入力するたびに自動保存するイベント(oninput)を追加 -->
+                    <textarea id="deckInput1" oninput="saveData()" placeholder="ここにデッキコードを入力してください"></textarea>
                 </div>
                 <button class="clear-btn" onclick="clearInput(1)">クリア</button>
             </div>
 
-            <!-- プレイヤー2の入力欄（1デッキモードの時はJSで非表示にします） -->
             <div class="deck-code-area" id="areaPlayer2">
                 <div class="label-text">プレイヤー2のデッキ</div>
                 <div class="textarea-container">
-                    <textarea id="deckInput2" placeholder="ここにデッキコードを入力してください"></textarea>
+                    <!-- 入力するたびに自動保存するイベント(oninput)を追加 -->
+                    <textarea id="deckInput2" oninput="saveData()" placeholder="ここにデッキコードを入力してください"></textarea>
                 </div>
                 <button class="clear-btn" onclick="clearInput(2)">クリア</button>
             </div>
         </div>
 
-        <!-- ゲーム開始ボタン -->
         <div class="start-btn-container">
             <button class="start-btn" onclick="startGame()">ゲーム開始</button>
         </div>
     </div>
 
-    <!-- 対戦画面 -->
     <div class="game-screen" id="gameScreen">
         <h2>対戦画面</h2>
         <p id="gameInfoText" style="color: #aaa; text-align: center; line-height: 1.6;"></p>
@@ -218,7 +210,34 @@
     </div>
 
     <script>
-        let currentMode = 2; // 初期状態を画像の通り「2デッキ対戦モード」に設定
+        let currentMode = 2; // デフォルトは2デッキモード
+
+        // 🟢 画面が読み込まれた時に、保存されているデータを復元する
+        window.onload = function() {
+            // 保存されたモードを読み込み（なければ2にする）
+            const savedMode = localStorage.getItem('misogi_mode');
+            currentMode = savedMode ? parseInt(savedMode) : 2;
+
+            // 保存されたデッキコードを読み込み
+            const savedDeck1 = localStorage.getItem('misogi_deck1');
+            const savedDeck2 = localStorage.getItem('misogi_deck2');
+
+            if (savedDeck1) document.getElementById('deckInput1').value = savedDeck1;
+            if (savedDeck2) document.getElementById('deckInput2').value = savedDeck2;
+
+            // 読み込んだモードの見た目を画面に反映
+            selectMode(currentMode);
+        };
+
+        // 🟢 データをブラウザに保存する共通関数
+        function saveData() {
+            const deck1 = document.getElementById('deckInput1').value;
+            const deck2 = document.getElementById('deckInput2').value;
+
+            localStorage.setItem('misogi_mode', currentMode);
+            localStorage.setItem('misogi_deck1', deck1);
+            localStorage.setItem('misogi_deck2', deck2);
+        }
 
         // モードを切り替える関数
         function selectMode(mode) {
@@ -232,18 +251,22 @@
                 btn1.classList.add('active');
                 btn2.classList.remove('active');
                 label1.innerText = 'デッキリストを / 区切りで入力してください';
-                area2.style.display = 'none'; // プレイヤー2の入力欄を隠す
+                area2.style.display = 'none';
             } else {
                 btn1.classList.remove('active');
                 btn2.classList.add('active');
                 label1.innerText = 'プレイヤー1のデッキ';
-                area2.style.display = 'flex'; // プレイヤー2の入力欄を出す
+                area2.style.display = 'flex';
             }
+
+            // モードを切り替えた時も状態を保存
+            saveData();
         }
 
         // 指定された入力欄をクリアする関数
         function clearInput(targetNum) {
             document.getElementById(`deckInput${targetNum}`).value = '';
+            saveData(); // クリアした状態を保存
         }
 
         // ゲーム開始ボタンの処理
@@ -266,9 +289,6 @@
             document.getElementById('gameScreen').style.display = 'none';
             document.getElementById('menuScreen').style.display = 'flex';
         }
-
-        // 起動時に初期モード(2)を適用
-        selectMode(2);
     </script>
 </body>
 </html>
