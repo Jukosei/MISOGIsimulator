@@ -299,7 +299,7 @@
         .card.standby { transform: rotate(90deg); margin: 0 15px; }
         .song-overlay { position: absolute; bottom: 2px; left: 2px; right: 2px; background: rgba(0,0,0,0.8); color: var(--song-color); font-size: 0.5rem; padding: 1px; border-radius: 2px; text-align: center; z-index: 3; }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); justify-content: center; align-items: center; z-index: 1000; }
         .modal.active { display: flex; } .modal-content { background: var(--card-bg); padding: 20px; border-radius: 8px; width: 90%; max-width: 350px; text-align: center; }
         .menu-btn { display: block; width: 100%; padding: 10px; background: #2a2a30; color: white; border: 1px solid #444; margin-bottom: 6px; border-radius: 4px; cursor: pointer; text-align: left; font-size: 0.85rem; }
         .menu-btn.cancel { background: #555; text-align: center; margin-top: 10px; }
@@ -407,23 +407,18 @@
         let gameGlobal = { turn: 1, isFirstPlayer: true, phaseIndex: 0, phases: ['ドロー', 'アクト', 'エンド'] };
         let selectedCardInfo = null;
 
-        document.getElementById('deck-code').addEventListener('input', function() {
-            const cards = this.value.split(/[\/\n]/).map(c => c.trim()).filter(c => c !== '');
-            document.getElementById('deck-count').innerText = `${cards.length} / 60 枚`;
-        });
-        document.getElementById('deck-code2').addEventListener('input', function() {
-            const cards = this.value.split(/[\/\n]/).map(c => c.trim()).filter(c => c !== '');
-            document.getElementById('deck-count2').innerText = `${cards.length} / 60 枚`;
-        });
-
         function setMode(mode) {
             currentMode = mode;
             if (mode === 1) {
-                document.getElementById('tab-1deck').classList.add('active'); document.getElementById('tab-2deck').classList.remove('active');
-                document.getElementById('group-deck2').style.display = 'none'; document.getElementById('label-deck1').style.display = 'none';
+                document.getElementById('tab-1deck').classList.add('active');
+                document.getElementById('tab-2deck').classList.remove('active');
+                document.getElementById('group-deck2').style.display = 'none';
+                document.getElementById('label-deck1').style.display = 'none';
             } else {
-                document.getElementById('tab-2deck').classList.add('active'); document.getElementById('tab-1deck').classList.remove('active');
-                document.getElementById('group-deck2').style.display = 'flex'; document.getElementById('label-deck1').style.display = 'block';
+                document.getElementById('tab-2deck').classList.add('active');
+                document.getElementById('tab-1deck').classList.remove('active');
+                document.getElementById('group-deck2').style.display = 'flex';
+                document.getElementById('label-deck1').style.display = 'block';
             }
         }
 
@@ -433,14 +428,16 @@
         }
 
         function changeToken(type, amount) {
-            let state = playerStates[activePlayer]; state.tokens[type] += amount;
+            let state = playerStates[activePlayer];
+            state.tokens[type] += amount;
             if (state.tokens[type] < 0) state.tokens[type] = 0;
             if (type === 'noise' && state.tokens.noise > 5) state.tokens.noise = 5;
             document.getElementById(`token-${type}`).innerText = state.tokens[type];
         }
 
         function changeTemp(type, amount) {
-            let state = playerStates[activePlayer]; state[type] += amount; if (state[type] < 0) state[type] = 0;
+            let state = playerStates[activePlayer];
+            state[type] += amount; if (state[type] < 0) state[type] = 0;
             document.getElementById(`temp-${type}`).innerText = state[type];
         }
 
@@ -448,16 +445,25 @@
 
         function shuffleDeck() {
             let state = playerStates[activePlayer];
-            for (let i = state.deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [state.deck[i], state.deck[j]] = [state.deck[j], state.deck[i]]; }
+            for (let i = state.deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [state.deck[i], state.deck[j]] = [state.deck[j], state.deck[i]];
+            }
             renderGame();
         }
         function parseCardCode(code) {
-            const cleanCode = code.trim(); const parts = cleanCode.split('-'); let typeChar = 'M';
+            const cleanCode = code.trim();
+            const parts = cleanCode.split('-');
+            let typeChar = 'M';
             if (parts.length >= 2) {
-                const rightPart = parts;
-                if (rightPart && rightPart.length > 0) typeChar = rightPart.charAt(0).toUpperCase();
+                const rightPart = parts[1];
+                if (rightPart && rightPart.length > 0) {
+                    typeChar = rightPart.charAt(0).toUpperCase();
+                }
             } else {
-                if (cleanCode.includes('A')) typeChar = 'A'; else if (cleanCode.includes('S')) typeChar = 'S'; else if (cleanCode.includes('D')) typeChar = 'D';
+                if (cleanCode.includes('A')) typeChar = 'A';
+                else if (cleanCode.includes('S')) typeChar = 'S';
+                else if (cleanCode.includes('D')) typeChar = 'D';
             }
             return { code: cleanCode, type: typeChar, img: `images/${cleanCode}.png` };
         }
@@ -465,25 +471,29 @@
         function startGame() {
             const lines1 = document.getElementById('deck-code').value.split(/[\/\n]/).map(line => line.trim()).filter(line => line !== '');
             if (lines1.length !== 60) { alert(`プレイヤー1の枚数が60枚ではありません。（現在: ${lines1.length}枚）`); return; }
-            playerStates[1].deck = lines1.map(line => parseCardCode(line)); // バグ修復完了
+            playerStates[1].deck = lines1.map(line => parseCardCode(line)); // 完全にバグを修復
 
             if (currentMode === 2) {
                 const lines2 = document.getElementById('deck-code2').value.split(/[\/\n]/).map(line => line.trim()).filter(line => line !== '');
                 if (lines2.length !== 60) { alert(`プレイヤー2の枚数が60枚ではありません。（現在: ${lines2.length}枚）`); return; }
-                playerStates[2].deck = lines2.map(line => parseCardCode(line)); // バグ修復完了
+                playerStates[2].deck = lines2.map(line => parseCardCode(line)); // 完全にバグを修復
                 document.getElementById('btn-switch-deck').style.display = 'block';
-            } else { 
-                document.getElementById('btn-switch-deck').style.display = 'none'; 
+            } else {
+                document.getElementById('btn-switch-deck').style.display = 'none';
             }
 
             activePlayer = 1; gameGlobal.turn = 1; gameGlobal.phaseIndex = 0;
             gameGlobal.isFirstPlayer = document.querySelector('input[name="turn-order"]:checked').value === 'first';
-            document.getElementById('menu-screen').classList.remove('active'); document.getElementById('game-screen').classList.add('active');
+            
+            document.getElementById('menu-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
             document.getElementById('player-order-display').innerText = gameGlobal.isFirstPlayer ? "先攻" : "後攻";
 
             shuffleDeck(); drawCards(7);
             if(currentMode === 2) { activePlayer = 2; shuffleDeck(); drawCards(7); activePlayer = 1; }
-            openModal('mulligan-modal'); renderGame();
+            
+            openModal('mulligan-modal');
+            renderGame();
         }
         function drawCards(count) {
             let state = playerStates[activePlayer];
@@ -497,38 +507,49 @@
         }
 
         function switchActiveDeck() {
-            activePlayer = activePlayer === 1 ? 2 : 1; alert(`操作を プレイヤー${activePlayer} の盤面に切り替えました。`); renderGame();
+            activePlayer = activePlayer === 1 ? 2 : 1;
+            alert(`操作を プレイヤー${activePlayer} の盤面に切り替えました。`);
+            renderGame();
         }
 
         function executeMulligan(wantMulligan) {
-            closeModal('mulligan-modal'); let state = playerStates[activePlayer];
+            closeModal('mulligan-modal');
+            let state = playerStates[activePlayer];
             if (wantMulligan) { state.deck.push(...state.hand); state.hand = []; shuffleDeck(); drawCards(7); }
             gameGlobal.phaseIndex = 0;
-            if (gameGlobal.turn === 1 && gameGlobal.isFirstPlayer && activePlayer === 1) { alert("先攻1ターン目のためドローはスキップされます。"); } else { drawCards(1); }
+            if (gameGlobal.turn === 1 && gameGlobal.isFirstPlayer && activePlayer === 1) {
+                alert("先攻1ターン目のためドローはスキップされます。");
+            } else { drawCards(1); }
             renderGame();
         }
 
         function discardAllHand() {
-            let state = playerStates[activePlayer]; if(confirm("手札をすべてトラッシュしますか？")) { state.trash.push(...state.hand); state.hand = []; renderGame(); }
+            let state = playerStates[activePlayer];
+            if(confirm("手札をすべてトラッシュしますか？")) { state.trash.push(...state.hand); state.hand = []; renderGame(); }
         }
 
         function nextPhase() {
             gameGlobal.phaseIndex++;
             if (gameGlobal.phaseIndex >= gameGlobal.phases.length) {
-                // 【バグ完全修復】文字欠けしていた配列を完全に補填
+                // 【バグ完全修復箇所】文字欠けしていた配列を完全に補填
                 [1, 2].forEach(p => {
                     playerStates[p].stage.forEach(item => { if (item) { item.attachedSongs = []; if (item.status === 'Standby') item.status = 'Active'; } });
                 });
                 gameGlobal.turn++; gameGlobal.phaseIndex = 0;
                 let orig = activePlayer; activePlayer = 1; drawCards(1); activePlayer = 2; drawCards(1); activePlayer = orig;
             }
-            document.getElementById('current-phase').innerText = gameGlobal.phases[gameGlobal.phaseIndex]; renderGame();
+            document.getElementById('current-phase').innerText = gameGlobal.phases[gameGlobal.phaseIndex];
+            renderGame();
         }
         function renderGame() {
             let state = playerStates[activePlayer];
-            document.getElementById('turn-count').innerText = gameGlobal.turn; document.getElementById('deck-left').innerText = state.deck.length; document.getElementById('trash-count').innerText = state.trash.length;
+            document.getElementById('turn-count').innerText = gameGlobal.turn;
+            document.getElementById('deck-left').innerText = state.deck.length;
+            document.getElementById('trash-count').innerText = state.trash.length;
             document.getElementById('mode-display').innerText = currentMode === 2 ? `[操作中: P${activePlayer}]` : "";
-            document.getElementById('temp-temporary').innerText = state.temporary; document.getElementById('temp-directionTemp').innerText = state.directionTemp;
+
+            document.getElementById('temp-temporary').innerText = state.temporary;
+            document.getElementById('temp-directionTemp').innerText = state.directionTemp;
             ['vol', 'mana', 'noise', 'generic'].forEach(t => { document.getElementById(`token-${t}`).innerText = state.tokens[t]; });
 
             for (let i = 0; i < 5; i++) {
@@ -545,7 +566,8 @@
             for (let i = 0; i < 5; i++) {
                 const slot = document.getElementById(`field-slot-${i}`); slot.innerHTML = ''; const card = state.field[i]; if (card) slot.appendChild(createCardDOM(card, 'field', i));
             }
-            const handRow = document.getElementById('hand-row'); handRow.innerHTML = ''; state.hand.forEach((card, index) => { handRow.appendChild(createCardDOM(card, 'hand', index)); });
+            const handRow = document.getElementById('hand-row'); handRow.innerHTML = '';
+            state.hand.forEach((card, index) => { handRow.appendChild(createCardDOM(card, 'hand', index)); });
         }
 
         function createCardDOM(card, zone, index, status = 'Active') {
@@ -556,7 +578,8 @@
         }
 
         function handleCardClick(zone, index, card, status) {
-            let state = playerStates[activePlayer]; selectedCardInfo = { zone, index, card, status }; const container = document.getElementById('action-buttons-container'); container.innerHTML = ''; document.getElementById('action-card-title').innerText = card.code;
+            let state = playerStates[activePlayer];
+            selectedCardInfo = { zone, index, card, status }; const container = document.getElementById('action-buttons-container'); container.innerHTML = ''; document.getElementById('action-card-title').innerText = card.code;
             if (zone === 'hand') {
                 if (card.type === 'A') {
                     createMenuBtn(container, 'ステージの空き枠に出す', () => {
@@ -564,7 +587,9 @@
                         state.stage[emptyIdx] = { card: card, status: 'Active', attachedSongs: [] }; state.hand.splice(index, 1); closeActionModal();
                     });
                 } else if (card.type === 'S') {
-                    state.stage.forEach((item, sIdx) => { if (item) { createMenuBtn(container, `枠 [${sIdx+1}] のArtistにSongを使用`, () => { item.attachedSongs.push(card); state.hand.splice(index, 1); closeActionModal(); }); } });
+                    state.stage.forEach((item, sIdx) => {
+                        if (item) { createMenuBtn(container, `枠 [${sIdx+1}] のArtistにSongを使用`, () => { item.attachedSongs.push(card); state.hand.splice(index, 1); closeActionModal(); }); }
+                    });
                 } else if (card.type === 'D') {
                     createMenuBtn(container, 'Direction枠の空きに出す', () => {
                         const emptyIdx = state.field.findIndex(slot => slot === null); if (emptyIdx === -1) { alert("Direction枠に空きがありません！"); return; }
@@ -584,13 +609,21 @@
         }
 
         function changeStageCard(index) {
-            let state = playerStates[activePlayer]; if(state.stage[index] === null) { alert("この枠にはカードがありません。"); return; }
-            if(confirm(`枠 [${index+1}] のカードを手札に戻しますか？（チェンジ）`)) { state.hand.push(state.stage[index].card); state.trash.push(...state.stage[index].attachedSongs); state.stage[index] = null; renderGame(); }
+            let state = playerStates[activePlayer];
+            if(state.stage[index] === null) { alert("この枠にはカードがありません。"); return; }
+            if(confirm(`枠 [${index+1}] のカードを手札に戻しますか？（チェンジ）`)) {
+                state.hand.push(state.stage[index].card); state.trash.push(...state.stage[index].attachedSongs); state.stage[index] = null; renderGame();
+            }
         }
 
-        function createMenuBtn(parent, text, onClickFn) { const btn = document.createElement('button'); btn.className = 'menu-btn'; btn.innerText = text; btn.onclick = () => { onClickFn(); renderGame(); }; parent.appendChild(btn); }
-        function openModal(id) { document.getElementById(id).classList.add('active'); } function closeModal(id) { document.getElementById(id).classList.remove('active'); } function closeActionModal() { closeModal('action-modal'); }
-        
+        function createMenuBtn(parent, text, onClickFn) {
+            const btn = document.createElement('button'); btn.className = 'menu-btn'; btn.innerText = text; btn.onclick = () => { onClickFn(); renderGame(); }; parent.appendChild(btn);
+        }
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function closeActionModal() { closeModal('action-modal'); }
+
+        // 初期状態で2デッキ対戦モードのUI構成を確実に反映
         setMode(2);
     </script>
 </body>
