@@ -33,7 +33,7 @@
             overflow-x: hidden;
         }
 
-        /* メインメニュー画面 */
+        /* メメインメニュー画面 */
         .menu-container {
             display: flex;
             flex-direction: column;
@@ -576,7 +576,7 @@
         <!-- 中央パネル -->
         <div class="center-panel">
             
-            <!-- ステージエリア（💡 それぞれの枠に一意のID「layer-X-X」を登録。JSで中身だけを安全に入れ替えます） -->
+            <!-- ステージエリア（💡 一意のID「frame-X-X」を登録。JSでデータだけを安全に入れ替えます） -->
             <div class="field-section-box stage-box">
                 <div class="row-label">ステージ</div>
                 <div class="field-row">
@@ -727,8 +727,9 @@
             const savedDeck1 = localStorage.getItem('misogi_deck1');
             const savedDeck2 = localStorage.getItem('misogi_deck2');
 
-            document.getElementById('deckInput1').value = savedDeck1 ? savedDeck1 : "AA-01 / exDS-02 / BSM-03 / AZD-04 / AA-05 / exDM-06";
-            document.getElementById('deckInput2').value = savedDeck2 ? savedDeck2 : "AA-01 / exDS-02 / BSM-03 / AZD-04";
+            // サンプルデッキコードをあらかじめセット
+            document.getElementById('deckInput1').value = savedDeck1 ? savedDeck1 : "GA-13 / GA-13 / DA-34 / DA-34 / DA-34 / HA-11";
+            document.getElementById('deckInput2').value = savedDeck2 ? savedDeck2 : "GA-13 / GA-13 / DA-34 / DA-34";
 
             selectMode(currentMode);
         };
@@ -809,15 +810,20 @@
             event.currentTarget.classList.remove('drag-over');
         }
 
+        // 各カラー枠へのドラッグ＆ドロップ（紫枠への2枚重ね、および場からの再移動に対応）
         function dropToSpecificFrame(event, columnIndex, layerNumber) {
             event.preventDefault();
             event.stopPropagation();
             event.currentTarget.classList.remove('drag-over');
 
-            const cardId = event.dataTransfer.getData('text/plain');
+            const cardId = event.dataTransfer.setData('text/plain');
+            // 💡 万が一空のテキストが渡された場合のガード処理を追加し、安全性を強化
+            if (!cardId) return; 
+            
             const draggedCard = document.getElementById(cardId);
-            const targetFrame = event.currentTarget;
+            if (!draggedCard) return;
 
+            const targetFrame = event.currentTarget;
             const existingCardsCount = targetFrame.children.length;
 
             if (layerNumber === 3) {
@@ -840,7 +846,11 @@
             event.currentTarget.classList.remove('drag-over');
 
             const cardId = event.dataTransfer.getData('text/plain');
+            if (!cardId) return;
+
             const draggedCard = document.getElementById(cardId);
+            if (!draggedCard) return;
+
             const targetSlot = event.currentTarget;
 
             if (targetSlot.children.length === 0) {
@@ -855,13 +865,16 @@
             event.currentTarget.classList.remove('drag-over');
 
             const cardId = event.dataTransfer.getData('text/plain');
-            const draggedCard = document.getElementById(cardId);
-            const handArea = document.getElementById('handArea');
+            if (!cardId) return;
 
+            const draggedCard = document.getElementById(cardId);
+            if (!draggedCard) return;
+
+            const handArea = document.getElementById('handArea');
             handArea.appendChild(draggedCard);
         }
 
-        // 🟢 【バグ修正版】チェンジボタン列スワップ処理
+        // 🟢 【エラー大修正】チェンジボタン列スワップ処理
         // HTML要素そのものを入れ替えるのではなく、「枠の中に入っているカード要素（子要素）だけ」を安全に移し替えます。
         // これにより、枠線に登録されていた大切なドラッグ＆ドロップイベントが消滅するのを完璧に防ぎます。
         function clickChangeBtn(index) {
