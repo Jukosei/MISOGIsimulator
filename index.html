@@ -270,7 +270,6 @@
             height: 380px; 
         }
 
-        /* 3枚重ね用の下地コンテナ */
         .stage-placeholder-stack {
             position: relative;
             width: var(--card-width);
@@ -278,7 +277,6 @@
             margin-top: -6px; 
         }
 
-        /* 💡 各カラー枠自体を直接のドロップターゲット（受け皿）に変更 */
         .frame-layer {
             position: absolute;
             width: var(--card-width);
@@ -287,11 +285,10 @@
             box-sizing: border-box;
             z-index: 5;
         }
-        .frame-layer.layer-1  { top: 0px; border: 2px dashed #1565c0; }   /* 青枠 */
-        .frame-layer.layer-2  { top: 84px; border: 2px dashed #f9a825; }  /* 黄枠 */
-        .frame-layer.layer-3  { top: 168px; border: 2px dashed #6a1b9a; } /* 紫枠 */
+        .frame-layer.layer-1  { top: 0px; border: 2px dashed #1565c0; }   
+        .frame-layer.layer-2  { top: 84px; border: 2px dashed #f9a825; }  
+        .frame-layer.layer-3  { top: 168px; border: 2px dashed #6a1b9a; } 
 
-        /* マウスが上に重なった時、それぞれの枠線が独立して白く光る表現 */
         .frame-layer.drag-over {
             background-color: rgba(255, 255, 255, 0.08);
             border-color: #ffffff !important;
@@ -310,8 +307,7 @@
             border-color: #ffffff;
         }
 
-        /* 💡 枠の中に配置されるカードの絶対位置制御。
-           紫枠に2枚重なった場合、重なり順（z-index）で自動的に2枚目が上に重なります */
+        /* 枠の中に配置されるカードの絶対位置制御 */
         .frame-layer .game-card {
             position: absolute;
             top: 0;
@@ -321,6 +317,15 @@
             height: 100%;
         }
 
+        /* 💡 Directionに置かれたカードをぴったり枠に合わせる設定 */
+        .direction-placeholder .game-card {
+            position: absolute;
+            top: 0;
+            left: 0;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+        }
         .slot-tag-btn {
             background-color: #222;
             color: #aaa;
@@ -343,6 +348,7 @@
             border-color: var(--btn-accent);
             box-shadow: 0 0 8px var(--btn-accent);
         }
+
         .hand-area {
             flex: 2.8;
             background-color: var(--panel-bg);
@@ -355,6 +361,11 @@
             flex-wrap: wrap;
             gap: 12px;
             align-content: flex-start;
+        }
+        /* 💡 手札エリアがドラッグ中のマウスを乗せた時に少し反応するように追加 */
+        .hand-area.drag-over {
+            background-color: #222;
+            border-color: #555;
         }
 
         .game-card {
@@ -565,7 +576,7 @@
         <!-- 中央パネル -->
         <div class="center-panel">
             
-            <!-- ステージエリア（各枠が個別にカードを受け入れる構造へ進化） -->
+            <!-- ステージエリア -->
             <div class="field-section-box stage-box">
                 <div class="row-label">ステージ</div>
                 <div class="field-row">
@@ -635,8 +646,8 @@
                 </div>
             </div>
 
-            <!-- 下部手札エリア -->
-            <div class="hand-area" id="handArea"></div>
+            <!-- 下部手札エリア（💡 再び手札に戻せるようにイベントハンドラを追加） -->
+            <div class="hand-area" id="handArea" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToHand(event)"></div>
         </div>
 
         <!-- 右コントロールパネル -->
@@ -727,6 +738,7 @@
             }
         };
 
+        // 💡 常にドラッグ可能な状態のカードを生成する
         function createGameCardToHand(cardName) {
             const handArea = document.getElementById('handArea');
             const card = document.createElement('div');
@@ -751,30 +763,27 @@
             event.currentTarget.classList.remove('drag-over');
         }
 
-        // 🟢 【新機能】狙った特定のカラー点線枠へ直接カードをドロップする処理
+        // 🟢 ステージの各点線枠へ直接カードをドロップする処理（移動元がどこであっても対応）
         function dropToSpecificFrame(event, columnIndex, layerNumber) {
             event.preventDefault();
-            event.stopPropagation(); // 重なりによる親要素へのイベント伝播を防止
+            event.stopPropagation();
             event.currentTarget.classList.remove('drag-over');
 
             const cardId = event.dataTransfer.getData('text/plain');
             const draggedCard = document.getElementById(cardId);
             const targetFrame = event.currentTarget;
 
-            // 現在この枠の中に何枚カードが入っているかチェック
             const existingCardsCount = targetFrame.children.length;
 
             if (layerNumber === 3) {
-                // 💡 紫枠（レイヤー3）のみ最大2枚まで重ねが認められるルール
                 if (existingCardsCount < 2) {
+                    // 💡 場に置かれていた場合の絶対配置用クラス（.on-layer-X）をきれいにリセットして格納
                     draggedCard.classList.remove('on-layer-0', 'on-layer-1', 'on-layer-2');
-                    // 2枚目に重ねられたカードは、z-indexの関係で自動的に1枚目を覆い隠す配置になります
                     targetFrame.appendChild(draggedCard);
                 } else {
                     alert('紫色の枠にはこれ以上カードを重ねられません！（最大2枚）');
                 }
             } else {
-                // 💡 青枠（1）と黄枠（2）は通常通り最大1枚限定のルール
                 if (existingCardsCount === 0) {
                     draggedCard.classList.remove('on-layer-0', 'on-layer-1', 'on-layer-2');
                     targetFrame.appendChild(draggedCard);
@@ -784,7 +793,7 @@
             }
         }
 
-        // Directionエリアへドロップ（最大1枚）
+        // 🟢 Directionエリアへドロップする処理
         function dropToDirection(event, columnIndex) {
             event.preventDefault();
             event.currentTarget.classList.remove('drag-over');
@@ -801,6 +810,20 @@
             }
         }
 
+        // 🟢 【新機能】場（ステージやDirection）にあるカードを手札に戻す処理
+        function dropToHand(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('drag-over');
+
+            const cardId = event.dataTransfer.getData('text/plain');
+            const draggedCard = document.getElementById(cardId);
+            const handArea = document.getElementById('handArea');
+
+            // フィールド用の個別クラスを解除して、フラットな手札スタイルに戻してアペンド
+            draggedCard.classList.remove('on-layer-0', 'on-layer-1', 'on-layer-2');
+            handArea.appendChild(draggedCard);
+        }
+
         function drawCard() {
             if (deckSize > 0) {
                 deckSize--;
@@ -811,7 +834,7 @@
             }
         }
 
-        // チェンジボタンによる列（スロット）まるごとスワップ処理
+        // チェンジボタンによる列スワップ処理（枠内のHTML構造ごと綺麗に入れ替え）
         function clickChangeBtn(index) {
             const currentBtn = document.getElementById(`change-btn-${index}`);
 
@@ -822,7 +845,6 @@
                 currentBtn.classList.remove('selecting');
                 selectedColumnIndex = null;
             } else {
-                // 2つの列の「下地コンテナ（3つのカラー点線枠を含む）」の中身の構造を入れ替える
                 const stackA = document.querySelector(`#stage-col-${selectedColumnIndex} .stage-placeholder-stack`);
                 const stackB = document.querySelector(`#stage-col-${index} .stage-placeholder-stack`);
 
