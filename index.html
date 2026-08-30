@@ -5,11 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>禊シミュレーター</title>
     <style>
+        :root {
+            --bg-color: #121212;
+            --panel-bg: #1a1a1a;
+            --border-color: #333333;
+            --btn-blue: #007bff;
+            --btn-red: #dc3545;
+            --btn-green: #28a745;
+            --btn-accent: #e6002d;
+            --text-color: #ffffff;
+        }
+
         body {
             margin: 0;
             padding: 0;
-            background-color: #121212;
-            color: #ffffff;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
             display: flex;
             justify-content: center;
@@ -18,7 +29,7 @@
             overflow-x: hidden;
         }
 
-        .container {
+        .menu-container {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -54,9 +65,9 @@
         }
 
         .mode-btn.active {
-            background-color: #007bff;
+            background-color: var(--btn-blue);
             color: #ffffff;
-            border-color: #007bff;
+            border-color: var(--btn-blue);
         }
 
         .input-section {
@@ -89,8 +100,8 @@
         textarea {
             width: 100%;
             height: 160px;
-            background-color: #1a1a1a;
-            border: 1px solid #333333;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             color: #ffffff;
             padding: 15px;
@@ -101,7 +112,7 @@
         }
 
         .clear-btn {
-            background-color: #dc3545;
+            background-color: var(--btn-red);
             color: #ffffff;
             border: none;
             padding: 10px 30px;
@@ -125,7 +136,7 @@
         }
 
         .start-btn {
-            background-color: #e6002d;
+            background-color: var(--btn-accent);
             color: #ffffff;
             border: none;
             padding: 15px 100px;
@@ -137,52 +148,281 @@
             transition: background-color 0.2s ease;
         }
 
-        .start-btn:hover {
-            background-color: #cc0028;
-        }
-
         .game-screen {
             display: none;
+            width: 100vw;
+            height: 100vh;
+            background-color: #0d0d0d;
+            box-sizing: border-box;
+            padding: 10px;
+            gap: 10px;
+        }
+
+        .left-panel {
+            width: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .zone-box {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            height: 43%;
+            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            width: 100vw;
-            height: 100vh;
-            background-color: #1a1a1a;
+            position: relative;
         }
 
-        .game-screen h2 {
-            font-size: 32px;
-            margin-bottom: 20px;
+        .zone-box .count-display {
+            font-size: 48px;
+            font-weight: bold;
         }
 
-        .back-btn {
-            background-color: #444444;
-            color: #ffffff;
+        .zone-label {
+            font-size: 12px;
+            color: #8a8a8a;
+            margin-top: 5px;
+        }
+
+        .temporary-tag {
+            background-color: var(--btn-green);
+            color: white;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-top: 10px;
+        }
+
+        .center-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            gap: 10px;
+        }
+
+        .field-area {
+            flex: 7;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            box-sizing: border-box;
+            justify-content: space-around;
+        }
+
+        .field-row {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        .row-label {
+            font-size: 12px;
+            color: #555;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card-slot {
+            width: 110px;
+            height: 155px;
+            border: 1px dashed #444;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+            background-color: rgba(255,255,255,0.02);
+        }
+
+        .slot-tag {
+            font-size: 10px;
+            color: #666;
+            margin-top: 10px;
+            border: 1px solid #444;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .hand-area {
+            flex: 3;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-content: flex-start;
+        }
+
+        .game-card {
+            width: 90px;
+            height: 126px;
+            background-color: #333;
+            border: 1px solid #555;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .control-panel {
+            width: 160px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            gap: 6px;
+        }
+
+        .control-btn {
+            background-color: #0056b3;
+            color: white;
             border: none;
-            padding: 10px 20px;
-            font-size: 14px;
+            padding: 8px 5px;
+            font-size: 12px;
+            font-weight: bold;
             cursor: pointer;
             border-radius: 4px;
-            margin-top: 20px;
+            text-align: center;
         }
-    </style>
-</head>
-<body>
+        
+        .control-btn.orange { background-color: #ff9f00; }
+        .control-btn.gray { background-color: #444; }
 
-    <div class="container" id="menuScreen">
+        .deck-zone {
+            margin-top: auto;
+            border: 1px solid #555;
+            background-color: #222;
+            border-radius: 4px;
+            height: 110px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .deck-count {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .deck-label {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .counter-panel {
+            width: 120px;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            padding: 15px 5px;
+            box-sizing: border-box;
+            justify-content: flex-start;
+            gap: 20px;
+            height: 100%;
+        }
+
+        .counter-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .counter-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .icon-vol { background-color: #ffd700; color: #000; }
+        .icon-alpha { background-color: #ff69b4; }
+        .icon-beta { background-color: #1e90ff; }
+        .icon-omega { background-color: #9400d3; }
+
+        .counter-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .counter-btn {
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+        }
+
+        .counter-value {
+            font-size: 24px;
+            font-weight: bold;
+            width: 30px;
+            text-align: center;
+        }
+
+
+        .turn-display {
+            margin-top: auto;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+            font-size: 12px;
+            color: #aaa;
+        }
+    
+        .turn-display span {
+            display: block;
+            font-size: 28px;
+            font-weight: bold;
+            color: #fff;
+            margin-top: 5px;
+        }
+
+         <!-- メインメニュー画面 -->
+    <div class="menu-container" id="menuScreen">
         <div class="title">禊</div>
 
         <div class="mode-selection">
             <button class="mode-btn" id="btn1Deck" onclick="selectMode(1)">1デッキモード</button>
-            <button class="mode-btn" id="btn2Deck" onclick="selectMode(2)">2デッキ対戦モード</button>
+            <button class="mode-btn active" id="btn2Deck" onclick="selectMode(2)">2デッキ対戦モード</button>
         </div>
 
         <div class="input-section">
             <div class="deck-code-area" id="areaPlayer1">
                 <div class="label-text" id="labelPlayer1">プレイヤー1のデッキ</div>
                 <div class="textarea-container">
-                    <!-- 入力するたびに自動保存するイベント(oninput)を追加 -->
                     <textarea id="deckInput1" oninput="saveData()" placeholder="ここにデッキコードを入力してください"></textarea>
                 </div>
                 <button class="clear-btn" onclick="clearInput(1)">クリア</button>
@@ -191,7 +431,6 @@
             <div class="deck-code-area" id="areaPlayer2">
                 <div class="label-text">プレイヤー2のデッキ</div>
                 <div class="textarea-container">
-                    <!-- 入力するたびに自動保存するイベント(oninput)を追加 -->
                     <textarea id="deckInput2" oninput="saveData()" placeholder="ここにデッキコードを入力してください"></textarea>
                 </div>
                 <button class="clear-btn" onclick="clearInput(2)">クリア</button>
@@ -203,43 +442,141 @@
         </div>
     </div>
 
+    <!-- 対戦画面 -->
     <div class="game-screen" id="gameScreen">
-        <h2>対戦画面</h2>
-        <p id="gameInfoText" style="color: #aaa; text-align: center; line-height: 1.6;"></p>
-        <button class="back-btn" onclick="backToMenu()">メニューに戻る</button>
+        
+        <div class="left-panel">
+            <div class="zone-box">
+                <div class="count-display" id="volNoiseCount">0</div>
+                <div class="zone-label">VOLノイズ (最大5枚)</div>
+                <div class="temporary-tag">テンポラリ</div>
+            </div>
+            <div class="zone-box">
+                <div class="count-display" id="trashCount">0</div>
+                <div class="zone-label">トラッシュ (表向き)</div>
+            </div>
+        </div>
+
+        <div class="center-panel">
+            <div class="field-area">
+                <div class="row-label">ステージ</div>
+                <div class="field-row">
+                    <div class="card-slot"><span class="slot-tag">チャンジ</span></div>
+                    <div class="card-slot"><span class="slot-tag">チャンジ</span></div>
+                    <div class="card-slot"><span class="slot-tag">チャンジ</span></div>
+                    <div class="card-slot"><span class="slot-tag">チャンジ</span></div>
+                    <div class="card-slot"><span class="slot-tag">チャンジ</span></div>
+                </div>
+                
+                <div class="row-label">Direction</div>
+                <div class="field-row">
+                    <div class="card-slot"></div>
+                    <div class="card-slot"></div>
+                    <div class="card-slot"></div>
+                    <div class="card-slot"></div>
+                    <div class="card-slot"></div>
+                </div>
+            </div>
+
+            <div class="hand-area" id="handArea">
+                <div class="game-card">カード 1</div>
+                <div class="game-card">カード 2</div>
+                <div class="game-card">カード 3</div>
+                <div class="game-card">カード 4</div>
+                <div class="game-card">カード 5</div>
+                <div class="game-card">カード 6</div>
+                <div class="game-card">カード 7</div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <button class="control-btn" onclick="triggerAction('山札シャッフル')">山札シャッフル</button>
+            <button class="control-btn" onclick="triggerAction('山札からサーチ')">山札からサーチ</button>
+            <button class="control-btn" onclick="triggerAction('VOLノイズからサーチ')">VOLノイズからサーチ</button>
+            <button class="control-btn" onclick="triggerAction('手札を全てトラッシュ')">手札を全てトラッシュ</button>
+            <button class="control-btn" onclick="triggerAction('マリガン')">マリガン</button>
+            <button class="control-btn" onclick="triggerAction('リセット')">リセット</button>
+            <button class="control-btn orange" onclick="nextTurn()">ターンエンド</button>
+            <button class="control-btn" onclick="rollDice()">ダイスを振る</button>
+            <button class="control-btn" onclick="triggerAction('山札の下から1枚ドロー')">山札の下から1枚ドロー</button>
+            
+            <button class="control-btn gray" style="margin-top: 10px;" onclick="backToMenu()">メニュー戻る</button>
+
+            <div class="deck-zone" onclick="drawCard()">
+                <div class="deck-count" id="deckCount">53</div>
+                <div class="deck-label">山札 (クリックでドロー)</div>
+            </div>
+        </div>
+
+        <div class="counter-panel">
+            <div class="counter-item">
+                <div class="counter-icon icon-vol">VOL</div>
+                <div class="counter-controls">
+                    <button class="counter-btn" onclick="changeCounter('vol', -1)">-</button>
+                    <div class="counter-value" id="val-vol">0</div>
+                    <button class="counter-btn" onclick="changeCounter('vol', 1)">+</button>
+                </div>
+            </div>
+            <div class="counter-item">
+                <div class="counter-icon icon-alpha">α</div>
+                <div class="counter-controls">
+                    <button class="counter-btn" onclick="changeCounter('alpha', -1)">-</button>
+                    <div class="counter-value" id="val-alpha">0</div>
+                    <button class="counter-btn" onclick="changeCounter('alpha', 1)">+</button>
+                </div>
+            </div>
+            <div class="counter-item">
+                <div class="counter-icon icon-beta">β</div>
+                <div class="counter-controls">
+                    <button class="counter-btn" onclick="changeCounter('beta', -1)">-</button>
+                    <div class="counter-value" id="val-beta">0</div>
+                    <button class="counter-btn" onclick="changeCounter('beta', 1)">+</button>
+                </div>
+            </div>
+            <div class="counter-item">
+                <div class="counter-icon icon-omega">Ω</div>
+                <div class="counter-controls">
+                    <button class="counter-btn" onclick="changeCounter('omega', -1)">-</button>
+                    <div class="counter-value" id="val-omega">0</div>
+                    <button class="counter-btn" onclick="changeCounter('omega', 1)">+</button>
+                </div>
+            </div>
+
+            <div class="turn-display">
+                TURN
+                <span id="turnCount">1</span>
+            </div>
+        </div>
+
     </div>
 
-    <script>
-        let currentMode = 2; // デフォルトは2デッキモード
+            <script>
+        let currentMode = 2;
+        let turn = 1;
+        let deckSize = 53;
+        const counters = { vol: 0, alpha: 0, beta: 0, omega: 0 };
 
-        // 🟢 画面が読み込まれた時に、保存されているデータを復元する
         window.onload = function() {
-            // 保存されたモードを読み込み（なければ2にする）
             const savedMode = localStorage.getItem('misogi_mode');
             currentMode = savedMode ? parseInt(savedMode) : 2;
 
-            // 保存されたデッキコードを読み込み
             const savedDeck1 = localStorage.getItem('misogi_deck1');
             const savedDeck2 = localStorage.getItem('misogi_deck2');
 
             if (savedDeck1) document.getElementById('deckInput1').value = savedDeck1;
             if (savedDeck2) document.getElementById('deckInput2').value = savedDeck2;
 
-            // 読み込んだモードの見た目を画面に反映
             selectMode(currentMode);
         };
 
-        // 🟢 データをブラウザに保存する共通関数
         function saveData() {
             const deck1 = document.getElementById('deckInput1').value;
             const deck2 = document.getElementById('deckInput2').value;
-
             localStorage.setItem('misogi_mode', currentMode);
             localStorage.setItem('misogi_deck1', deck1);
             localStorage.setItem('misogi_deck2', deck2);
         }
 
-        // モードを切り替える関数
         function selectMode(mode) {
             currentMode = mode;
             const btn1 = document.getElementById('btn1Deck');
@@ -258,36 +595,56 @@
                 label1.innerText = 'プレイヤー1のデッキ';
                 area2.style.display = 'flex';
             }
-
-            // モードを切り替えた時も状態を保存
             saveData();
         }
 
-        // 指定された入力欄をクリアする関数
         function clearInput(targetNum) {
             document.getElementById(`deckInput${targetNum}`).value = '';
-            saveData(); // クリアした状態を保存
+            saveData();
         }
 
-        // ゲーム開始ボタンの処理
         function startGame() {
-            const deck1 = document.getElementById('deckInput1').value;
-            const deck2 = document.getElementById('deckInput2').value;
-            
             document.getElementById('menuScreen').style.display = 'none';
             document.getElementById('gameScreen').style.display = 'flex';
-
-            const infoText = document.getElementById('gameInfoText');
-            if (currentMode === 1) {
-                infoText.innerHTML = `モード: 1デッキモード<br>デッキ: ${deck1 ? deck1 : '空欄'}`;
-            } else {
-                infoText.innerHTML = `モード: 2デッキ対戦モード<br>P1デッキ: ${deck1 ? deck1 : '空欄'}<br>P2デッキ: ${deck2 ? deck2 : '空欄'}`;
-            }
         }
 
         function backToMenu() {
             document.getElementById('gameScreen').style.display = 'none';
             document.getElementById('menuScreen').style.display = 'flex';
+        }
+
+        function changeCounter(type, amount) {
+            counters[type] = Math.max(0, counters[type] + amount);
+            document.getElementById(`val-${type}`).innerText = counters[type];
+        }
+
+        function nextTurn() {
+            turn++;
+            document.getElementById('turnCount').innerText = turn;
+        }
+
+        function rollDice() {
+            const result = Math.floor(Math.random() * 6) + 1;
+            alert(`ダイスの出目: ${result}`);
+        }
+
+        function drawCard() {
+            if (deckSize > 0) {
+                deckSize--;
+                document.getElementById('deckCount').innerText = deckSize;
+                
+                const handArea = document.getElementById('handArea');
+                const newCard = document.createElement('div');
+                newCard.className = 'game-card';
+                newCard.innerText = `カード ${7 + (53 - deckSize)}`;
+                handArea.appendChild(newCard);
+            } else {
+                alert('山札がありません！');
+            }
+        }
+
+        function triggerAction(actionName) {
+            alert(`「${actionName}」が実行されました（今後の開発で詳細な機能を実装できます）`);
         }
     </script>
 </body>
