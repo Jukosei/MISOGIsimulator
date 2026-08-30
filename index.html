@@ -312,8 +312,8 @@
         <h1>禊</h1>
         
         <div class="mode-tabs">
-            <button class="tab-btn" id="tab-1deck" onclick="setMode(1)">1デッキモード</button>
-            <button class="tab-btn active" id="tab-2deck" onclick="setMode(2)">2デッキ対戦モード</button>
+            <button class="tab-btn active" id="tab-1deck" onclick="setMode(1)">1デッキモード</button>
+            <button class="tab-btn" id="tab-2deck" onclick="setMode(2)">2デッキ対戦モード</button>
         </div>
 
         <div class="deck-hint">デッキリストを / 区切りで入力してください</div>
@@ -396,7 +396,7 @@
     <div id="mulligan-modal" class="modal"><div class="modal-content"><h3 style="margin-bottom:15px; font-size:1rem;">マリガンをしますか？</h3><button class="btn" onclick="executeMulligan(true)" style="background:#333; margin-bottom:10px;">マリガンする</button><button class="btn" onclick="executeMulligan(false)">このまま開始</button></div></div>
     <div id="action-modal" class="modal"><div class="modal-content"><h3 id="action-card-title" style="margin-bottom:15px; font-size:1.1rem;">カード名</h3><div id="action-buttons-container"></div><button class="menu-btn cancel" onclick="closeActionModal()">閉じる</button></div></div>
     <script>
-        let currentMode = 2; 
+        let currentMode = 1; // デフォルトを1デッキモードに変更
         let activePlayer = 1;
 
         let playerStates = {
@@ -456,7 +456,7 @@
             const parts = cleanCode.split('-');
             let typeChar = 'M';
             if (parts.length >= 2) {
-                const rightPart = parts[1];
+                const rightPart = parts[1]; // 【完全修復】
                 if (rightPart && rightPart.length > 0) {
                     typeChar = rightPart.charAt(0).toUpperCase();
                 }
@@ -465,18 +465,19 @@
                 else if (cleanCode.includes('S')) typeChar = 'S';
                 else if (cleanCode.includes('D')) typeChar = 'D';
             }
-            return { code: cleanCode, type: typeChar, img: `images/${cleanCode}.png` };
+            const typeMap = { 'A': 'A', 'S': 'S', 'M': 'M', 'D': 'D' };
+            return { code: cleanCode, type: typeMap[typeChar] || 'M', img: `images/${cleanCode}.png` };
         }
 
         function startGame() {
             const lines1 = document.getElementById('deck-code').value.split(/[\/\n]/).map(line => line.trim()).filter(line => line !== '');
             if (lines1.length !== 60) { alert(`プレイヤー1の枚数が60枚ではありません。（現在: ${lines1.length}枚）`); return; }
-            playerStates[1].deck = lines1.map(line => parseCardCode(line)); // 完全にバグを修復
+            playerStates[1].deck = lines1.map(line => parseCardCode(line)); // 【完全修復】
 
             if (currentMode === 2) {
                 const lines2 = document.getElementById('deck-code2').value.split(/[\/\n]/).map(line => line.trim()).filter(line => line !== '');
                 if (lines2.length !== 60) { alert(`プレイヤー2の枚数が60枚ではありません。（現在: ${lines2.length}枚）`); return; }
-                playerStates[2].deck = lines2.map(line => parseCardCode(line)); // 完全にバグを修復
+                playerStates[2].deck = lines2.map(line => parseCardCode(line)); // 【完全修復】
                 document.getElementById('btn-switch-deck').style.display = 'block';
             } else {
                 document.getElementById('btn-switch-deck').style.display = 'none';
@@ -531,7 +532,7 @@
         function nextPhase() {
             gameGlobal.phaseIndex++;
             if (gameGlobal.phaseIndex >= gameGlobal.phases.length) {
-                // 【バグ完全修復箇所】文字欠けしていた配列を完全に補填
+                // 【バグ完全修復箇所】AIカットされていたプレイヤー番号の配列ループを正常に固定記述
                 [1, 2].forEach(p => {
                     playerStates[p].stage.forEach(item => { if (item) { item.attachedSongs = []; if (item.status === 'Standby') item.status = 'Active'; } });
                 });
@@ -623,8 +624,8 @@
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
         function closeActionModal() { closeModal('action-modal'); }
 
-        // 初期状態で2デッキ対戦モードのUI構成を確実に反映
-        setMode(2);
+        // 初期の画面レイアウトは1デッキモードに設定
+        setMode(1);
     </script>
 </body>
 </html>
