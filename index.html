@@ -74,7 +74,6 @@
             color: #ffffff;
             border-color: var(--btn-blue);
         }
-
         .input-section {
             width: 100%;
             display: flex;
@@ -152,6 +151,7 @@
             letter-spacing: 2px;
             transition: background-color 0.2s ease;
         }
+
         /* 対戦画面 */
         .game-screen {
             display: none;
@@ -199,7 +199,6 @@
             text-align: center;
             padding: 0 4px;
         }
-
         .temporary-btn-green {
             width: 100%;
             background-color: var(--btn-green);
@@ -307,7 +306,6 @@
             border-color: #ffffff;
         }
 
-        /* 枠の中に配置されるカードの絶対位置制御 */
         .frame-layer .game-card {
             position: absolute;
             top: 0;
@@ -317,7 +315,6 @@
             height: 100%;
         }
 
-        /* 💡 Directionに置かれたカードをぴったり枠に合わせる設定 */
         .direction-placeholder .game-card {
             position: absolute;
             top: 0;
@@ -362,7 +359,6 @@
             gap: 12px;
             align-content: flex-start;
         }
-        /* 💡 手札エリアがドラッグ中のマウスを乗せた時に少し反応するように追加 */
         .hand-area.drag-over {
             background-color: #222;
             border-color: #555;
@@ -377,12 +373,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 13px;
+            font-size: 12px; 
             font-weight: bold;
             cursor: grab;
             box-sizing: border-box;
             user-select: none;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            background-size: cover;       
+            background-position: center;   
+            background-repeat: no-repeat;
+            text-shadow: 0px 0px 4px #000, 0px 0px 4px #000; 
         }
         .game-card:active {
             cursor: grabbing;
@@ -523,6 +523,7 @@
     </style>
 </head>
 <body>
+
     <!-- メインメニュー画面 -->
     <div class="menu-container" id="menuScreen">
         <div class="title">禊</div>
@@ -646,7 +647,7 @@
                 </div>
             </div>
 
-            <!-- 下部手札エリア（💡 再び手札に戻せるようにイベントハンドラを追加） -->
+            <!-- 下部手札エリア -->
             <div class="hand-area" id="handArea" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToHand(event)"></div>
         </div>
 
@@ -665,7 +666,7 @@
             <button class="control-btn gray" style="margin-top: 10px;" onclick="backToMenu()">メニュー戻る</button>
 
             <div class="deck-zone" onclick="drawCard()">
-                <div class="deck-count" id="deckCount">53</div>
+                <div class="deck-count" id="deckCount">0</div>
                 <div class="deck-label">山札 (クリックドロー)</div>
             </div>
         </div>
@@ -715,10 +716,10 @@
     <script>
         let currentMode = 2;
         let turn = 1;
-        let deckSize = 53;
         const counters = { vol: 0, alpha: 0, beta: 0, omega: 0 };
         let selectedColumnIndex = null;
         let cardIdCounter = 0;
+        let virtualDeck = [];
 
         window.onload = function() {
             const savedMode = localStorage.getItem('misogi_mode');
@@ -727,24 +728,60 @@
             const savedDeck1 = localStorage.getItem('misogi_deck1');
             const savedDeck2 = localStorage.getItem('misogi_deck2');
 
-            if (savedDeck1) document.getElementById('deckInput1').value = savedDeck1;
-            if (savedDeck2) document.getElementById('deckInput2').value = savedDeck2;
+            // サンプルデッキコードをあらかじめセット
+            document.getElementById('deckInput1').value = savedDeck1 ? savedDeck1 : "AA-01 / exDS-02 / BSM-03 / AZD-04 / AA-05 / exDM-06";
+            document.getElementById('deckInput2').value = savedDeck2 ? savedDeck2 : "AA-01 / exDS-02 / BSM-03 / AZD-04";
 
             selectMode(currentMode);
-            
-            // 初期カードを手札に5枚追加
-            for(let i=1; i<=5; i++) {
-                createGameCardToHand(`神椿カード ${i}`);
-            }
         };
 
-        // 💡 常にドラッグ可能な状態のカードを生成する
-        function createGameCardToHand(cardName) {
+        // デッキコードを解析して A -> S -> M -> D 順にソートする本物の山札構築処理
+        function startGame() {
+            const rawText = document.getElementById('deckInput1').value;
+            const parsedCodes = rawText.split(/[\/\s\n]+/).map(code => code.trim()).filter(code => code.length > 0);
+
+            if (parsedCodes.length === 0) {
+                alert('デッキコードが入力されていません！');
+                return;
+            }
+
+            const validatedCards = [];
+            parsedCodes.forEach(code => {
+                const match = code.match(/^([a-zA-Z]+)-(\d+)$/);
+                if (match) {
+                    const fullCode = code;
+                    const leftPart = match[1]; 
+                    const suffix = leftPart.slice(-1).toUpperCase();
+
+                    validatedCards.push({
+                        name: fullCode,
+                        suffix: suffix,
+                        imagePath: `images/${fullCode}.png`
+                    });
+                }
+            });
+
+            const orderMap = { 'A': 1, 'S': 2, 'M': 3, 'D': 4 };
+            validatedCards.sort((cardX, cardY) => {
+                const orderX = orderMap[cardX.suffix] || 99;
+                const orderY = orderMap[cardY.suffix] || 99;
+                return orderX - orderY;
+            });
+
+            virtualDeck = validatedCards;
+            document.getElementById('deckCount').innerText = virtualDeck.length;
+            document.getElementById('handArea').innerHTML = "";
+
+            document.getElementById('menuScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'flex';
+        }
+        function createGameCardToHand(cardName, imagePath) {
             const handArea = document.getElementById('handArea');
             const card = document.createElement('div');
             card.className = 'game-card';
             card.id = `card-id-${cardIdCounter++}`;
             card.innerText = cardName;
+            card.style.backgroundImage = `url('${imagePath}')`;
             
             card.setAttribute('draggable', 'true');
             card.ondragstart = function(event) {
@@ -752,6 +789,16 @@
             };
             
             handArea.appendChild(card);
+        }
+
+        function drawCard() {
+            if (virtualDeck.length > 0) {
+                const drawnCard = virtualDeck.shift();
+                document.getElementById('deckCount').innerText = virtualDeck.length;
+                createGameCardToHand(drawnCard.name, drawnCard.imagePath);
+            } else {
+                alert('山札がなくなりました！');
+            }
         }
 
         function allowDrop(event) {
@@ -763,7 +810,7 @@
             event.currentTarget.classList.remove('drag-over');
         }
 
-        // 🟢 ステージの各点線枠へ直接カードをドロップする処理（移動元がどこであっても対応）
+        // 各カラー枠へのドラッグ＆ドロップ（紫枠への2枚重ね、および場からの再移動に対応）
         function dropToSpecificFrame(event, columnIndex, layerNumber) {
             event.preventDefault();
             event.stopPropagation();
@@ -777,15 +824,12 @@
 
             if (layerNumber === 3) {
                 if (existingCardsCount < 2) {
-                    // 💡 場に置かれていた場合の絶対配置用クラス（.on-layer-X）をきれいにリセットして格納
-                    draggedCard.classList.remove('on-layer-0', 'on-layer-1', 'on-layer-2');
                     targetFrame.appendChild(draggedCard);
                 } else {
                     alert('紫色の枠にはこれ以上カードを重ねられません！（最大2枚）');
                 }
             } else {
                 if (existingCardsCount === 0) {
-                    draggedCard.classList.remove('on-layer-0', 'on-layer-1', 'on-layer-2');
                     targetFrame.appendChild(draggedCard);
                 } else {
                     alert('この枠には既にカードが配置されています！');
@@ -793,7 +837,6 @@
             }
         }
 
-        // 🟢 Directionエリアへドロップする処理
         function dropToDirection(event, columnIndex) {
             event.preventDefault();
             event.currentTarget.classList.remove('drag-over');
@@ -803,14 +846,12 @@
             const targetSlot = event.currentTarget;
 
             if (targetSlot.children.length === 0) {
-                draggedCard.classList.remove('on-layer-0', 'on-layer-1', 'on-layer-2');
                 targetSlot.appendChild(draggedCard);
             } else {
                 alert('Directionには既にカードが配置されています！');
             }
         }
 
-        // 🟢 【新機能】場（ステージやDirection）にあるカードを手札に戻す処理
         function dropToHand(event) {
             event.preventDefault();
             event.currentTarget.classList.remove('drag-over');
@@ -819,22 +860,9 @@
             const draggedCard = document.getElementById(cardId);
             const handArea = document.getElementById('handArea');
 
-            // フィールド用の個別クラスを解除して、フラットな手札スタイルに戻してアペンド
-            draggedCard.classList.remove('on-layer-0', 'on-layer-1', 'on-layer-2');
             handArea.appendChild(draggedCard);
         }
 
-        function drawCard() {
-            if (deckSize > 0) {
-                deckSize--;
-                document.getElementById('deckCount').innerText = deckSize;
-                createGameCardToHand('ドローカード');
-            } else {
-                alert('山札がありません！');
-            }
-        }
-
-        // チェンジボタンによる列スワップ処理（枠内のHTML構造ごと綺麗に入れ替え）
         function clickChangeBtn(index) {
             const currentBtn = document.getElementById(`change-btn-${index}`);
 
@@ -889,11 +917,6 @@
         function clearInput(targetNum) {
             document.getElementById(`deckInput${targetNum}`).value = '';
             saveData();
-        }
-
-        function startGame() {
-            document.getElementById('menuScreen').style.display = 'none';
-            document.getElementById('gameScreen').style.display = 'flex';
         }
 
         function backToMenu() {
