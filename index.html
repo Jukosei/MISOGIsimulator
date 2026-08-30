@@ -33,7 +33,7 @@
             overflow-x: hidden;
         }
 
-        /* メメインメニュー画面 */
+        /* メインメニュー画面 */
         .menu-container {
             display: flex;
             flex-direction: column;
@@ -227,12 +227,13 @@
             flex-direction: column;
         }
         
+        /* 💡 ステージの縦比率を少し増やし、枠内のゆとりを持たせました */
         .stage-box { 
-            flex: 6; 
+            flex: 6.4; 
             margin-bottom: 20px; 
         }
         .direction-box { 
-            flex: 3.2; 
+            flex: 2.8; 
         }
 
         .field-row {
@@ -247,7 +248,7 @@
         .row-label {
             font-size: 12px;
             color: #888;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             font-weight: bold;
         }
 
@@ -256,16 +257,18 @@
             flex-direction: column;
             align-items: center;
             position: relative;
-            gap: 10px; /* ボタンとエリアの隙間 */
-            /* 💡 カード縦168px ＋ 半分ずらし2枚分(84px*2) ＝ 合計336pxの高さ空間を確保 */
-            height: 340px; 
+            gap: 8px;
+            /* 💡 高さに余裕を持たせ、下へのはみ出しを防ぎます */
+            height: 380px; 
         }
 
-        /* 💡 3枚重ね用の下地コンテナ */
+        /* 3枚重ね用の下地コンテナ */
         .stage-placeholder-stack {
             position: relative;
             width: var(--card-width);
             height: 336px;
+            /* 💡 全体を少し上に引き上げるためにネガティブマージン（-6px）を適用 */
+            margin-top: -6px; 
         }
 
         /* 3つの重なるカラー点線枠 */
@@ -276,9 +279,8 @@
             border-radius: 6px;
             box-sizing: border-box;
         }
-        /* 💡 縦幅168pxに対してぴったり半分（84px刻み）の重ね位置に変更 */
-        .frame-layer.layer-1  { top: 0px; border: 2px dashed #1565c0; }  /* 1枚目：青枠 */
-        .frame-layer.layer-2  { top: 84px; border: 2px dashed #f9a825; } /* 2枚目：黄枠（半分重ね） */
+        .frame-layer.layer-1  { top: 0px; border: 2px dashed #1565c0; }   /* 1枚目：青枠 */
+        .frame-layer.layer-2  { top: 84px; border: 2px dashed #f9a825; }  /* 2枚目：黄枠（半分重ね） */
         .frame-layer.layer-3  { top: 168px; border: 2px dashed #6a1b9a; } /* 3枚目：紫枠（半分重ね） */
 
         /* Direction用の赤いカラー点線枠 */
@@ -303,7 +305,7 @@
             pointer-events: auto;
         }
 
-        /* 💡 カードエリアの「上側」に単独で綺麗に浮くチェンジボタン */
+        /* カードエリアの上側に単独で浮くチェンジボタン */
         .slot-tag-btn {
             background-color: #222;
             color: #aaa;
@@ -314,6 +316,7 @@
             cursor: pointer;
             transition: all 0.2s;
             font-weight: bold;
+            z-index: 20;
         }
         .slot-tag-btn:hover {
             background-color: #333;
@@ -538,7 +541,7 @@
         <!-- 中央パネル -->
         <div class="center-panel">
             
-            <!-- 🟢 ステージエリア（完全に3重カラー点線枠になり、ボタンが上側に独立） -->
+            <!-- 🟢 ステージエリア（点線枠の表示位置を少し上に引き上げ、はみ出しを解消） -->
             <div class="field-section-box stage-box">
                 <div class="row-label">ステージ</div>
                 <div class="field-row">
