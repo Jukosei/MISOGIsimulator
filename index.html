@@ -555,7 +555,6 @@
             <button class="start-btn" onclick="startGame()">ゲーム開始</button>
         </div>
     </div>
-
     <!-- 対戦画面 -->
     <div class="game-screen" id="gameScreen">
         
@@ -577,58 +576,58 @@
         <!-- 中央パネル -->
         <div class="center-panel">
             
-            <!-- ステージエリア -->
+            <!-- ステージエリア（💡 それぞれの枠に一意のID「layer-X-X」を登録。JSで中身だけを安全に入れ替えます） -->
             <div class="field-section-box stage-box">
                 <div class="row-label">ステージ</div>
                 <div class="field-row">
                     
                     <!-- 1列目 -->
-                    <div class="slot-column-wrapper" id="stage-col-0">
+                    <div class="slot-column-wrapper">
                         <button class="slot-tag-btn" id="change-btn-0" onclick="clickChangeBtn(0)">チェンジ</button>
                         <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 0, 1)"></div>
-                            <div class="frame-layer layer-2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 0, 2)"></div>
-                            <div class="frame-layer layer-3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 0, 3)"></div>
+                            <div class="frame-layer layer-1" id="frame-0-1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 0, 1)"></div>
+                            <div class="frame-layer layer-2" id="frame-0-2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 0, 2)"></div>
+                            <div class="frame-layer layer-3" id="frame-0-3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 0, 3)"></div>
                         </div>
                     </div>
 
                     <!-- 2列目 -->
-                    <div class="slot-column-wrapper" id="stage-col-1">
+                    <div class="slot-column-wrapper">
                         <button class="slot-tag-btn" id="change-btn-1" onclick="clickChangeBtn(1)">チェンジ</button>
                         <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 1, 1)"></div>
-                            <div class="frame-layer layer-2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 1, 2)"></div>
-                            <div class="frame-layer layer-3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 1, 3)"></div>
+                            <div class="frame-layer layer-1" id="frame-1-1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 1, 1)"></div>
+                            <div class="frame-layer layer-2" id="frame-1-2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 1, 2)"></div>
+                            <div class="frame-layer layer-3" id="frame-1-3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 1, 3)"></div>
                         </div>
                     </div>
 
                     <!-- 3列目 -->
-                    <div class="slot-column-wrapper" id="stage-col-2">
+                    <div class="slot-column-wrapper">
                         <button class="slot-tag-btn" id="change-btn-2" onclick="clickChangeBtn(2)">チェンジ</button>
                         <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 2, 1)"></div>
-                            <div class="frame-layer layer-2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 2, 2)"></div>
-                            <div class="frame-layer layer-3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 2, 3)"></div>
+                            <div class="frame-layer layer-1" id="frame-2-1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 2, 1)"></div>
+                            <div class="frame-layer layer-2" id="frame-2-2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 2, 2)"></div>
+                            <div class="frame-layer layer-3" id="frame-2-3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 2, 3)"></div>
                         </div>
                     </div>
 
                     <!-- 4列目 -->
-                    <div class="slot-column-wrapper" id="stage-col-3">
+                    <div class="slot-column-wrapper">
                         <button class="slot-tag-btn" id="change-btn-3" onclick="clickChangeBtn(3)">チェンジ</button>
                         <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 3, 1)"></div>
-                            <div class="frame-layer layer-2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 3, 2)"></div>
-                            <div class="frame-layer layer-3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 3, 3)"></div>
+                            <div class="frame-layer layer-1" id="frame-3-1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 3, 1)"></div>
+                            <div class="frame-layer layer-2" id="frame-3-2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 3, 2)"></div>
+                            <div class="frame-layer layer-3" id="frame-3-3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 3, 3)"></div>
                         </div>
                     </div>
 
                     <!-- 5列目 -->
-                    <div class="slot-column-wrapper" id="stage-col-4">
+                    <div class="slot-column-wrapper">
                         <button class="slot-tag-btn" id="change-btn-4" onclick="clickChangeBtn(4)">チェンジ</button>
                         <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 4, 1)"></div>
-                            <div class="frame-layer layer-2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 4, 2)"></div>
-                            <div class="frame-layer layer-3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 4, 3)"></div>
+                            <div class="frame-layer layer-1" id="frame-4-1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 4, 1)"></div>
+                            <div class="frame-layer layer-2" id="frame-4-2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 4, 2)"></div>
+                            <div class="frame-layer layer-3" id="frame-4-3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 4, 3)"></div>
                         </div>
                     </div>
 
@@ -670,7 +669,8 @@
                 <div class="deck-label">山札 (クリックドロー)</div>
             </div>
         </div>
-        <!-- 一番右端：カウンタ -->
+
+        <!-- 一番右端：魔力トークンカウンタ -->
         <div class="counter-panel">
             <div class="counter-item">
                 <div class="counter-icon icon-vol">VOL</div>
@@ -712,7 +712,6 @@
         </div>
 
     </div>
-
     <script>
         let currentMode = 2;
         let turn = 1;
@@ -728,7 +727,6 @@
             const savedDeck1 = localStorage.getItem('misogi_deck1');
             const savedDeck2 = localStorage.getItem('misogi_deck2');
 
-            // サンプルデッキコードをあらかじめセット
             document.getElementById('deckInput1').value = savedDeck1 ? savedDeck1 : "AA-01 / exDS-02 / BSM-03 / AZD-04 / AA-05 / exDM-06";
             document.getElementById('deckInput2').value = savedDeck2 ? savedDeck2 : "AA-01 / exDS-02 / BSM-03 / AZD-04";
 
@@ -775,6 +773,7 @@
             document.getElementById('menuScreen').style.display = 'none';
             document.getElementById('gameScreen').style.display = 'flex';
         }
+
         function createGameCardToHand(cardName, imagePath) {
             const handArea = document.getElementById('handArea');
             const card = document.createElement('div');
@@ -810,7 +809,6 @@
             event.currentTarget.classList.remove('drag-over');
         }
 
-        // 各カラー枠へのドラッグ＆ドロップ（紫枠への2枚重ね、および場からの再移動に対応）
         function dropToSpecificFrame(event, columnIndex, layerNumber) {
             event.preventDefault();
             event.stopPropagation();
@@ -863,6 +861,9 @@
             handArea.appendChild(draggedCard);
         }
 
+        // 🟢 【バグ修正版】チェンジボタン列スワップ処理
+        // HTML要素そのものを入れ替えるのではなく、「枠の中に入っているカード要素（子要素）だけ」を安全に移し替えます。
+        // これにより、枠線に登録されていた大切なドラッグ＆ドロップイベントが消滅するのを完璧に防ぎます。
         function clickChangeBtn(index) {
             const currentBtn = document.getElementById(`change-btn-${index}`);
 
@@ -873,18 +874,29 @@
                 currentBtn.classList.remove('selecting');
                 selectedColumnIndex = null;
             } else {
-                const stackA = document.querySelector(`#stage-col-${selectedColumnIndex} .stage-placeholder-stack`);
-                const stackB = document.querySelector(`#stage-col-${index} .stage-placeholder-stack`);
+                // 1〜3段目のそれぞれの枠線を取得
+                for (let layer = 1; layer <= 3; layer++) {
+                    const frameA = document.getElementById(`frame-${selectedColumnIndex}-${layer}`);
+                    const frameB = document.getElementById(`frame-${index}-${layer}`);
 
-                const tempHTML = stackA.innerHTML;
-                stackA.innerHTML = stackB.innerHTML;
-                stackB.innerHTML = tempHTML;
+                    // 枠Aと枠Bの中身（配置されているカード群）を安全に退避・スワップ
+                    const cardsA = Array.from(frameA.children);
+                    const cardsB = Array.from(frameB.children);
 
+                    // 一旦空にする
+                    frameA.innerHTML = "";
+                    frameB.innerHTML = "";
+
+                    // お互いのカードをトレードして再配置
+                    cardsA.forEach(card => frameB.appendChild(card));
+                    cardsB.forEach(card => frameA.appendChild(card));
+                }
+
+                // 選択状態を綺麗に解除
                 document.getElementById(`change-btn-${selectedColumnIndex}`).classList.remove('selecting');
                 selectedColumnIndex = null;
             }
         }
-
         function saveData() {
             const deck1 = document.getElementById('deckInput1').value;
             const deck2 = document.getElementById('deckInput2').value;
