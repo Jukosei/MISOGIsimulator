@@ -217,76 +217,99 @@
             gap: 12px;
         }
 
+        /* ステージとDirectionエリアのベース */
         .field-section-box {
             background-color: var(--panel-bg);
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            padding: 10px;
+            padding: 15px 10px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            justify-content: center;
         }
         
-        .stage-box { flex: 4; }
-        .direction-box { flex: 3; }
+        /* 💡 ステージとDirectionの間隔を広げるため、上下のflex比率やmarginで空間を確保 */
+        .stage-box { 
+            flex: 5.5; 
+            margin-bottom: 20px; /* ここでしっかり間隔を広げています */
+        }
+        .direction-box { 
+            flex: 3.5; 
+        }
 
         .field-row {
             display: flex;
-            gap: 15px;
+            gap: 20px;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             width: 100%;
         }
 
         .row-label {
             font-size: 12px;
             color: #888;
-            margin-bottom: 6px;
+            margin-bottom: 10px;
             font-weight: bold;
         }
 
-        .card-slot {
-            width: var(--card-width);
-            height: var(--card-height);
-            border: 1px dashed #444;
-            border-radius: 6px;
+        /* 縦に並べるチェンジラッパー（チェンジボタンがカードの上に） */
+        .slot-column-wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            gap: 8px; /* ボタンと点線枠の隙間 */
+        }
+
+        /* 点線のカード置ける場所表示枠 */
+        .card-slot-placeholder {
+            width: var(--card-width);
+            height: var(--card-height);
+            border: 2px dashed #444; /* 文字を消し、きれいな点線枠のみに */
+            border-radius: 6px;
             position: relative;
-            background-color: rgba(255,255,255,0.02);
+            background-color: rgba(255,255,255,0.01);
             box-sizing: border-box;
         }
 
-        .change-btn-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
+        /* 💡 ステージカードを半分ずつ3枚まで重ねるためのコンテナ */
+        .stacked-container {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
+            height: 100%;
         }
 
+        /* 重なるカードのスタイル（半分ずつ下にずらす：1枚あたり高さ168pxなので約84pxずつずれる） */
+        .stacked-card {
+            position: absolute;
+            width: var(--card-width);
+            height: var(--card-height);
+            box-sizing: border-box;
+        }
+        /* 1枚目、2枚目、3枚目のずらし位置と重なり順（z-index） */
+        .stacked-card.pos-0 { top: 0px; z-index: 1; }
+        .stacked-card.pos-1 { top: 40px; z-index: 2; } /* 半分より少し浅めの40px刻みで見やすく調整（お好みで84px等に変更可） */
+        .stacked-card.pos-2 { top: 80px; z-index: 3; }
+
+        /* 上側に配置するチェンジボタン */
         .slot-tag-btn {
             background-color: #222;
             color: #aaa;
             font-size: 11px;
             border: 1px solid #444;
-            padding: 4px 10px;
+            padding: 4px 14px;
             border-radius: 4px;
             cursor: pointer;
-            margin-top: auto;
-            margin-bottom: 8px;
             transition: all 0.2s;
+            font-weight: bold;
         }
-        .slot-tag-btn:hover {
-            background-color: #e6002d;
+        .slot-tag-btn.selecting {
+            background-color: var(--btn-accent);
             color: #fff;
-            border-color: #e6002d;
+            border-color: var(--btn-accent);
+            box-shadow: 0 0 8px var(--btn-accent);
         }
-
         .hand-area {
             flex: 3;
             background-color: var(--panel-bg);
@@ -306,14 +329,16 @@
             height: var(--card-height);
             background-color: #333;
             border: 1px solid #555;
-            border-radius: 4px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 13px;
+            font-weight: bold;
             cursor: pointer;
             box-sizing: border-box;
             user-select: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
         .control-panel {
@@ -479,7 +504,6 @@
             <button class="start-btn" onclick="startGame()">ゲーム開始</button>
         </div>
     </div>
-
     <!-- 対戦画面 -->
     <div class="game-screen" id="gameScreen">
         
@@ -498,52 +522,77 @@
 
         <!-- 中央パネル -->
         <div class="center-panel">
-            <!-- ステージエリア -->
+            
+            <!-- 🟢 ステージエリア（チェンジが上になり、中身はきれいな点線枠 ＆ 重なり対応） -->
             <div class="field-section-box stage-box">
                 <div class="row-label">ステージ</div>
                 <div class="field-row">
-                    <div class="card-slot">
-                        <div class="change-btn-wrapper">
-                            <div id="stage-card-0" class="game-card">S1</div>
-                            <button class="slot-tag-btn" onclick="changeStageCard(0)">チェンジ</button>
+                    
+                    <!-- 1列目 (動作テスト用に、初期状態で3枚重なっている見本をセットしています) -->
+                    <div class="slot-column-wrapper">
+                        <button class="slot-tag-btn" id="change-btn-0" onclick="clickChangeBtn(0)">チェンジ</button>
+                        <div class="card-slot-placeholder">
+                            <div class="stacked-container" id="stage-slot-0">
+                                <div class="game-card stacked-card pos-0" style="background-color:#444;">下層カード</div>
+                                <div class="game-card stacked-card pos-1" style="background-color:#555;">中層カード</div>
+                                <div class="game-card stacked-card pos-2" style="background-color:#c2185b;">表層 A</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="card-slot">
-                        <div class="change-btn-wrapper">
-                            <div id="stage-card-1" class="game-card">S2</div>
-                            <button class="slot-tag-btn" onclick="changeStageCard(1)">チェンジ</button>
+
+                    <!-- 2列目 (2枚重なりの見本) -->
+                    <div class="slot-column-wrapper">
+                        <button class="slot-tag-btn" id="change-btn-1" onclick="clickChangeBtn(1)">チェンジ</button>
+                        <div class="card-slot-placeholder">
+                            <div class="stacked-container" id="stage-slot-1">
+                                <div class="game-card stacked-card pos-0" style="background-color:#444;">下層カード</div>
+                                <div class="game-card stacked-card pos-1" style="background-color:#0288d1;">表層 B</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="card-slot">
-                        <div class="change-btn-wrapper">
-                            <div id="stage-card-2" class="game-card">S3</div>
-                            <button class="slot-tag-btn" onclick="changeStageCard(2)">チェンジ</button>
+
+                    <!-- 3列目 -->
+                    <div class="slot-column-wrapper">
+                        <button class="slot-tag-btn" id="change-btn-2" onclick="clickChangeBtn(2)">チェンジ</button>
+                        <div class="card-slot-placeholder">
+                            <div class="stacked-container" id="stage-slot-2">
+                                <div class="game-card stacked-card pos-0" style="background-color:#7b1fa2;">表層 C</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="card-slot">
-                        <div class="change-btn-wrapper">
-                            <div id="stage-card-3" class="game-card">S4</div>
-                            <button class="slot-tag-btn" onclick="changeStageCard(3)">チェンジ</button>
+
+                    <!-- 4列目 -->
+                    <div class="slot-column-wrapper">
+                        <button class="slot-tag-btn" id="change-btn-3" onclick="clickChangeBtn(3)">チェンジ</button>
+                        <div class="card-slot-placeholder">
+                            <div class="stacked-container" id="stage-slot-3">
+                                <div class="game-card stacked-card pos-0" style="background-color:#388e3c;">表層 D</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="card-slot">
-                        <div class="change-btn-wrapper">
-                            <div id="stage-card-4" class="game-card">S5</div>
-                            <button class="slot-tag-btn" onclick="changeStageCard(4)">チェンジ</button>
+
+                    <!-- 5列目 -->
+                    <div class="slot-column-wrapper">
+                        <button class="slot-tag-btn" id="change-btn-4" onclick="clickChangeBtn(4)">チェンジ</button>
+                        <div class="card-slot-placeholder">
+                            <div class="stacked-container" id="stage-slot-4">
+                                <div class="game-card stacked-card pos-0" style="background-color:#f57c00;">表層 E</div>
+                            </div>
                         </div>
                     </div>
+
                 </div>
             </div>
             
-            <!-- Directionエリア（今回はチェンジの影響を受けません） -->
+            <!-- 🟢 Directionエリア（点線枠。ステージとの間隔が広がっています） -->
             <div class="field-section-box direction-box">
                 <div class="row-label">Direction</div>
                 <div class="field-row">
-                    <div class="card-slot"><div id="dir-card-0" class="game-card">D1</div></div>
-                    <div class="card-slot"><div id="dir-card-1" class="game-card">D2</div></div>
-                    <div class="card-slot"><div id="dir-card-2" class="game-card">D3</div></div>
-                    <div class="card-slot"><div id="dir-card-3" class="game-card">D4</div></div>
-                    <div class="card-slot"><div id="dir-card-4" class="game-card">D5</div></div>
+                    <div class="card-slot-placeholder"><div class="game-card">D-A</div></div>
+                    <div class="card-slot-placeholder"><div class="game-card">D-B</div></div>
+                    <div class="card-slot-placeholder"><div class="game-card">D-C</div></div>
+                    <div class="card-slot-placeholder"><div class="game-card">D-D</div></div>
+                    <div class="card-slot-placeholder"><div class="game-card">D-E</div></div>
                 </div>
             </div>
 
@@ -554,7 +603,6 @@
                 <div class="game-card">手札 3</div>
                 <div class="game-card">手札 4</div>
                 <div class="game-card">手札 5</div>
-                <div class="game-card">手札 6</div>
             </div>
         </div>
 
@@ -625,6 +673,9 @@
         let turn = 1;
         let deckSize = 53;
         const counters = { vol: 0, alpha: 0, beta: 0, omega: 0 };
+
+        // 🟢 チェンジボタンの選択状態を管理する変数
+        let selectedColumnIndex = null;
 
         window.onload = function() {
             const savedMode = localStorage.getItem('misogi_mode');
@@ -713,24 +764,32 @@
             }
         }
 
-        // 🟢 【修正】ステージのカードのみを入れ替える処理
-        // 控えのデッキ（または切り替え用リスト）から新しいカード名や画像を上書きします
-        function changeStageCard(columnIndex) {
-            const stageCard = document.getElementById(`stage-card-${columnIndex}`);
-            
-            // シミュレータのテスト用として、押すたびにカード名が「チェンジA」→「チェンジB」→「元通り」とローテーションする仕組みにしています
-            if (stageCard.innerText === `S${columnIndex + 1}`) {
-                stageCard.innerText = `チェンジA`;
-                stageCard.style.color = "#ff9f00"; // 変わったことがわかりやすいよう色を変更
-            } else if (stageCard.innerText === `チェンジA`) {
-                stageCard.innerText = `チェンジB`;
-                stageCard.style.color = "#ff69b4";
+        // 🟢 【新機能】チェンジボタンをクリックした際の入れ替え処理
+        function clickChangeBtn(index) {
+            const currentBtn = document.getElementById(`change-btn-${index}`);
+
+            if (selectedColumnIndex === null) {
+                // 1つ目のボタンを選択した状態にする
+                selectedColumnIndex = index;
+                currentBtn.classList.add('selecting');
+            } else if (selectedColumnIndex === index) {
+                // 同じボタンをもう一度押した場合はキャンセル
+                currentBtn.classList.remove('selecting');
+                selectedColumnIndex = null;
             } else {
-                stageCard.innerText = `S${columnIndex + 1}`;
-                stageCard.style.color = "#ffffff";
+                // 2つ目の異なるボタンを押した場合、その2つの列のスロットの中身（重ねられたカードごと）をごそっと入れ替える
+                const slotA = document.getElementById(`stage-slot-${selectedColumnIndex}`);
+                const slotB = document.getElementById(`stage-slot-${index}`);
+
+                // HTML要素（重なっているカード群の束）の中身をスワップする
+                const tempHTML = slotA.innerHTML;
+                slotA.innerHTML = slotB.innerHTML;
+                slotB.innerHTML = tempHTML;
+
+                // 選択状態を解除してリセット
+                document.getElementById(`change-btn-${selectedColumnIndex}`).classList.remove('selecting');
+                selectedColumnIndex = null;
             }
-            
-            // 将来的に入力コード（画像等）と連動する際は、ここに「控えから画像URLを適用する処理」を記述できます
         }
 
         function triggerAction(actionName) {
