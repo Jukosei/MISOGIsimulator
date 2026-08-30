@@ -33,7 +33,7 @@
             overflow-x: hidden;
         }
 
-        /* メメインメニュー画面 */
+        /* メインメニュー画面 */
         .menu-container {
             display: flex;
             flex-direction: column;
@@ -270,6 +270,7 @@
             height: 380px; 
         }
 
+        /* 3枚重ね用の下地コンテナ */
         .stage-placeholder-stack {
             position: relative;
             width: var(--card-width);
@@ -277,16 +278,24 @@
             margin-top: -6px; 
         }
 
+        /* 💡 各カラー枠自体を直接のドロップターゲット（受け皿）に変更 */
         .frame-layer {
             position: absolute;
             width: var(--card-width);
             height: var(--card-height);
             border-radius: 6px;
             box-sizing: border-box;
+            z-index: 5;
         }
-        .frame-layer.layer-1  { top: 0px; border: 2px dashed #1565c0; }
-        .frame-layer.layer-2  { top: 84px; border: 2px dashed #f9a825; }
-        .frame-layer.layer-3  { top: 168px; border: 2px dashed #6a1b9a; }
+        .frame-layer.layer-1  { top: 0px; border: 2px dashed #1565c0; }   /* 青枠 */
+        .frame-layer.layer-2  { top: 84px; border: 2px dashed #f9a825; }  /* 黄枠 */
+        .frame-layer.layer-3  { top: 168px; border: 2px dashed #6a1b9a; } /* 紫枠 */
+
+        /* マウスが上に重なった時、それぞれの枠線が独立して白く光る表現 */
+        .frame-layer.drag-over {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: #ffffff !important;
+        }
 
         .direction-placeholder {
             width: var(--card-width);
@@ -294,19 +303,22 @@
             border: 2px dashed #c62828;
             border-radius: 6px;
             box-sizing: border-box;
+            position: relative;
+        }
+        .direction-placeholder.drag-over {
+            background-color: rgba(198, 40, 40, 0.1);
+            border-color: #ffffff;
         }
 
-        .card-container-slot {
+        /* 💡 枠の中に配置されるカードの絶対位置制御。
+           紫枠に2枚重なった場合、重なり順（z-index）で自動的に2枚目が上に重なります */
+        .frame-layer .game-card {
             position: absolute;
             top: 0;
             left: 0;
+            margin: 0;
             width: 100%;
             height: 100%;
-            z-index: 10;
-            pointer-events: none;
-        }
-        .card-container-slot * {
-            pointer-events: auto;
         }
 
         .slot-tag-btn {
@@ -356,13 +368,15 @@
             justify-content: center;
             font-size: 13px;
             font-weight: bold;
-            cursor: pointer;
+            cursor: grab;
             box-sizing: border-box;
             user-select: none;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
+        .game-card:active {
+            cursor: grabbing;
+        }
 
-        /* 💡 【修正】コントロールボタンエリアの横幅を160pxから「190px」に広げて文字を見やすく */
         .control-panel {
             width: 190px;
             display: flex;
@@ -371,13 +385,12 @@
             gap: 6px;
         }
 
-        /* 💡 ボタンの文字サイズ、上下の余白を少し大きくして視認性と押しやすさをUP */
         .control-btn {
             background-color: #0056b3;
             color: white;
             border: none;
-            padding: 10px 6px; /* 縦幅に余裕を */
-            font-size: 13px;    /* 文字を大きく */
+            padding: 10px 6px; 
+            font-size: 13px;    
             font-weight: bold;
             cursor: pointer;
             border-radius: 4px;
@@ -413,7 +426,6 @@
             margin-top: 4px;
         }
 
-        /* 💡 【修正】一番右端の魔力カウンターパネルの横幅を120pxから「150px」へ大幅幅広化 */
         .counter-panel {
             width: 150px;
             background-color: var(--panel-bg);
@@ -424,7 +436,7 @@
             padding: 20px 5px;
             box-sizing: border-box;
             justify-content: flex-start;
-            gap: 22px; /* 縦の間隔も少し広く */
+            gap: 22px; 
             height: 100%;
         }
 
@@ -435,7 +447,6 @@
             gap: 8px;
         }
 
-        /* 💡 魔力の丸アイコンを40pxから「48px」へ拡大。文字サイズもUP */
         .counter-icon {
             width: 48px;
             height: 48px;
@@ -458,7 +469,6 @@
             gap: 12px;
         }
 
-        /* 💡 プラスマイナスボタンを25pxから「32px」へ大型化。押しやすさを追求 */
         .counter-btn {
             background-color: #333;
             color: white;
@@ -475,7 +485,6 @@
         }
         .counter-btn:hover { background-color: #444; }
 
-        /* 💡 数字サイズを24pxから「28px」へ拡大 */
         .counter-value {
             font-size: 28px;
             font-weight: bold;
@@ -483,7 +492,6 @@
             text-align: center;
         }
 
-        /* 💡 ターン数表示も全体のサイズ感に合わせて少し拡大 */
         .turn-display {
             margin-top: auto;
             text-align: center;
@@ -504,7 +512,6 @@
     </style>
 </head>
 <body>
-
     <!-- メインメニュー画面 -->
     <div class="menu-container" id="menuScreen">
         <div class="title">禊</div>
@@ -558,63 +565,58 @@
         <!-- 中央パネル -->
         <div class="center-panel">
             
-            <!-- ステージエリア -->
+            <!-- ステージエリア（各枠が個別にカードを受け入れる構造へ進化） -->
             <div class="field-section-box stage-box">
                 <div class="row-label">ステージ</div>
                 <div class="field-row">
                     
                     <!-- 1列目 -->
-                    <div class="slot-column-wrapper">
+                    <div class="slot-column-wrapper" id="stage-col-0">
                         <button class="slot-tag-btn" id="change-btn-0" onclick="clickChangeBtn(0)">チェンジ</button>
                         <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1"></div>
-                            <div class="frame-layer layer-2"></div>
-                            <div class="frame-layer layer-3"></div>
-                            <div class="card-container-slot" id="stage-slot-0"></div>
+                            <div class="frame-layer layer-1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 0, 1)"></div>
+                            <div class="frame-layer layer-2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 0, 2)"></div>
+                            <div class="frame-layer layer-3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 0, 3)"></div>
                         </div>
                     </div>
 
                     <!-- 2列目 -->
-                    <div class="slot-column-wrapper">
+                    <div class="slot-column-wrapper" id="stage-col-1">
                         <button class="slot-tag-btn" id="change-btn-1" onclick="clickChangeBtn(1)">チェンジ</button>
                         <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1"></div>
-                            <div class="frame-layer layer-2"></div>
-                            <div class="frame-layer layer-3"></div>
-                            <div class="card-container-slot" id="stage-slot-1"></div>
+                            <div class="frame-layer layer-1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 1, 1)"></div>
+                            <div class="frame-layer layer-2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 1, 2)"></div>
+                            <div class="frame-layer layer-3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 1, 3)"></div>
                         </div>
                     </div>
 
                     <!-- 3列目 -->
-                    <div class="slot-column-wrapper">
+                    <div class="slot-column-wrapper" id="stage-col-2">
                         <button class="slot-tag-btn" id="change-btn-2" onclick="clickChangeBtn(2)">チェンジ</button>
                         <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1"></div>
-                            <div class="frame-layer layer-2"></div>
-                            <div class="frame-layer layer-3"></div>
-                            <div class="card-container-slot" id="stage-slot-2"></div>
+                            <div class="frame-layer layer-1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 2, 1)"></div>
+                            <div class="frame-layer layer-2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 2, 2)"></div>
+                            <div class="frame-layer layer-3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 2, 3)"></div>
                         </div>
                     </div>
 
                     <!-- 4列目 -->
-                    <div class="slot-column-wrapper">
+                    <div class="slot-column-wrapper" id="stage-col-3">
                         <button class="slot-tag-btn" id="change-btn-3" onclick="clickChangeBtn(3)">チェンジ</button>
                         <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1"></div>
-                            <div class="frame-layer layer-2"></div>
-                            <div class="frame-layer layer-3"></div>
-                            <div class="card-container-slot" id="stage-slot-3"></div>
+                            <div class="frame-layer layer-1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 3, 1)"></div>
+                            <div class="frame-layer layer-2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 3, 2)"></div>
+                            <div class="frame-layer layer-3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 3, 3)"></div>
                         </div>
                     </div>
 
                     <!-- 5列目 -->
-                    <div class="slot-column-wrapper">
+                    <div class="slot-column-wrapper" id="stage-col-4">
                         <button class="slot-tag-btn" id="change-btn-4" onclick="clickChangeBtn(4)">チェンジ</button>
                         <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1"></div>
-                            <div class="frame-layer layer-2"></div>
-                            <div class="frame-layer layer-3"></div>
-                            <div class="card-container-slot" id="stage-slot-4"></div>
+                            <div class="frame-layer layer-1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 4, 1)"></div>
+                            <div class="frame-layer layer-2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 4, 2)"></div>
+                            <div class="frame-layer layer-3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 4, 3)"></div>
                         </div>
                     </div>
 
@@ -625,11 +627,11 @@
             <div class="field-section-box direction-box">
                 <div class="row-label">Direction</div>
                 <div class="field-row">
-                    <div class="direction-placeholder" id="dir-slot-0"></div>
-                    <div class="direction-placeholder" id="dir-slot-1"></div>
-                    <div class="direction-placeholder" id="dir-slot-2"></div>
-                    <div class="direction-placeholder" id="dir-slot-3"></div>
-                    <div class="direction-placeholder" id="dir-slot-4"></div>
+                    <div class="direction-placeholder" id="dir-slot-0" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event, 0)"></div>
+                    <div class="direction-placeholder" id="dir-slot-1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event, 1)"></div>
+                    <div class="direction-placeholder" id="dir-slot-2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event, 2)"></div>
+                    <div class="direction-placeholder" id="dir-slot-3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event, 3)"></div>
+                    <div class="direction-placeholder" id="dir-slot-4" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event, 4)"></div>
                 </div>
             </div>
 
@@ -637,7 +639,7 @@
             <div class="hand-area" id="handArea"></div>
         </div>
 
-        <!-- 右コントロールパネル（幅広化した新しいサイズ） -->
+        <!-- 右コントロールパネル -->
         <div class="control-panel">
             <button class="control-btn" onclick="triggerAction('山札シャッフル')">山札シャッフル</button>
             <button class="control-btn" onclick="triggerAction('山札からサーチ')">山札からサーチ</button>
@@ -656,9 +658,8 @@
                 <div class="deck-label">山札 (クリックドロー)</div>
             </div>
         </div>
-        <!-- 一番右端：魔力トークンカウンタ（幅広・大型化した新しいサイズ） -->
+        <!-- 一番右端：カウンタ -->
         <div class="counter-panel">
-            <!-- VOL -->
             <div class="counter-item">
                 <div class="counter-icon icon-vol">VOL</div>
                 <div class="counter-controls">
@@ -667,7 +668,6 @@
                     <button class="counter-btn" onclick="changeCounter('vol', 1)">+</button>
                 </div>
             </div>
-            <!-- 魔力α -->
             <div class="counter-item">
                 <div class="counter-icon icon-alpha">α</div>
                 <div class="counter-controls">
@@ -676,7 +676,6 @@
                     <button class="counter-btn" onclick="changeCounter('alpha', 1)">+</button>
                 </div>
             </div>
-            <!-- 魔力β -->
             <div class="counter-item">
                 <div class="counter-icon icon-beta">β</div>
                 <div class="counter-controls">
@@ -685,7 +684,6 @@
                     <button class="counter-btn" onclick="changeCounter('beta', 1)">+</button>
                 </div>
             </div>
-            <!-- 魔力Ω -->
             <div class="counter-item">
                 <div class="counter-icon icon-omega">Ω</div>
                 <div class="counter-controls">
@@ -709,6 +707,7 @@
         let deckSize = 53;
         const counters = { vol: 0, alpha: 0, beta: 0, omega: 0 };
         let selectedColumnIndex = null;
+        let cardIdCounter = 0;
 
         window.onload = function() {
             const savedMode = localStorage.getItem('misogi_mode');
@@ -722,15 +721,119 @@
 
             selectMode(currentMode);
             
-            // テスト用カードを手札に5枚追加
-            const handArea = document.getElementById('handArea');
+            // 初期カードを手札に5枚追加
             for(let i=1; i<=5; i++) {
-                const card = document.createElement('div');
-                card.className = 'game-card';
-                card.innerText = `テストカード ${i}`;
-                handArea.appendChild(card);
+                createGameCardToHand(`神椿カード ${i}`);
             }
         };
+
+        function createGameCardToHand(cardName) {
+            const handArea = document.getElementById('handArea');
+            const card = document.createElement('div');
+            card.className = 'game-card';
+            card.id = `card-id-${cardIdCounter++}`;
+            card.innerText = cardName;
+            
+            card.setAttribute('draggable', 'true');
+            card.ondragstart = function(event) {
+                event.dataTransfer.setData('text/plain', event.target.id);
+            };
+            
+            handArea.appendChild(card);
+        }
+
+        function allowDrop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('drag-over');
+        }
+
+        function dragLeave(event) {
+            event.currentTarget.classList.remove('drag-over');
+        }
+
+        // 🟢 【新機能】狙った特定のカラー点線枠へ直接カードをドロップする処理
+        function dropToSpecificFrame(event, columnIndex, layerNumber) {
+            event.preventDefault();
+            event.stopPropagation(); // 重なりによる親要素へのイベント伝播を防止
+            event.currentTarget.classList.remove('drag-over');
+
+            const cardId = event.dataTransfer.getData('text/plain');
+            const draggedCard = document.getElementById(cardId);
+            const targetFrame = event.currentTarget;
+
+            // 現在この枠の中に何枚カードが入っているかチェック
+            const existingCardsCount = targetFrame.children.length;
+
+            if (layerNumber === 3) {
+                // 💡 紫枠（レイヤー3）のみ最大2枚まで重ねが認められるルール
+                if (existingCardsCount < 2) {
+                    draggedCard.classList.remove('on-layer-0', 'on-layer-1', 'on-layer-2');
+                    // 2枚目に重ねられたカードは、z-indexの関係で自動的に1枚目を覆い隠す配置になります
+                    targetFrame.appendChild(draggedCard);
+                } else {
+                    alert('紫色の枠にはこれ以上カードを重ねられません！（最大2枚）');
+                }
+            } else {
+                // 💡 青枠（1）と黄枠（2）は通常通り最大1枚限定のルール
+                if (existingCardsCount === 0) {
+                    draggedCard.classList.remove('on-layer-0', 'on-layer-1', 'on-layer-2');
+                    targetFrame.appendChild(draggedCard);
+                } else {
+                    alert('この枠には既にカードが配置されています！');
+                }
+            }
+        }
+
+        // Directionエリアへドロップ（最大1枚）
+        function dropToDirection(event, columnIndex) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('drag-over');
+
+            const cardId = event.dataTransfer.getData('text/plain');
+            const draggedCard = document.getElementById(cardId);
+            const targetSlot = event.currentTarget;
+
+            if (targetSlot.children.length === 0) {
+                draggedCard.classList.remove('on-layer-0', 'on-layer-1', 'on-layer-2');
+                targetSlot.appendChild(draggedCard);
+            } else {
+                alert('Directionには既にカードが配置されています！');
+            }
+        }
+
+        function drawCard() {
+            if (deckSize > 0) {
+                deckSize--;
+                document.getElementById('deckCount').innerText = deckSize;
+                createGameCardToHand('ドローカード');
+            } else {
+                alert('山札がありません！');
+            }
+        }
+
+        // チェンジボタンによる列（スロット）まるごとスワップ処理
+        function clickChangeBtn(index) {
+            const currentBtn = document.getElementById(`change-btn-${index}`);
+
+            if (selectedColumnIndex === null) {
+                selectedColumnIndex = index;
+                currentBtn.classList.add('selecting');
+            } else if (selectedColumnIndex === index) {
+                currentBtn.classList.remove('selecting');
+                selectedColumnIndex = null;
+            } else {
+                // 2つの列の「下地コンテナ（3つのカラー点線枠を含む）」の中身の構造を入れ替える
+                const stackA = document.querySelector(`#stage-col-${selectedColumnIndex} .stage-placeholder-stack`);
+                const stackB = document.querySelector(`#stage-col-${index} .stage-placeholder-stack`);
+
+                const tempHTML = stackA.innerHTML;
+                stackA.innerHTML = stackB.innerHTML;
+                stackB.innerHTML = tempHTML;
+
+                document.getElementById(`change-btn-${selectedColumnIndex}`).classList.remove('selecting');
+                selectedColumnIndex = null;
+            }
+        }
 
         function saveData() {
             const deck1 = document.getElementById('deckInput1').value;
@@ -789,44 +892,6 @@
         function rollDice() {
             const result = Math.floor(Math.random() * 6) + 1;
             alert(`ダイスの出目: ${result}`);
-        }
-
-        function drawCard() {
-            if (deckSize > 0) {
-                deckSize--;
-                document.getElementById('deckCount').innerText = deckSize;
-                
-                const handArea = document.getElementById('handArea');
-                const newCard = document.createElement('div');
-                newCard.className = 'game-card';
-                newCard.innerText = `ドローカード`;
-                handArea.appendChild(newCard);
-            } else {
-                alert('山札がありません！');
-            }
-        }
-
-        // チェンジボタン選択＆スワップ処理
-        function clickChangeBtn(index) {
-            const currentBtn = document.getElementById(`change-btn-${index}`);
-
-            if (selectedColumnIndex === null) {
-                selectedColumnIndex = index;
-                currentBtn.classList.add('selecting');
-            } else if (selectedColumnIndex === index) {
-                currentBtn.classList.remove('selecting');
-                selectedColumnIndex = null;
-            } else {
-                const slotA = document.getElementById(`stage-slot-${selectedColumnIndex}`);
-                const slotB = document.getElementById(`stage-slot-${index}`);
-
-                const tempHTML = slotA.innerHTML;
-                slotA.innerHTML = slotB.innerHTML;
-                slotB.innerHTML = tempHTML;
-
-                document.getElementById(`change-btn-${selectedColumnIndex}`).classList.remove('selecting');
-                selectedColumnIndex = null;
-            }
         }
 
         function triggerAction(actionName) {
