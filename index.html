@@ -3,34 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- タブに表示される名前を設定 -->
     <title>禊シミュレーター</title>
     <style>
         body {
             margin: 0;
             padding: 0;
-            background-color: #121212; /* 暗めの背景色 */
+            background-color: #121212;
             color: #ffffff;
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
-        /* メインメニュー画面のコンテナ */
         .container {
             display: flex;
             flex-direction: column;
             align-items: center;
             width: 100%;
-            max-width: 800px;
-            padding: 20px;
+            max-width: 1100px; /* 横幅をさらにワイドに広げました */
+            padding: 40px 20px;
             box-sizing: border-box;
         }
 
-        /* 大きく表示される「禊」タイトル */
         .title {
             font-size: 54px;
             font-weight: bold;
@@ -38,11 +35,10 @@
             letter-spacing: 6px;
         }
 
-        /* モード選択ボタンのエリア */
         .mode-selection {
             display: flex;
             gap: 10px;
-            margin-bottom: 25px;
+            margin-bottom: 35px;
         }
 
         .mode-btn {
@@ -57,28 +53,35 @@
             transition: all 0.2s ease;
         }
 
-        /* 選択されているモードのスタイル（1デッキモードの青色） */
         .mode-btn.active {
             background-color: #007bff;
             color: #ffffff;
             border-color: #007bff;
         }
 
-        /* デッキコード入力エリア */
+        /* 入力エリア全体のラッパー */
+        .input-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        /* 各デッキ入力ブロック */
         .deck-code-area {
             width: 100%;
-            max-width: 640px;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 10px;
         }
 
         .label-text {
             color: #ffffff;
             font-size: 15px;
+            font-weight: bold;
             align-self: center;
-            margin-bottom: 5px;
+            margin-bottom: 12px;
         }
 
         .textarea-container {
@@ -87,7 +90,7 @@
 
         textarea {
             width: 100%;
-            height: 150px;
+            height: 160px; /* 縦幅も少しゆとりを持たせて調整 */
             background-color: #1a1a1a;
             border: 1px solid #333333;
             border-radius: 6px;
@@ -99,17 +102,16 @@
             outline: none;
         }
 
-        /* クリアボタン（赤色） */
         .clear-btn {
             background-color: #dc3545;
             color: #ffffff;
             border: none;
-            padding: 10px 25px;
+            padding: 10px 30px;
             font-size: 14px;
             font-weight: bold;
             cursor: pointer;
             border-radius: 4px;
-            margin-top: 5px;
+            margin-top: 12px;
             transition: background-color 0.2s ease;
         }
 
@@ -117,20 +119,18 @@
             background-color: #c82333;
         }
 
-        /* ゲーム開始ボタンのコンテナ */
         .start-btn-container {
-            margin-top: 50px;
+            margin-top: 45px;
             width: 100%;
             display: flex;
             justify-content: center;
         }
 
-        /* ゲーム開始ボタン（ピンク・赤色） */
         .start-btn {
             background-color: #e6002d;
             color: #ffffff;
             border: none;
-            padding: 15px 80px;
+            padding: 15px 100px;
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
@@ -143,7 +143,7 @@
             background-color: #cc0028;
         }
 
-        /* 対戦画面（最初は非表示） */
+        /* 対戦画面 */
         .game-screen {
             display: none;
             flex-direction: column;
@@ -177,19 +177,31 @@
     <div class="container" id="menuScreen">
         <div class="title">禊</div>
 
-        <!-- 1デッキ / 2デッキの切り替えボタン -->
+        <!-- モード選択ボタン -->
         <div class="mode-selection">
-            <button class="mode-btn active" id="btn1Deck" onclick="selectMode(1)">1デッキモード</button>
-            <button class="mode-btn" id="btn2Deck" onclick="selectMode(2)">2デッキ対戦モード</button>
+            <button class="mode-btn" id="btn1Deck" onclick="selectMode(1)">1デッキモード</button>
+            <button class="mode-btn active" id="btn2Deck" onclick="selectMode(2)">2デッキ対戦モード</button>
         </div>
 
-        <!-- デッキコード入力部分 -->
-        <div class="deck-code-area">
-            <div class="label-text" id="labelText">デッキリストを / 区切りで入力してください</div>
-            <div class="textarea-container">
-                <textarea id="deckInput" placeholder="ここにデッキコードを入力してください"></textarea>
+        <!-- 入力エリア -->
+        <div class="input-section">
+            <!-- プレイヤー1の入力欄 -->
+            <div class="deck-code-area" id="areaPlayer1">
+                <div class="label-text" id="labelPlayer1">プレイヤー1のデッキ</div>
+                <div class="textarea-container">
+                    <textarea id="deckInput1" placeholder="ここにデッキコードを入力してください"></textarea>
+                </div>
+                <button class="clear-btn" onclick="clearInput(1)">クリア</button>
             </div>
-            <button class="clear-btn" onclick="clearInput()">クリア</button>
+
+            <!-- プレイヤー2の入力欄（1デッキモードの時はJSで非表示にします） -->
+            <div class="deck-code-area" id="areaPlayer2">
+                <div class="label-text">プレイヤー2のデッキ</div>
+                <div class="textarea-container">
+                    <textarea id="deckInput2" placeholder="ここにデッキコードを入力してください"></textarea>
+                </div>
+                <button class="clear-btn" onclick="clearInput(2)">クリア</button>
+            </div>
         </div>
 
         <!-- ゲーム開始ボタン -->
@@ -206,50 +218,57 @@
     </div>
 
     <script>
-        let currentMode = 1;
+        let currentMode = 2; // 初期状態を画像の通り「2デッキ対戦モード」に設定
 
         // モードを切り替える関数
         function selectMode(mode) {
             currentMode = mode;
             const btn1 = document.getElementById('btn1Deck');
             const btn2 = document.getElementById('btn2Deck');
-            const labelText = document.getElementById('labelText');
-            const deckInput = document.getElementById('deckInput');
+            const label1 = document.getElementById('labelPlayer1');
+            const area2 = document.getElementById('areaPlayer2');
 
             if (mode === 1) {
                 btn1.classList.add('active');
                 btn2.classList.remove('active');
-                labelText.innerText = 'デッキリストを / 区切りで入力してください';
+                label1.innerText = 'デッキリストを / 区切りで入力してください';
+                area2.style.display = 'none'; // プレイヤー2の入力欄を隠す
             } else {
                 btn1.classList.remove('active');
                 btn2.classList.add('active');
-                labelText.innerText = '2つのデッキリストを入力してください';
+                label1.innerText = 'プレイヤー1のデッキ';
+                area2.style.display = 'flex'; // プレイヤー2の入力欄を出す
             }
         }
 
-        // 入力欄をクリアする関数
-        function clearInput() {
-            document.getElementById('deckInput').value = '';
+        // 指定された入力欄をクリアする関数
+        function clearInput(targetNum) {
+            document.getElementById(`deckInput${targetNum}`).value = '';
         }
 
-        // ゲーム開始ボタンを押した時の処理（対戦画面へ移行）
+        // ゲーム開始ボタンの処理
         function startGame() {
-            const deckCode = document.getElementById('deckInput').value;
+            const deck1 = document.getElementById('deckInput1').value;
+            const deck2 = document.getElementById('deckInput2').value;
             
-            // メニューを非表示にし、対戦画面を表示
             document.getElementById('menuScreen').style.display = 'none';
             document.getElementById('gameScreen').style.display = 'flex';
 
-            // デバッグ用に選択したモードと入力文字数を表示
             const infoText = document.getElementById('gameInfoText');
-            infoText.innerHTML = `モード: ${currentMode}デッキモード<br>入力されたデータ: ${deckCode ? deckCode : '空欄'}`;
+            if (currentMode === 1) {
+                infoText.innerHTML = `モード: 1デッキモード<br>デッキ: ${deck1 ? deck1 : '空欄'}`;
+            } else {
+                infoText.innerHTML = `モード: 2デッキ対戦モード<br>P1デッキ: ${deck1 ? deck1 : '空欄'}<br>P2デッキ: ${deck2 ? deck2 : '空欄'}`;
+            }
         }
 
-        // メニュー画面に戻る関数
         function backToMenu() {
             document.getElementById('gameScreen').style.display = 'none';
             document.getElementById('menuScreen').style.display = 'flex';
         }
+
+        // 起動時に初期モード(2)を適用
+        selectMode(2);
     </script>
 </body>
 </html>
