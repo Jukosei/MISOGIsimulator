@@ -29,6 +29,7 @@
             overflow-x: hidden;
         }
 
+        /* メニュー画面 */
         .menu-container {
             display: flex;
             flex-direction: column;
@@ -69,7 +70,6 @@
             color: #ffffff;
             border-color: var(--btn-blue);
         }
-
         .input-section {
             width: 100%;
             display: flex;
@@ -147,7 +147,7 @@
             letter-spacing: 2px;
             transition: background-color 0.2s ease;
         }
-
+        /* 対戦画面 */
         .game-screen {
             display: none;
             width: 100vw;
@@ -233,7 +233,6 @@
             max-width: 800px;
             margin: 0 auto;
         }
-
         .card-slot {
             width: 110px;
             height: 155px;
@@ -392,7 +391,6 @@
             text-align: center;
         }
 
-
         .turn-display {
             margin-top: auto;
             text-align: center;
@@ -401,7 +399,7 @@
             font-size: 12px;
             color: #aaa;
         }
-    
+        
         .turn-display span {
             display: block;
             font-size: 28px;
@@ -409,8 +407,11 @@
             color: #fff;
             margin-top: 5px;
         }
+    </style>
+</head>
+<body>
 
-         <!-- メインメニュー画面 -->
+    <!-- メインメニュー画面 -->
     <div class="menu-container" id="menuScreen">
         <div class="title">禊</div>
 
@@ -441,7 +442,6 @@
             <button class="start-btn" onclick="startGame()">ゲーム開始</button>
         </div>
     </div>
-
     <!-- 対戦画面 -->
     <div class="game-screen" id="gameScreen">
         
@@ -549,8 +549,7 @@
         </div>
 
     </div>
-
-            <script>
+    <script>
         let currentMode = 2;
         let turn = 1;
         let deckSize = 53;
