@@ -33,7 +33,7 @@
             overflow-x: hidden;
         }
 
-        /* メインメニュー画面 */
+        /* メメインメニュー画面 */
         .menu-container {
             display: flex;
             flex-direction: column;
@@ -160,11 +160,9 @@
             background-color: #0d0d0d;
             box-sizing: border-box;
             padding: 10px;
-            gap: 12px;
+            gap: 14px;
         }
 
-        /* 💡 justify-content を space-between に変更。
-           これによりVOLノイズが一番上（ステージの横）、トラッシュが一番下（Directionの横）へ綺麗に押し広げられます。 */
         .left-panel {
             width: var(--card-width);
             display: flex;
@@ -172,11 +170,9 @@
             justify-content: space-between; 
             height: 100%;
             box-sizing: border-box;
-            /* 💡 中央エリアの各ボックスのpaddingや高さ（計約70%）と完全に連動するように高さを微調整 */
             padding-bottom: 15px; 
         }
 
-        /* VOLノイズ・トラッシュをカードと全く同じサイズ */
         .zone-box {
             background-color: var(--panel-bg);
             border: 2px dashed #444;
@@ -204,7 +200,6 @@
             padding: 0 4px;
         }
 
-        /* 💡 押し広げられた中央の広い空間のちょうど真ん中に綺麗に浮くように位置をキープ */
         .temporary-btn-green {
             width: 100%;
             background-color: var(--btn-green);
@@ -218,7 +213,7 @@
             text-align: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.4);
             transition: background-color 0.2s;
-            margin: auto 0; /* 上下の余白を自動計算させて中央に配置 */
+            margin: auto 0;
         }
         .temporary-btn-green:hover {
             background-color: #218838;
@@ -367,20 +362,22 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
+        /* 💡 【修正】コントロールボタンエリアの横幅を160pxから「190px」に広げて文字を見やすく */
         .control-panel {
-            width: 160px;
+            width: 190px;
             display: flex;
             flex-direction: column;
             height: 100%;
             gap: 6px;
         }
 
+        /* 💡 ボタンの文字サイズ、上下の余白を少し大きくして視認性と押しやすさをUP */
         .control-btn {
             background-color: #0056b3;
             color: white;
             border: none;
-            padding: 8px 5px;
-            font-size: 12px;
+            padding: 10px 6px; /* 縦幅に余裕を */
+            font-size: 13px;    /* 文字を大きく */
             font-weight: bold;
             cursor: pointer;
             border-radius: 4px;
@@ -416,17 +413,18 @@
             margin-top: 4px;
         }
 
+        /* 💡 【修正】一番右端の魔力カウンターパネルの横幅を120pxから「150px」へ大幅幅広化 */
         .counter-panel {
-            width: 120px;
+            width: 150px;
             background-color: var(--panel-bg);
             border: 1px solid var(--border-color);
             border-radius: 6px;
             display: flex;
             flex-direction: column;
-            padding: 15px 5px;
+            padding: 20px 5px;
             box-sizing: border-box;
             justify-content: flex-start;
-            gap: 20px;
+            gap: 22px; /* 縦の間隔も少し広く */
             height: 100%;
         }
 
@@ -434,18 +432,20 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
         }
 
+        /* 💡 魔力の丸アイコンを40pxから「48px」へ拡大。文字サイズもUP */
         .counter-icon {
-            width: 40px;
-            height: 40px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: bold;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.4);
         }
         .icon-vol { background-color: #ffd700; color: #000; }
         .icon-alpha { background-color: #ff69b4; }
@@ -455,42 +455,48 @@
         .counter-controls {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
+        /* 💡 プラスマイナスボタンを25pxから「32px」へ大型化。押しやすさを追求 */
         .counter-btn {
             background-color: #333;
             color: white;
             border: 1px solid #555;
-            width: 25px;
-            height: 25px;
+            width: 32px;
+            height: 32px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 3px;
+            border-radius: 4px;
+            transition: background-color 0.1s;
         }
+        .counter-btn:hover { background-color: #444; }
 
+        /* 💡 数字サイズを24pxから「28px」へ拡大 */
         .counter-value {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
-            width: 30px;
+            width: 35px;
             text-align: center;
         }
 
+        /* 💡 ターン数表示も全体のサイズ感に合わせて少し拡大 */
         .turn-display {
             margin-top: auto;
             text-align: center;
             border-top: 1px solid var(--border-color);
             padding-top: 15px;
-            font-size: 12px;
+            font-size: 13px;
             color: #aaa;
+            letter-spacing: 1px;
         }
         
         .turn-display span {
             display: block;
-            font-size: 28px;
+            font-size: 32px;
             font-weight: bold;
             color: #fff;
             margin-top: 5px;
@@ -530,21 +536,19 @@
             <button class="start-btn" onclick="startGame()">ゲーム開始</button>
         </div>
     </div>
+
     <!-- 対戦画面 -->
     <div class="game-screen" id="gameScreen">
         
-        <!-- 🟢 左端特殊ゾーン（位置関係を完全に修正した版） -->
+        <!-- 左端特殊ゾーン -->
         <div class="left-panel">
-            <!-- ステージ（上段）の真横に位置するVOLノイズ -->
             <div class="zone-box">
                 <div class="count-display" id="volNoiseCount">0</div>
                 <div class="zone-label">VOLノイズ</div>
             </div>
             
-            <!-- 広い余白スペースのど真ん中に綺麗に配置されるテンポラリー -->
             <button class="temporary-btn-green" onclick="triggerAction('テンポラリー表示')">テンポラリー</button>
             
-            <!-- Direction（下段）の真横にぴったり配置されるトラッシュ -->
             <div class="zone-box">
                 <div class="count-display" id="trashCount">0</div>
                 <div class="zone-label">トラッシュ (表向き)</div>
@@ -633,7 +637,7 @@
             <div class="hand-area" id="handArea"></div>
         </div>
 
-        <!-- 右コントロールパネル -->
+        <!-- 右コントロールパネル（幅広化した新しいサイズ） -->
         <div class="control-panel">
             <button class="control-btn" onclick="triggerAction('山札シャッフル')">山札シャッフル</button>
             <button class="control-btn" onclick="triggerAction('山札からサーチ')">山札からサーチ</button>
@@ -652,8 +656,9 @@
                 <div class="deck-label">山札 (クリックドロー)</div>
             </div>
         </div>
-        <!-- 一番右端：カウンタ -->
+        <!-- 一番右端：魔力トークンカウンタ（幅広・大型化した新しいサイズ） -->
         <div class="counter-panel">
+            <!-- VOL -->
             <div class="counter-item">
                 <div class="counter-icon icon-vol">VOL</div>
                 <div class="counter-controls">
@@ -662,6 +667,7 @@
                     <button class="counter-btn" onclick="changeCounter('vol', 1)">+</button>
                 </div>
             </div>
+            <!-- 魔力α -->
             <div class="counter-item">
                 <div class="counter-icon icon-alpha">α</div>
                 <div class="counter-controls">
@@ -670,6 +676,7 @@
                     <button class="counter-btn" onclick="changeCounter('alpha', 1)">+</button>
                 </div>
             </div>
+            <!-- 魔力β -->
             <div class="counter-item">
                 <div class="counter-icon icon-beta">β</div>
                 <div class="counter-controls">
@@ -678,6 +685,7 @@
                     <button class="counter-btn" onclick="changeCounter('beta', 1)">+</button>
                 </div>
             </div>
+            <!-- 魔力Ω -->
             <div class="counter-item">
                 <div class="counter-icon icon-omega">Ω</div>
                 <div class="counter-controls">
