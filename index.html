@@ -33,7 +33,7 @@
             overflow-x: hidden;
         }
 
-        /* メメインメニュー画面 */
+        /* メインメニュー画面 */
         .menu-container {
             display: flex;
             flex-direction: column;
@@ -163,18 +163,20 @@
             gap: 12px;
         }
 
-        /* 💡 左側パネルの横幅をカード幅（120px）に完全に固定 */
+        /* 💡 justify-content を space-between に変更。
+           これによりVOLノイズが一番上（ステージの横）、トラッシュが一番下（Directionの横）へ綺麗に押し広げられます。 */
         .left-panel {
             width: var(--card-width);
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
-            gap: 15px; /* 上下の配置に綺麗にゆとりを持たせる */
+            justify-content: space-between; 
             height: 100%;
             box-sizing: border-box;
+            /* 💡 中央エリアの各ボックスのpaddingや高さ（計約70%）と完全に連動するように高さを微調整 */
+            padding-bottom: 15px; 
         }
 
-        /* 💡 VOLノイズ・トラッシュをカードと全く同じ縦横サイズ（120px×168px）に拡大 */
+        /* VOLノイズ・トラッシュをカードと全く同じサイズ */
         .zone-box {
             background-color: var(--panel-bg);
             border: 2px dashed #444;
@@ -202,7 +204,7 @@
             padding: 0 4px;
         }
 
-        /* 💡 テンポラリーボタンをカード幅いっぱいの押しやすいサイズに大型化 */
+        /* 💡 押し広げられた中央の広い空間のちょうど真ん中に綺麗に浮くように位置をキープ */
         .temporary-btn-green {
             width: 100%;
             background-color: var(--btn-green);
@@ -216,6 +218,7 @@
             text-align: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.4);
             transition: background-color 0.2s;
+            margin: auto 0; /* 上下の余白を自動計算させて中央に配置 */
         }
         .temporary-btn-green:hover {
             background-color: #218838;
@@ -507,7 +510,7 @@
 
         <div class="input-section">
             <div class="deck-code-area" id="areaPlayer1">
-                <div class="label-text" id="labelPlayer1">プレイヤー1 of デッキ</div>
+                <div class="label-text" id="labelPlayer1">プレイヤー1のデッキ</div>
                 <div class="textarea-container">
                     <textarea id="deckInput1" oninput="saveData()" placeholder="ここにデッキコードを入力してください"></textarea>
                 </div>
@@ -515,7 +518,7 @@
             </div>
 
             <div class="deck-code-area" id="areaPlayer2">
-                <div class="label-text">プレイヤー2 of デッキ</div>
+                <div class="label-text">プレイヤー2のデッキ</div>
                 <div class="textarea-container">
                     <textarea id="deckInput2" oninput="saveData()" placeholder="ここにデッキコードを入力してください"></textarea>
                 </div>
@@ -530,16 +533,18 @@
     <!-- 対戦画面 -->
     <div class="game-screen" id="gameScreen">
         
-        <!-- 🟢 左端特殊ゾーン（カードと同じサイズに綺麗に大型化） -->
+        <!-- 🟢 左端特殊ゾーン（位置関係を完全に修正した版） -->
         <div class="left-panel">
+            <!-- ステージ（上段）の真横に位置するVOLノイズ -->
             <div class="zone-box">
                 <div class="count-display" id="volNoiseCount">0</div>
                 <div class="zone-label">VOLノイズ</div>
             </div>
             
-            <!-- 独立した大きなテンポラリーボタン -->
+            <!-- 広い余白スペースのど真ん中に綺麗に配置されるテンポラリー -->
             <button class="temporary-btn-green" onclick="triggerAction('テンポラリー表示')">テンポラリー</button>
             
+            <!-- Direction（下段）の真横にぴったり配置されるトラッシュ -->
             <div class="zone-box">
                 <div class="count-display" id="trashCount">0</div>
                 <div class="zone-label">トラッシュ (表向き)</div>
