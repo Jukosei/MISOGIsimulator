@@ -162,23 +162,31 @@
         let dragTarget = null; let startX = 0; let startY = 0; let trashCountValue = 0;
 
         window.onload = function() {
-            document.getElementById('deckInput1').value = localStorage.getItem('misogi_deck1') || "GA-13 / GA-13 / DA-34 / DA-34 / DA-34 / HA-11";
+            document.getElementById('deckInput1').value = localStorage.getItem('misogi_deck1') || "GA-13/GA-13/DA-34/DA-34/DA-34/HA-11/HA-1/HA-1/HA-2/HA-2/HA-2/JS-40/PS-39/HS-1/HS-1/HS-1/JS-27/JS-27/JS-27/JS-27/AS-4/AS-4/DS-38/DS-38/GS-40/GS-40/GS-38/GS-40/GS-40/GS-";
             document.getElementById('deckInput2').value = localStorage.getItem('misogi_deck2') || "GA-13 / GA-13 / DA-34 / DA-34";
             selectMode(parseInt(localStorage.getItem('misogi_mode')) || 2);
         };
 
         function startGame() {
             const rawText = document.getElementById('deckInput1').value;
-            const parsedCodes = rawText.split(/[\/\s\n]+/).map(code => code.trim()).filter(code => code.length > 0);
+            // 💡 スラッシュ、空白、改行、コンマのあらゆる区切り文字に対応して配列化
+            const parsedCodes = rawText.split(/[\/\s\n,]+/).map(code => code.trim()).filter(code => code.length > 0);
             if (parsedCodes.length === 0) { alert('デッキコードが入力されていません！'); return; }
+            
             const validatedCards = [];
             parsedCodes.forEach(code => {
-                const match = code.match(/^([a-zA-Z]+)-(\d+)$/);
-                if (match) {
-                    const fullCode = code; const suffix = match.slice(-1).toUpperCase();
+                // 💡 ハイフンを基準にして「アルファベット部分」と「数字部分」を確実に安全パース
+                const parts = code.split('-');
+                if (parts.length === 2) {
+                    const fullCode = code;
+                    const letterPart = parts[0].trim().toUpperCase();
+                    // 💡 文字列の末尾1文字（A, S, M, Dなど）を安全に正確に取得
+                    const suffix = letterPart.slice(-1);
+
                     validatedCards.push({ name: fullCode, suffix: suffix, imagePath: `images/${fullCode}.png` });
                 }
             });
+
             const orderMap = { 'A': 1, 'S': 2, 'M': 3, 'D': 4 };
             validatedCards.sort((cardX, cardY) => (orderMap[cardX.suffix] || 99) - (orderMap[cardY.suffix] || 99));
             virtualDeck = validatedCards; document.getElementById('deckCount').innerText = virtualDeck.length;
@@ -234,6 +242,7 @@
             if (layerNumber === 3) { if (existingCardsCount < 2) { targetFrame.appendChild(cardElement); } else { alert('紫色の枠にはこれ以上重ねられません！'); } }
             else { if (existingCardsCount === 0) { targetFrame.appendChild(cardElement); } else { alert('この枠には既にカードがあります！'); } }
         }
+
         function dropToDirection(event, columnIndex) {
             event.preventDefault(); event.currentTarget.classList.remove('drag-over');
             const cardId = event.dataTransfer.getData('text/plain'); if (!cardId) return;
@@ -304,8 +313,6 @@
         function backToMenu() { document.getElementById('gameScreen').style.display = 'none'; document.getElementById('menuScreen').style.display = 'flex'; }
         function changeCounter(type, amount) { counters[type] = Math.max(0, counters[type] + amount); document.getElementById(`val-${type}`).innerText = counters[type]; }
         function nextTurn() { turn++; document.getElementById('turnCount').innerText = turn; }
-        function rollDice() { alert(`ダイスの出目: ${Math.floor(Math.random() * 6) + 1}`); }
-        function triggerAction(actionName) { alert(`「${actionName}」が実行されました`); }
     </script>
 </body>
 </html>
