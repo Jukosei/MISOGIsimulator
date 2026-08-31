@@ -6,337 +6,59 @@
     <title>禊シミュレーター</title>
     <style>
         :root {
-            --bg-color: #121212;
-            --panel-bg: #1a1a1a;
-            --border-color: #333333;
-            --btn-blue: #007bff;
-            --btn-red: #dc3545;
-            --btn-green: #28a745;
-            --btn-accent: #e6002d;
-            --text-color: #ffffff;
-            --card-width: 120px;
-            --card-height: 168px;
+            --bg-color: #121212; --panel-bg: #1a1a1a; --border-color: #333333;
+            --btn-blue: #007bff; --btn-red: #dc3545; --btn-green: #28a745;
+            --btn-accent: #e6002d; --text-color: #ffffff;
+            --card-width: 120px; --card-height: 168px;
         }
         body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
-            touch-action: none; 
+            margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-color);
+            font-family: sans-serif; display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; overflow-x: hidden; touch-action: none; user-select: none;
         }
-        .menu-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 1100px;
-            padding: 40px 20px;
-            box-sizing: border-box;
-            touch-action: auto;
-        }
-
-        .title {
-            font-size: 54px;
-            font-weight: bold;
-            margin-bottom: 35px;
-            letter-spacing: 6px;
-        }
-        .mode-selection {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 35px;
-        }
-
-        .mode-btn {
-            background-color: #242424;
-            color: #8a8a8a;
-            border: 1px solid #3a3a3a;
-            padding: 12px 30px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-
-        .mode-btn.active {
-            background-color: var(--btn-blue);
-            color: #ffffff;
-            border-color: var(--btn-blue);
-        }
-        .input-section {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 25px;
-        }
-
-        .deck-code-area {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .label-text {
-            color: #ffffff;
-            font-size: 15px;
-            font-weight: bold;
-            align-self: center;
-            margin-bottom: 12px;
-        }
-        .textarea-container {
-            width: 100%;
-        }
-
-        textarea {
-            width: 100%;
-            height: 160px;
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: #ffffff;
-            padding: 15px;
-            font-size: 16px;
-            box-sizing: border-box;
-            resize: none;
-            outline: none;
-        }
-        .clear-btn {
-            background-color: var(--btn-red);
-            color: #ffffff;
-            border: none;
-            padding: 10px 30px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 4px;
-            margin-top: 12px;
-            transition: background-color 0.2s ease;
-        }
-
-        .clear-btn:hover {
-            background-color: #c82333;
-        }
-
-        .start-btn-container {
-            margin-top: 45px;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-        }
-        .start-btn {
-            background-color: var(--btn-accent);
-            color: #ffffff;
-            border: none;
-            padding: 15px 100px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 4px;
-            letter-spacing: 2px;
-            transition: background-color 0.2s ease;
-        }
-
-        .game-screen {
-            display: none;
-            width: 100vw;
-            height: 100vh;
-            background-color: #0d0d0d;
-            box-sizing: border-box;
-            padding: 10px;
-            gap: 14px;
-            user-select: none;
-        }
-        .left-panel {
-            width: var(--card-width);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between; 
-            height: 100%;
-            box-sizing: border-box;
-            padding-bottom: 15px; 
-        }
-
-        .zone-box {
-            background-color: var(--panel-bg);
-            border: 2px dashed #444;
-            border-radius: 6px;
-            width: var(--card-width);
-            height: var(--card-height);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            box-sizing: border-box;
-            position: relative;
-        }
-        .zone-box .count-display {
-            font-size: 36px;
-            font-weight: bold;
-        }
-
-        .zone-label {
-            font-size: 10px;
-            color: #8a8a8a;
-            margin-top: 5px;
-            text-align: center;
-            padding: 0 4px;
-        }
-
-        .temporary-btn-green {
-            width: 100%;
-            background-color: var(--btn-green);
-            color: white;
-            font-size: 12px;
-            font-weight: bold;
-            border: none;
-            padding: 10px 0;
-            border-radius: 6px;
-            cursor: pointer;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-            transition: background-color 0.2s;
-            margin: auto 0;
-        }
-        .temporary-btn-green:hover {
-            background-color: #218838;
-        }
-        .center-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            gap: 12px;
-        }
-
-        .field-section-box {
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 15px 20px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-        }
-        
+        .menu-container { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 1100px; padding: 40px 20px; box-sizing: border-box; touch-action: auto; }
+        .title { font-size: 54px; font-weight: bold; margin-bottom: 35px; letter-spacing: 6px; }
+        .mode-selection { display: flex; gap: 10px; margin-bottom: 35px; }
+        .mode-btn { background-color: #242424; color: #8a8a8a; border: 1px solid #3a3a3a; padding: 12px 30px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 4px; }
+        .mode-btn.active { background-color: var(--btn-blue); color: #ffffff; border-color: var(--btn-blue); }
+        .input-section { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 25px; }
+        .deck-code-area { width: 100%; display: flex; flex-direction: column; align-items: flex-start; }
+        .label-text { color: #ffffff; font-size: 15px; font-weight: bold; align-self: center; margin-bottom: 12px; }
+        textarea { width: 100%; height: 160px; background-color: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 6px; color: #ffffff; padding: 15px; font-size: 16px; box-sizing: border-box; resize: none; outline: none; }
+        .clear-btn { background-color: var(--btn-red); color: #ffffff; border: none; padding: 10px 30px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; margin-top: 12px; }
+        .start-btn { background-color: var(--btn-accent); color: #ffffff; border: none; padding: 15px 100px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 4px; margin-top: 45px; letter-spacing: 2px; }
+        .game-screen { display: none; width: 100vw; height: 100vh; background-color: #0d0d0d; box-sizing: border-box; padding: 10px; gap: 14px; }
+        .left-panel { width: var(--card-width); display: flex; flex-direction: column; justify-content: space-between; height: 100%; box-sizing: border-box; padding-bottom: 15px; }
+        .zone-box { background-color: var(--panel-bg); border: 2px dashed #444; border-radius: 6px; width: var(--card-width); height: var(--card-height); display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; position: relative; }
+        .zone-box .count-display { font-size: 36px; font-weight: bold; }
+        .zone-label { font-size: 10px; color: #8a8a8a; margin-top: 5px; text-align: center; }
+        .temporary-btn-green { width: 100%; background-color: var(--btn-green); color: white; font-size: 12px; font-weight: bold; border: none; padding: 10px 0; border-radius: 6px; cursor: pointer; text-align: center; margin: auto 0; }
+        .center-panel { display: flex; flex-direction: column; height: 100%; gap: 12px; flex: 1; }
+        .field-section-box { background-color: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 15px 20px; box-sizing: border-box; display: flex; flex-direction: column; }
         .stage-box { flex: 6.4; margin-bottom: 20px; }
         .direction-box { flex: 2.8; }
-
-        .field-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            width: 100%;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        .row-label {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-
-        .slot-column-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            gap: 8px;
-            height: 380px; 
-        }
-
-        .stage-placeholder-stack {
-            position: relative;
-            width: var(--card-width);
-            height: 336px;
-            margin-top: -6px; 
-        }
-        .frame-layer {
-            position: absolute;
-            width: var(--card-width);
-            height: var(--card-height);
-            border-radius: 6px;
-            box-sizing: border-box;
-            z-index: 5;
-        }
-        .frame-layer.layer-1  { top: 0px; border: 2px dashed #1565c0; }   
-        .frame-layer.layer-2  { top: 84px; border: 2px dashed #f9a825; }  
-        .frame-layer.layer-3  { top: 168px; border: 2px dashed #6a1b9a; } 
-
-        .frame-layer.drag-over {
-            background-color: rgba(255, 255, 255, 0.08);
-            border-color: #ffffff !important;
-        }
-        .direction-placeholder {
-            width: var(--card-width);
-            height: var(--card-height);
-            border: 2px dashed #c62828;
-            border-radius: 6px;
-            box-sizing: border-box;
-            position: relative;
-        }
-        .direction-placeholder.drag-over {
-            background-color: rgba(198, 40, 40, 0.1);
-            border-color: #ffffff;
-        }
-
-        .frame-layer .game-card, .direction-placeholder .game-card {
-            position: absolute;
-            top: 0; left: 0; margin: 0; width: 100%; height: 100%;
-        }
-
-        .slot-tag-btn {
-            background-color: #222; color: #aaa; font-size: 11px; border: 1px solid #444;
-            padding: 4px 14px; border-radius: 4px; cursor: pointer; transition: all 0.2s;
-            font-weight: bold; z-index: 20;
-        }
-        .slot-tag-btn:hover { background-color: #333; color: #fff; }
-        .slot-tag-btn.selecting {
-            background-color: var(--btn-accent); color: #fff; border-color: var(--btn-accent);
-            box-shadow: 0 0 8px var(--btn-accent);
-        }
-        .hand-area {
-            flex: 2.8; background-color: var(--panel-bg); border: 1px solid var(--border-color);
-            border-radius: 6px; padding: 12px; box-sizing: border-box; overflow-y: auto;
-            display: flex; flex-wrap: wrap; gap: 12px; align-content: flex-start; touch-action: auto; 
-        }
-        .hand-area.drag-over { background-color: #222; border-color: #555; }
-
-        .game-card {
-            width: var(--card-width); height: var(--card-height); background-color: #333;
-            border: 1px solid #555; border-radius: 6px; display: flex; align-items: center;
-            justify-content: center; font-size: 12px; font-weight: bold; cursor: grab;
-            box-sizing: border-box; user-select: none; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            background-size: cover; background-position: center; background-repeat: no-repeat;
-            text-shadow: 0px 0px 4px #000, 0px 0px 4px #000; touch-action: none; 
-        }
-        
-        .game-card.dragging {
-            opacity: 0.8 !important; position: fixed !important; z-index: 9999 !important;
-            pointer-events: none !important; box-shadow: 0 10px 20px rgba(0,0,0,0.6); transform: scale(1.05);
-        }
+        .field-row { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; max-width: 900px; margin: 0 auto; }
+        .row-label { font-size: 12px; color: #888; margin-bottom: 8px; font-weight: bold; }
+        .slot-column-wrapper { display: flex; flex-direction: column; align-items: center; position: relative; gap: 8px; height: 380px; }
+        .stage-placeholder-stack { position: relative; width: var(--card-width); height: 336px; margin-top: -6px; }
+        .frame-layer { position: absolute; width: var(--card-width); height: var(--card-height); border-radius: 6px; box-sizing: border-box; z-index: 5; }
+        .frame-layer.layer-1 { top: 0px; border: 2px dashed #1565c0; }   
+        .frame-layer.layer-2 { top: 84px; border: 2px dashed #f9a825; }  
+        .frame-layer.layer-3 { top: 168px; border: 2px dashed #6a1b9a; } 
+        .frame-layer.drag-over { background-color: rgba(255, 255, 255, 0.08); }
+        .direction-placeholder { width: var(--card-width); height: var(--card-height); border: 2px dashed #c62828; border-radius: 6px; box-sizing: border-box; position: relative; }
+        .direction-placeholder.drag-over { background-color: rgba(198, 40, 40, 0.1); }
+        .frame-layer .game-card, .direction-placeholder .game-card { position: absolute; top: 0; left: 0; margin: 0; width: 100%; height: 100%; }
+        .slot-tag-btn { background-color: #222; color: #aaa; font-size: 11px; border: 1px solid #444; padding: 4px 14px; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-weight: bold; z-index: 20; }
+        .slot-tag-btn.selecting { background-color: var(--btn-accent); color: #fff; border-color: var(--btn-accent); }
+        .hand-area { flex: 2.8; background-color: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; box-sizing: border-box; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 12px; align-content: flex-start; touch-action: auto; }
+        .game-card { width: var(--card-width); height: var(--card-height); background-color: #333; border: 1px solid #555; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: grab; box-sizing: border-box; background-size: cover; background-position: center; background-repeat: no-repeat; text-shadow: 0px 0px 4px #000, 0px 0px 4px #000; touch-action: none; }
+        .game-card.dragging { opacity: 0.8 !important; position: fixed !important; z-index: 9999 !important; pointer-events: none !important; box-shadow: 0 10px 20px rgba(0,0,0,0.6); transform: scale(1.05); }
         .control-panel { width: 190px; display: flex; flex-direction: column; height: 100%; gap: 6px; touch-action: auto; }
-        .control-btn {
-            background-color: #0056b3; color: white; border: none; padding: 10px 6px; 
-            font-size: 13px; font-weight: bold; cursor: pointer; border-radius: 4px; text-align: center;
-        }
+        .control-btn { background-color: #0056b3; color: white; border: none; padding: 10px 6px; font-size: 13px; font-weight: bold; cursor: pointer; border-radius: 4px; text-align: center; }
         .control-btn.orange { background-color: #ff9f00; }
         .control-btn.gray { background-color: #444; }
-
-        .deck-zone {
-            margin-top: auto; border: 2px dashed #444; background-color: #222; border-radius: 6px;
-            width: 100%; height: var(--card-height); display: flex; flex-direction: column;
-            align-items: center; justify-content: center; cursor: pointer; box-sizing: border-box;
-        }
+        .deck-zone { margin-top: auto; border: 2px dashed #444; background-color: #222; border-radius: 6px; width: 100%; height: var(--card-height); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
         .deck-count { font-size: 32px; font-weight: bold; }
         .deck-label { font-size: 10px; color: #888; margin-top: 4px; }
         .counter-panel { width: 150px; background-color: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 6px; display: flex; flex-direction: column; padding: 20px 5px; box-sizing: border-box; justify-content: flex-start; gap: 22px; height: 100%; touch-action: auto; }
@@ -347,10 +69,9 @@
         .icon-beta { background-color: #1e90ff; }
         .icon-omega { background-color: #9400d3; }
         .counter-controls { display: flex; align-items: center; gap: 12px; }
-        .counter-btn { background-color: #333; color: white; border: 1px solid #555; width: 32px; height: 32px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: background-color 0.1s; }
-        .counter-btn:hover { background-color: #444; }
+        .counter-btn { background-color: #333; color: white; border: 1px solid #555; width: 32px; height: 32px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
         .counter-value { font-size: 28px; font-weight: bold; width: 35px; text-align: center; }
-        .turn-display { margin-top: auto; text-align: center; border-top: 1px solid var(--border-color); padding-top: 15px; font-size: 13px; color: #aaa; letter-spacing: 1px; }
+        .turn-display { margin-top: auto; text-align: center; border-top: 1px solid var(--border-color); padding-top: 15px; font-size: 13px; color: #aaa; }
         .turn-display span { display: block; font-size: 32px; font-weight: bold; color: #fff; margin-top: 5px; }
     </style>
 </head>
@@ -364,16 +85,16 @@
         <div class="input-section">
             <div class="deck-code-area" id="areaPlayer1">
                 <div class="label-text" id="labelPlayer1">プレイヤー1のデッキ</div>
-                <div class="textarea-container"><textarea id="deckInput1" oninput="saveData()" placeholder="ここにデッキコードを入力してください"></textarea></div>
+                <div class="textarea-container"><textarea id="deckInput1" oninput="saveData()"></textarea></div>
                 <button class="clear-btn" onclick="clearInput(1)">クリア</button>
             </div>
             <div class="deck-code-area" id="areaPlayer2">
                 <div class="label-text">プレイヤー2のデッキ</div>
-                <div class="textarea-container"><textarea id="deckInput2" oninput="saveData()" placeholder="ここにデッキコードを入力してください"></textarea></div>
+                <div class="textarea-container"><textarea id="deckInput2" oninput="saveData()"></textarea></div>
                 <button class="clear-btn" onclick="clearInput(2)">クリア</button>
             </div>
         </div>
-        <div class="start-btn-container"><button class="start-btn" onclick="startGame()">ゲーム開始</button></div>
+        <button class="start-btn" onclick="startGame()">ゲーム開始</button>
     </div>
     <div class="game-screen" id="gameScreen">
         <div class="left-panel">
@@ -393,51 +114,23 @@
                             <div class="frame-layer layer-3" id="frame-0-3" data-type="stage" data-col="0" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 0, 3)"></div>
                         </div>
                     </div>
-                    <div class="slot-column-wrapper">
-                        <button class="slot-tag-btn" id="change-btn-1" onclick="clickChangeBtn(1)">チェンジ</button>
-                        <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1" id="frame-1-1" data-type="stage" data-col="1" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 1, 1)"></div>
-                            <div class="frame-layer layer-2" id="frame-1-2" data-type="stage" data-col="1" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 1, 2)"></div>
-                            <div class="frame-layer layer-3" id="frame-1-3" data-type="stage" data-col="1" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 1, 3)"></div>
-                        </div>
-                    </div>
-                    <div class="slot-column-wrapper">
-                        <button class="slot-tag-btn" id="change-btn-2" onclick="clickChangeBtn(2)">チェンジ</button>
-                        <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1" id="frame-2-1" data-type="stage" data-col="2" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 2, 1)"></div>
-                            <div class="frame-layer layer-2" id="frame-2-2" data-type="stage" data-col="2" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 2, 2)"></div>
-                            <div class="frame-layer layer-3" id="frame-2-3" data-type="stage" data-col="2" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 2, 3)"></div>
-                        </div>
-                    </div>
-                    <div class="slot-column-wrapper">
-                        <button class="slot-tag-btn" id="change-btn-3" onclick="clickChangeBtn(3)">チェンジ</button>
-                        <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1" id="frame-3-1" data-type="stage" data-col="3" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 3, 1)"></div>
-                            <div class="frame-layer layer-2" id="frame-3-2" data-type="stage" data-col="3" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 3, 2)"></div>
-                            <div class="frame-layer layer-3" id="frame-3-3" data-type="stage" data-col="3" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 3, 3)"></div>
-                        </div>
-                    </div>
-                    <div class="slot-column-wrapper">
-                        <button class="slot-tag-btn" id="change-btn-4" onclick="clickChangeBtn(4)">チェンジ</button>
-                        <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1" id="frame-4-1" data-type="stage" data-col="4" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 4, 1)"></div>
-                            <div class="frame-layer layer-2" id="frame-4-2" data-type="stage" data-col="4" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 4, 2)"></div>
-                            <div class="frame-layer layer-3" id="frame-4-3" data-type="stage" data-col="4" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 4, 3)"></div>
-                        </div>
-                    </div>
+                    <div class="slot-column-wrapper"><button class="slot-tag-btn" id="change-btn-1" onclick="clickChangeBtn(1)">チェンジ</button><div class="stage-placeholder-stack"><div class="frame-layer layer-1" id="frame-1-1" data-type="stage" data-col="1" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 1, 1)"></div><div class="frame-layer layer-2" id="frame-1-2" data-type="stage" data-col="1" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 1, 2)"></div><div class="frame-layer layer-3" id="frame-1-3" data-type="stage" data-col="1" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 1, 3)"></div></div></div>
+                    <div class="slot-column-wrapper"><button class="slot-tag-btn" id="change-btn-2" onclick="clickChangeBtn(2)">チェンジ</button><div class="stage-placeholder-stack"><div class="frame-layer layer-1" id="frame-2-1" data-type="stage" data-col="2" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 2, 1)"></div><div class="frame-layer layer-2" id="frame-2-2" data-type="stage" data-col="2" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 2, 2)"></div><div class="frame-layer layer-3" id="frame-2-3" data-type="stage" data-col="2" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 2, 3)"></div></div></div>
+                    <div class="slot-column-wrapper"><button class="slot-tag-btn" id="change-btn-3" onclick="clickChangeBtn(3)">チェンジ</button><div class="stage-placeholder-stack"><div class="frame-layer layer-1" id="frame-3-1" data-type="stage" data-col="3" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 3, 1)"></div><div class="frame-layer layer-2" id="frame-3-2" data-type="stage" data-col="3" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 3, 2)"></div><div class="frame-layer layer-3" id="frame-3-3" data-type="stage" data-col="3" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 3, 3)"></div></div></div>
+                    <div class="slot-column-wrapper"><button class="slot-tag-btn" id="change-btn-4" onclick="clickChangeBtn(4)">チェンジ</button><div class="stage-placeholder-stack"><div class="frame-layer layer-1" id="frame-4-1" data-type="stage" data-col="4" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 4, 1)"></div><div class="frame-layer layer-2" id="frame-4-2" data-type="stage" data-col="4" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 4, 2)"></div><div class="frame-layer layer-3" id="frame-4-3" data-type="stage" data-col="4" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event, 4, 3)"></div></div></div>
                 </div>
             </div>
             <div class="field-section-box direction-box">
                 <div class="row-label">Direction</div>
                 <div class="field-row">
-                    <div class="direction-placeholder" id="dir-slot-0" data-type="direction" data-col="0" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event, 0)"></div>
-                    <div class="direction-placeholder" id="dir-slot-1" data-type="direction" data-col="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event, 1)"></div>
-                    <div class="direction-placeholder" id="dir-slot-2" data-type="direction" data-col="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event, 2)"></div>
-                    <div class="direction-placeholder" id="dir-slot-3" data-type="direction" data-col="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event, 3)"></div>
-                    <div class="direction-placeholder" id="dir-slot-4" data-type="direction" data-col="4" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event, 4)"></div>
+                    <div class="direction-placeholder" id="dir-slot-0" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event, 0)"></div>
+                    <div class="direction-placeholder" id="dir-slot-1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event, 1)"></div>
+                    <div class="direction-placeholder" id="dir-slot-2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event, 2)"></div>
+                    <div class="direction-placeholder" id="dir-slot-3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event, 3)"></div>
+                    <div class="direction-placeholder" id="dir-slot-4" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event, 4)"></div>
                 </div>
             </div>
-            <div class="hand-area" id="handArea" data-type="hand" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToHand(event)"></div>
+            <div class="hand-area" id="handArea" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToHand(event)"></div>
         </div>
         <div class="control-panel">
             <button class="control-btn" onclick="triggerAction('山札シャッフル')">山札シャッフル</button>
@@ -466,11 +159,9 @@
         let dragTarget = null; let startX = 0; let startY = 0;
 
         window.onload = function() {
-            const savedMode = localStorage.getItem('misogi_mode'); currentMode = savedMode ? parseInt(savedMode) : 2;
-            const savedDeck1 = localStorage.getItem('misogi_deck1'); const savedDeck2 = localStorage.getItem('misogi_deck2');
-            document.getElementById('deckInput1').value = savedDeck1 ? savedDeck1 : "GA-13 / GA-13 / DA-34 / DA-34 / DA-34 / HA-11";
-            document.getElementById('deckInput2').value = savedDeck2 ? savedDeck2 : "GA-13 / GA-13 / DA-34 / DA-34";
-            selectMode(currentMode);
+            document.getElementById('deckInput1').value = localStorage.getItem('misogi_deck1') || "GA-13 / GA-13 / DA-34 / DA-34 / DA-34 / HA-11";
+            document.getElementById('deckInput2').value = localStorage.getItem('misogi_deck2') || "GA-13 / GA-13 / DA-34 / DA-34";
+            selectMode(parseInt(localStorage.getItem('misogi_mode')) || 2);
         };
 
         function startGame() {
@@ -486,10 +177,7 @@
                 }
             });
             const orderMap = { 'A': 1, 'S': 2, 'M': 3, 'D': 4 };
-            validatedCards.sort((cardX, cardY) => {
-                const orderX = orderMap[cardX.suffix] || 99; const orderY = orderMap[cardY.suffix] || 99;
-                return orderX - orderY;
-            });
+            validatedCards.sort((cardX, cardY) => (orderMap[cardX.suffix] || 99) - (orderMap[cardY.suffix] || 99));
             virtualDeck = validatedCards; document.getElementById('deckCount').innerText = virtualDeck.length;
             document.getElementById('handArea').innerHTML = "";
             document.getElementById('menuScreen').style.display = 'none'; document.getElementById('gameScreen').style.display = 'flex';
@@ -499,7 +187,7 @@
             const handArea = document.getElementById('handArea'); const card = document.createElement('div');
             card.className = 'game-card'; card.id = `card-id-${cardIdCounter++}`; card.innerText = cardName;
             card.style.backgroundImage = `url('${imagePath}')`; card.setAttribute('draggable', 'true');
-            card.ondragstart = function(event) { event.dataTransfer.setData('text/plain', event.target.id); };
+            card.ondragstart = function(e) { event.dataTransfer.setData('text/plain', event.target.id); };
             card.addEventListener('touchstart', touchStartCard, { passive: false });
             card.addEventListener('touchmove', touchMoveCard, { passive: false });
             card.addEventListener('touchend', touchEndCard, { passive: false });
@@ -522,11 +210,15 @@
                 const frame = dropTarget.closest('.frame-layer');
                 if (frame && frame.hasAttribute('data-layer')) { executeCardPlacement(dragTarget, frame, parseInt(frame.getAttribute('data-layer'))); dragTarget = null; return; }
                 const dirSlot = dropTarget.closest('.direction-placeholder');
-                if (dirSlot) { if (dirSlot.children.length === 0) { dirSlot.appendChild(dragTarget); } else { alert('Directionには既にカードが配置されています！'); } dragTarget = null; return; }
+                if (dirSlot && dirSlot.children.length === 0) { dirSlot.appendChild(dragTarget); dragTarget = null; return; }
                 const handArea = dropTarget.closest('.hand-area'); if (handArea) { handArea.appendChild(dragTarget); dragTarget = null; return; }
             }
             dragTarget = null;
         }
+
+        function allowDrop(event) { event.preventDefault(); event.currentTarget.classList.add('drag-over'); }
+        function dragLeave(event) { event.currentTarget.classList.remove('drag-over'); }
+
         function dropToSpecificFrame(event, columnIndex, layerNumber) {
             event.preventDefault(); event.stopPropagation(); event.currentTarget.classList.remove('drag-over');
             const cardId = event.dataTransfer.getData('text/plain'); if (!cardId) return; 
@@ -535,8 +227,8 @@
 
         function executeCardPlacement(cardElement, targetFrame, layerNumber) {
             const existingCardsCount = targetFrame.children.length;
-            if (layerNumber === 3) { if (existingCardsCount < 2) { targetFrame.appendChild(cardElement); } else { alert('紫色の枠にはこれ以上カードを重ねられません！（最大2枚）'); } }
-            else { if (existingCardsCount === 0) { targetFrame.appendChild(cardElement); } else { alert('この枠には既にカードが配置されています！'); } }
+            if (layerNumber === 3) { if (existingCardsCount < 2) { targetFrame.appendChild(cardElement); } else { alert('紫色の枠にはこれ以上重ねられません！'); } }
+            else { if (existingCardsCount === 0) { targetFrame.appendChild(cardElement); } else { alert('この枠には既にカードがあります！'); } }
         }
 
         function dropToDirection(event, columnIndex) {
@@ -571,7 +263,7 @@
         }
 
         function saveData() { localStorage.setItem('misogi_mode', currentMode); localStorage.setItem('misogi_deck1', document.getElementById('deckInput1').value); localStorage.setItem('misogi_deck2', document.getElementById('deckInput2').value); }
-        function selectMode(mode) { currentMode = mode; const btn1 = document.getElementById('btn1Deck'); const btn2 = document.getElementById('btn2Deck'); const area2 = document.getElementById('areaPlayer2'); if (mode === 1) { btn1.classList.add('active'); btn2.classList.remove('active'); document.getElementById('labelPlayer1').innerText = 'デッキリストを / 区切りで入力してください'; area2.style.display = 'none'; } else { btn1.classList.remove('active'); btn2.classList.add('active'); document.getElementById('labelPlayer1').innerText = 'プレイヤー1のデッキ'; area2.style.display = 'flex'; } saveData(); }
+        function selectMode(mode) { currentMode = mode; const area2 = document.getElementById('areaPlayer2'); if (mode === 1) { document.getElementById('btn1Deck').classList.add('active'); document.getElementById('btn2Deck').classList.remove('active'); document.getElementById('labelPlayer1').innerText = 'デッキリストを入力してください'; area2.style.display = 'none'; } else { document.getElementById('btn1Deck').classList.remove('active'); document.getElementById('btn2Deck').classList.add('active'); document.getElementById('labelPlayer1').innerText = 'プレイヤー1のデッキ'; area2.style.display = 'flex'; } saveData(); }
         function clearInput(targetNum) { document.getElementById(`deckInput${targetNum}`).value = ''; saveData(); }
         function backToMenu() { document.getElementById('gameScreen').style.display = 'none'; document.getElementById('menuScreen').style.display = 'flex'; }
         function changeCounter(type, amount) { counters[type] = Math.max(0, counters[type] + amount); document.getElementById(`val-${type}`).innerText = counters[type]; }
