@@ -74,6 +74,17 @@
         .counter-value { font-size: 28px; font-weight: bold; width: 35px; text-align: center; }
         .turn-display { margin-top: auto; text-align: center; border-top: 1px solid var(--border-color); padding-top: 15px; font-size: 13px; color: #aaa; }
         .turn-display span { display: block; font-size: 32px; font-weight: bold; color: #fff; margin-top: 5px; }
+
+        /* 🆕 サーチ画面ポップアップ用スタイル */
+        .search-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.85); z-index: 10000; justify-content: center; align-items: center; }
+        .search-modal { background-color: #1a1a1a; border: 1px solid #444; border-radius: 8px; width: 85%; max-width: 900px; height: 75%; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; position: relative; }
+        .search-modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
+        .search-modal-title { font-size: 20px; font-weight: bold; color: #fff; }
+        .search-modal-close { background: none; border: none; color: #888; font-size: 28px; cursor: pointer; font-weight: bold; }
+        .search-modal-close:hover { color: #fff; }
+        .search-card-grid { flex: 1; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 14px; content-align: flex-start; padding: 5px; }
+        .search-modal .game-card { cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .search-modal .game-card:hover { transform: scale(1.03); border-color: #fff; }
     </style>
 </head>
 <body>
@@ -97,9 +108,13 @@
         </div>
         <button class="start-btn" onclick="startGame()">ゲーム開始</button>
     </div>
+
     <div class="game-screen" id="gameScreen">
         <div class="left-panel">
-            <div class="zone-box"><div class="count-display" id="volNoiseCount">0</div><div class="zone-label">VOLノイズ</div></div>
+            <!-- 🆕 VOLノイズをドラッグ＆ドロップ受け取り可能に拡張 -->
+            <div class="zone-box" id="volNoiseZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)">
+                <div class="count-display" id="volNoiseCount">0</div><div class="zone-label">VOLノイズ</div>
+            </div>
             <button class="temporary-btn-green" onclick="triggerAction('テンポラリー表示')">テンポラリー</button>
             <div class="zone-box" id="trashZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)">
                 <div class="count-display" id="trashCount">0</div><div class="zone-label">トラッシュ (表向き)</div>
@@ -137,8 +152,9 @@
         </div>
         <div class="control-panel">
             <button class="control-btn" onclick="shuffleDeckBtn()">山札シャッフル</button>
-            <button class="control-btn" onclick="triggerAction('山札からサーチ')">山札からサーチ</button>
-            <button class="control-btn" onclick="triggerAction('VOLノイズからサーチ')">VOLノイズからサーチ</button>
+            <!-- 🆕 onClick関数を新規作成したサーチ処理に連動 -->
+            <button class="control-btn" onclick="openSearchModal('deck')">山札からサーチ</button>
+            <button class="control-btn" onclick="openSearchModal('noise')">VOLノイズからサーチ</button>
             <button class="control-btn" onclick="trashAllHandBtn()">手札を全てトラッシュ</button>
             <button class="control-btn" onclick="mulliganBtn()">マリガン</button>
             <button class="control-btn" onclick="resetGameBtn()">リセット</button>
@@ -156,10 +172,23 @@
             <div class="turn-display">TURN<span id="turnCount">1</span></div>
         </div>
     </div>
+
+    <!-- 🆕 サーチ用の一覧ポップアップ画面のHTML要素 -->
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-modal">
+            <div class="search-modal-header">
+                <div class="search-modal-title" id="searchModalTitle">カードをサーチ</div>
+                <button class="search-modal-close" onclick="closeSearchModal()">×</button>
+            </div>
+            <div class="search-card-grid" id="searchCardGrid"></div>
+        </div>
+    </div>
     <script>
         let currentMode = 2; let turn = 1; const counters = { vol: 0, alpha: 0, beta: 0, omega: 0 };
         let selectedColumnIndex = null; let cardIdCounter = 0; let virtualDeck = [];
-        let dragTarget = null; let startX = 0; let startY = 0; let trashCountValue = 0;
+        let dragTarget = null; let startX = 0; let startY = 0; 
+        let trashCountValue = 0;
+        let volNoiseCards = []; // 🆕 VOLノイズ内にあるカードのオブジェクト格納用配列
 
         window.onload = function() {
             document.getElementById('deckInput1').value = localStorage.getItem('misogi_deck1') || "GA-13/GA-13/DA-34/DA-34/DA-34/HA-11/HA-1/HA-1/HA-2/HA-2/HA-2/JS-40/PS-39/HS-1/HS-1/HS-1/JS-27/JS-27/JS-27/JS-27/AS-4/AS-4/DS-38/DS-38/GS-40/GS-40/GS-38/GS-40/GS-40/GS-";
@@ -169,20 +198,14 @@
 
         function startGame() {
             const rawText = document.getElementById('deckInput1').value;
-            // 💡 スラッシュ、空白、改行、コンマのあらゆる区切り文字に対応して配列化
             const parsedCodes = rawText.split(/[\/\s\n,]+/).map(code => code.trim()).filter(code => code.length > 0);
             if (parsedCodes.length === 0) { alert('デッキコードが入力されていません！'); return; }
             
             const validatedCards = [];
             parsedCodes.forEach(code => {
-                // 💡 ハイフンを基準にして「アルファベット部分」と「数字部分」を確実に安全パース
                 const parts = code.split('-');
                 if (parts.length === 2) {
-                    const fullCode = code;
-                    const letterPart = parts[0].trim().toUpperCase();
-                    // 💡 文字列の末尾1文字（A, S, M, Dなど）を安全に正確に取得
-                    const suffix = letterPart.slice(-1);
-
+                    const fullCode = code; const letterPart = parts[0].trim().toUpperCase(); const suffix = letterPart.slice(-1);
                     validatedCards.push({ name: fullCode, suffix: suffix, imagePath: `images/${fullCode}.png` });
                 }
             });
@@ -190,14 +213,20 @@
             const orderMap = { 'A': 1, 'S': 2, 'M': 3, 'D': 4 };
             validatedCards.sort((cardX, cardY) => (orderMap[cardX.suffix] || 99) - (orderMap[cardY.suffix] || 99));
             virtualDeck = validatedCards; document.getElementById('deckCount').innerText = virtualDeck.length;
+            
             trashCountValue = 0; document.getElementById('trashCount').innerText = trashCountValue;
+            volNoiseCards = []; document.getElementById('volNoiseCount').innerText = volNoiseCards.length; // 🆕 初期化
+            
             document.getElementById('handArea').innerHTML = "";
             document.getElementById('menuScreen').style.display = 'none'; document.getElementById('gameScreen').style.display = 'flex';
         }
+
         function createGameCardToHand(cardName, imagePath) {
             const handArea = document.getElementById('handArea'); const card = document.createElement('div');
             card.className = 'game-card'; card.id = `card-id-${cardIdCounter++}`; card.innerText = cardName;
             card.style.backgroundImage = `url('${imagePath}')`; card.setAttribute('draggable', 'true');
+            // 🆕 データ属性に元のカードコードと画像パスをバックアップして保持
+            card.setAttribute('data-cardname', cardName); card.setAttribute('data-imagepath', imagePath);
             card.ondragstart = function(e) { event.dataTransfer.setData('text/plain', event.target.id); };
             card.addEventListener('touchstart', touchStartCard, { passive: false });
             card.addEventListener('touchmove', touchMoveCard, { passive: false });
@@ -224,6 +253,9 @@
                 if (dirSlot && dirSlot.children.length === 0) { dirSlot.appendChild(dragTarget); dragTarget = null; return; }
                 const handArea = dropTarget.closest('.hand-area'); if (handArea) { handArea.appendChild(dragTarget); dragTarget = null; return; }
                 const trashZone = dropTarget.closest('#trashZone'); if (trashZone) { dragTarget.remove(); trashCountValue++; document.getElementById('trashCount').innerText = trashCountValue; dragTarget = null; return; }
+                // 🆕 スマホ用ノイズドロップ判定
+                const volNoiseZone = dropTarget.closest('#volNoiseZone');
+                if (volNoiseZone) { volNoiseCards.push({ name: dragTarget.getAttribute('data-cardname'), imagePath: dragTarget.getAttribute('data-imagepath') }); document.getElementById('volNoiseCount').innerText = volNoiseCards.length; dragTarget.remove(); dragTarget = null; return; }
             }
             dragTarget = null;
         }
@@ -242,7 +274,6 @@
             if (layerNumber === 3) { if (existingCardsCount < 2) { targetFrame.appendChild(cardElement); } else { alert('紫色の枠にはこれ以上重ねられません！'); } }
             else { if (existingCardsCount === 0) { targetFrame.appendChild(cardElement); } else { alert('この枠には既にカードがあります！'); } }
         }
-
         function dropToDirection(event, columnIndex) {
             event.preventDefault(); event.currentTarget.classList.remove('drag-over');
             const cardId = event.dataTransfer.getData('text/plain'); if (!cardId) return;
@@ -261,6 +292,18 @@
             const draggedCard = document.getElementById(cardId); if (draggedCard) { draggedCard.remove(); trashCountValue++; document.getElementById('trashCount').innerText = trashCountValue; }
         }
 
+        // 🆕 PC用マウスドラッグで直接ノイズへ送る処理
+        function dropToVolNoise(event) {
+            event.preventDefault(); event.currentTarget.classList.remove('drag-over');
+            const cardId = event.dataTransfer.getData('text/plain'); if (!cardId) return;
+            const draggedCard = document.getElementById(cardId);
+            if (draggedCard) {
+                volNoiseCards.push({ name: draggedCard.getAttribute('data-cardname'), imagePath: draggedCard.getAttribute('data-imagepath') });
+                document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+                draggedCard.remove();
+            }
+        }
+
         function drawCard() {
             if (virtualDeck.length > 0) { const drawnCard = virtualDeck.shift(); document.getElementById('deckCount').innerText = virtualDeck.length; createGameCardToHand(drawnCard.name, drawnCard.imagePath); }
             else { alert('山札がなくなりました！'); }
@@ -268,9 +311,7 @@
 
         function shuffleDeckBtn() {
             if (virtualDeck.length === 0) { alert('山札が空のためシャッフルできません。'); return; }
-            for (let i = virtualDeck.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1)); [virtualDeck[i], virtualDeck[j]] = [virtualDeck[j], virtualDeck[i]];
-            }
+            for (let i = virtualDeck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [virtualDeck[i], virtualDeck[j]] = [virtualDeck[j], virtualDeck[i]]; }
             alert('山札をシャッフルしました！');
         }
 
@@ -283,15 +324,66 @@
         function mulliganBtn() {
             const handArea = document.getElementById('handArea'); const handCardsCount = handArea.children.length;
             handArea.innerHTML = ""; trashCountValue += handCardsCount; document.getElementById('trashCount').innerText = trashCountValue;
-            for (let i = virtualDeck.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1)); [virtualDeck[i], virtualDeck[j]] = [virtualDeck[j], virtualDeck[i]];
-            }
+            for (let i = virtualDeck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [virtualDeck[i], virtualDeck[j]] = [virtualDeck[j], virtualDeck[i]]; }
             const drawCount = Math.min(handCardsCount, virtualDeck.length);
             for (let i = 0; i < drawCount; i++) { const drawnCard = virtualDeck.shift(); createGameCardToHand(drawnCard.name, drawnCard.imagePath); }
             document.getElementById('deckCount').innerText = virtualDeck.length; alert(`手札を引き直しました！（${drawCount}枚ドロー）`);
         }
 
         function resetGameBtn() { if (confirm('ゲーム状態を完全にリセットして山札を再構築しますか？')) startGame(); }
+
+        // 🆕 【新機能】サーチ用ポップアップを開く
+        function openSearchModal(targetType) {
+            const overlay = document.getElementById('searchOverlay');
+            const title = document.getElementById('searchModalTitle');
+            const grid = document.getElementById('searchCardGrid');
+            grid.innerHTML = ""; // 前回の表示をクリア
+
+            let targetList = [];
+            if (targetType === 'deck') {
+                title.innerText = `山札からサーチ (残り: ${virtualDeck.length}枚)`;
+                targetList = virtualDeck;
+            } else {
+                title.innerText = `VOLノイズからサーチ (現在: ${volNoiseCards.length}枚)`;
+                targetList = volNoiseCards;
+            }
+
+            if (targetList.length === 0) {
+                alert('対象のゾーンにカードが1枚もありません！');
+                return;
+            }
+
+            // リスト内のカードを一覧化して生成
+            targetList.forEach((cardData, currentIndex) => {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'game-card';
+                cardDiv.innerText = cardData.name;
+                cardDiv.style.backgroundImage = `url('${cardData.imagePath}')`;
+                
+                // カードクリック時の選択・回収イベント
+                cardDiv.onclick = function() {
+                    // 手札に生成
+                    createGameCardToHand(cardData.name, cardData.imagePath);
+                    // 元の配列から1枚削除
+                    if (targetType === 'deck') {
+                        virtualDeck.splice(currentIndex, 1);
+                        document.getElementById('deckCount').innerText = virtualDeck.length;
+                    } else {
+                        volNoiseCards.splice(currentIndex, 1);
+                        document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+                    }
+                    closeSearchModal();
+                };
+                grid.appendChild(cardDiv);
+            });
+
+            overlay.style.display = 'flex';
+        }
+
+        // 🆕 【新機能】サーチ用ポップアップを閉じる
+        function closeSearchModal() {
+            document.getElementById('searchOverlay').style.display = 'none';
+        }
 
         function clickChangeBtn(index) {
             const currentBtn = document.getElementById(`change-btn-${index}`);
