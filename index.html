@@ -75,9 +75,8 @@
         .turn-display { margin-top: auto; text-align: center; border-top: 1px solid var(--border-color); padding-top: 15px; font-size: 13px; color: #aaa; }
         .turn-display span { display: block; font-size: 32px; font-weight: bold; color: #fff; margin-top: 5px; }
 
-        /* 🆕 サーチ画面ポップアップ用スタイル */
-        .search-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.85); z-index: 10000; justify-content: center; align-items: center; }
-        .search-modal { background-color: #1a1a1a; border: 1px solid #444; border-radius: 8px; width: 85%; max-width: 900px; height: 75%; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; position: relative; }
+        .search-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.7); z-index: 10000; justify-content: center; align-items: flex-start; padding-top: 25px; box-sizing: border-box; }
+        .search-modal { background-color: #1a1a1a; border: 1px solid #444; border-radius: 8px; width: 85%; max-width: 900px; height: 62%; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .search-modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
         .search-modal-title { font-size: 20px; font-weight: bold; color: #fff; }
         .search-modal-close { background: none; border: none; color: #888; font-size: 28px; cursor: pointer; font-weight: bold; }
@@ -111,7 +110,6 @@
 
     <div class="game-screen" id="gameScreen">
         <div class="left-panel">
-            <!-- 🆕 VOLノイズをドラッグ＆ドロップ受け取り可能に拡張 -->
             <div class="zone-box" id="volNoiseZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)">
                 <div class="count-display" id="volNoiseCount">0</div><div class="zone-label">VOLノイズ</div>
             </div>
@@ -152,7 +150,6 @@
         </div>
         <div class="control-panel">
             <button class="control-btn" onclick="shuffleDeckBtn()">山札シャッフル</button>
-            <!-- 🆕 onClick関数を新規作成したサーチ処理に連動 -->
             <button class="control-btn" onclick="openSearchModal('deck')">山札からサーチ</button>
             <button class="control-btn" onclick="openSearchModal('noise')">VOLノイズからサーチ</button>
             <button class="control-btn" onclick="trashAllHandBtn()">手札を全てトラッシュ</button>
@@ -173,8 +170,7 @@
         </div>
     </div>
 
-    <!-- 🆕 サーチ用の一覧ポップアップ画面のHTML要素 -->
-    <div class="search-overlay" id="searchOverlay">
+    <div class="search-overlay" id="searchOverlay" onclick="handleOverlayClick(event)">
         <div class="search-modal">
             <div class="search-modal-header">
                 <div class="search-modal-title" id="searchModalTitle">カードをサーチ</div>
@@ -184,227 +180,80 @@
         </div>
     </div>
     <script>
-        let currentMode = 2; let turn = 1; const counters = { vol: 0, alpha: 0, beta: 0, omega: 0 };
-        let selectedColumnIndex = null; let cardIdCounter = 0; let virtualDeck = [];
-        let dragTarget = null; let startX = 0; let startY = 0; 
-        let trashCountValue = 0;
-        let volNoiseCards = []; // 🆕 VOLノイズ内にあるカードのオブジェクト格納用配列
-
+        let currentMode = 2, turn = 1, counters = { vol: 0, alpha: 0, beta: 0, omega: 0 }, selectedColumnIndex = null, cardIdCounter = 0, virtualDeck = [], dragTarget = null, startX = 0, startY = 0, trashCountValue = 0, volNoiseCards = [], currentSearchType = "";
         window.onload = function() {
             document.getElementById('deckInput1').value = localStorage.getItem('misogi_deck1') || "GA-13/GA-13/DA-34/DA-34/DA-34/HA-11/HA-1/HA-1/HA-2/HA-2/HA-2/JS-40/PS-39/HS-1/HS-1/HS-1/JS-27/JS-27/JS-27/JS-27/AS-4/AS-4/DS-38/DS-38/GS-40/GS-40/GS-38/GS-40/GS-40/GS-";
             document.getElementById('deckInput2').value = localStorage.getItem('misogi_deck2') || "GA-13 / GA-13 / DA-34 / DA-34";
             selectMode(parseInt(localStorage.getItem('misogi_mode')) || 2);
         };
-
         function startGame() {
-            const rawText = document.getElementById('deckInput1').value;
-            const parsedCodes = rawText.split(/[\/\s\n,]+/).map(code => code.trim()).filter(code => code.length > 0);
-            if (parsedCodes.length === 0) { alert('デッキコードが入力されていません！'); return; }
-            
-            const validatedCards = [];
-            parsedCodes.forEach(code => {
-                const parts = code.split('-');
-                if (parts.length === 2) {
-                    const fullCode = code; const letterPart = parts[0].trim().toUpperCase(); const suffix = letterPart.slice(-1);
-                    validatedCards.push({ name: fullCode, suffix: suffix, imagePath: `images/${fullCode}.png` });
-                }
-            });
-
-            const orderMap = { 'A': 1, 'S': 2, 'M': 3, 'D': 4 };
-            validatedCards.sort((cardX, cardY) => (orderMap[cardX.suffix] || 99) - (orderMap[cardY.suffix] || 99));
-            virtualDeck = validatedCards; document.getElementById('deckCount').innerText = virtualDeck.length;
-            
-            trashCountValue = 0; document.getElementById('trashCount').innerText = trashCountValue;
-            volNoiseCards = []; document.getElementById('volNoiseCount').innerText = volNoiseCards.length; // 🆕 初期化
-            
-            document.getElementById('handArea').innerHTML = "";
-            document.getElementById('menuScreen').style.display = 'none'; document.getElementById('gameScreen').style.display = 'flex';
+            let t = document.getElementById('deckInput1').value, e = t.split(/[\/\s\n,]+/).map(t=>t.trim()).filter(t=>t.length>0);
+            if (0 === e.length) return void alert('デッキコードが入力されていません！');
+            let a = []; e.forEach(t=>{ let e = t.split('-'); if (2 === e.length) { let n = e[0].trim().toUpperCase().slice(-1); a.push({ name: t, suffix: n, imagePath: `images/${t}.png` }); } });
+            let n = { A: 1, S: 2, M: 3, D: 4 }; a.sort((t,e)=>(n[t.suffix] || 99) - (n[e.suffix] || 99));
+            virtualDeck = a; document.getElementById('deckCount').innerText = virtualDeck.length; trashCountValue = 0; document.getElementById('trashCount').innerText = trashCountValue; volNoiseCards = []; document.getElementById('volNoiseCount').innerText = volNoiseCards.length; document.getElementById('handArea').innerHTML = ""; document.getElementById('menuScreen').style.display = 'none'; document.getElementById('gameScreen').style.display = 'flex';
         }
-
-        function createGameCardToHand(cardName, imagePath) {
-            const handArea = document.getElementById('handArea'); const card = document.createElement('div');
-            card.className = 'game-card'; card.id = `card-id-${cardIdCounter++}`; card.innerText = cardName;
-            card.style.backgroundImage = `url('${imagePath}')`; card.setAttribute('draggable', 'true');
-            // 🆕 データ属性に元のカードコードと画像パスをバックアップして保持
-            card.setAttribute('data-cardname', cardName); card.setAttribute('data-imagepath', imagePath);
-            card.ondragstart = function(e) { event.dataTransfer.setData('text/plain', event.target.id); };
-            card.addEventListener('touchstart', touchStartCard, { passive: false });
-            card.addEventListener('touchmove', touchMoveCard, { passive: false });
-            card.addEventListener('touchend', touchEndCard, { passive: false });
-            handArea.appendChild(card);
+        function createGameCardToHand(t, e) {
+            let a = document.getElementById('handArea'), n = document.createElement('div');
+            n.className = 'game-card'; n.id = `card-id-${cardIdCounter++}`; n.innerText = t; n.style.backgroundImage = `url('${e}')`; n.setAttribute('draggable', 'true'); n.setAttribute('data-cardname', t); n.setAttribute('data-imagepath', e); n.ondragstart = function(t){ event.dataTransfer.setData('text/plain', event.target.id); }; n.addEventListener('touchstart', touchStartCard, { passive: false }); n.addEventListener('touchmove', touchMoveCard, { passive: false }); n.addEventListener('touchend', touchEndCard, { passive: false }); a.appendChild(n);
         }
-
-        function touchStartCard(e) {
-            e.preventDefault(); dragTarget = e.currentTarget; const touch = e.touches[0];
-            const rect = dragTarget.getBoundingClientRect(); startX = touch.clientX - rect.left; startY = touch.clientY - rect.top;
-            dragTarget.classList.add('dragging'); dragTarget.style.left = (touch.clientX - startX) + 'px'; dragTarget.style.top = (touch.clientY - startY) + 'px';
-        }
-
-        function touchMoveCard(e) { if (!dragTarget) return; e.preventDefault(); const touch = e.touches[0]; dragTarget.style.left = (touch.clientX - startX) + 'px'; dragTarget.style.top = (touch.clientY - startY) + 'px'; }
-
-        function touchEndCard(e) {
-            if (!dragTarget) return; e.preventDefault(); const touch = e.changedTouches[0];
-            dragTarget.style.display = 'none'; const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY); dragTarget.style.display = ''; 
-            dragTarget.classList.remove('dragging'); dragTarget.style.left = ''; dragTarget.style.top = '';
-            if (dropTarget) {
-                const frame = dropTarget.closest('.frame-layer');
-                if (frame && frame.hasAttribute('data-layer')) { executeCardPlacement(dragTarget, frame, parseInt(frame.getAttribute('data-layer'))); dragTarget = null; return; }
-                const dirSlot = dropTarget.closest('.direction-placeholder');
-                if (dirSlot && dirSlot.children.length === 0) { dirSlot.appendChild(dragTarget); dragTarget = null; return; }
-                const handArea = dropTarget.closest('.hand-area'); if (handArea) { handArea.appendChild(dragTarget); dragTarget = null; return; }
-                const trashZone = dropTarget.closest('#trashZone'); if (trashZone) { dragTarget.remove(); trashCountValue++; document.getElementById('trashCount').innerText = trashCountValue; dragTarget = null; return; }
-                // 🆕 スマホ用ノイズドロップ判定
-                const volNoiseZone = dropTarget.closest('#volNoiseZone');
-                if (volNoiseZone) { volNoiseCards.push({ name: dragTarget.getAttribute('data-cardname'), imagePath: dragTarget.getAttribute('data-imagepath') }); document.getElementById('volNoiseCount').innerText = volNoiseCards.length; dragTarget.remove(); dragTarget = null; return; }
+        function touchStartCard(t) { t.preventDefault(); dragTarget = t.currentTarget; let e = t.touches, a = dragTarget.getBoundingClientRect(); startX = e[0].clientX - a.left; startY = e[0].clientY - a.top; dragTarget.classList.add('dragging'); dragTarget.style.left = e[0].clientX - startX + 'px'; dragTarget.style.top = e[0].clientY - startY + 'px'; }
+        function touchMoveCard(t) { if (dragTarget) { t.preventDefault(); let e = t.touches; dragTarget.style.left = e[0].clientX - startX + 'px'; dragTarget.style.top = e[0].clientY - startY + 'px'; } }
+        function touchEndCard(t) {
+            if (!dragTarget) return; t.preventDefault(); let e = t.changedTouches; dragTarget.style.display = 'none'; let a = document.elementFromPoint(e[0].clientX, e[0].clientY); dragTarget.style.display = ''; dragTarget.classList.remove('dragging'); dragTarget.style.left = ''; dragTarget.style.top = '';
+            if (a) {
+                let n = a.closest('.frame-layer'); if (n && n.hasAttribute('data-layer')) return executeCardPlacement(dragTarget, n, parseInt(n.getAttribute('data-layer'))), void(dragTarget = null);
+                let r = a.closest('.direction-placeholder'); if (r && 0 === r.children.length) return r.appendChild(dragTarget), void(dragTarget = null);
+                if (a.closest('.hand-area')) return document.getElementById('handArea').appendChild(dragTarget), void(dragTarget = null);
+                if (a.closest('#trashZone')) return dragTarget.remove(), trashCountValue++, document.getElementById('trashCount').innerText = trashCountValue, void(dragTarget = null);
+                if (a.closest('#volNoiseZone')) return volNoiseCards.push({ name: dragTarget.getAttribute('data-cardname'), imagePath: dragTarget.getAttribute('data-imagepath') }), document.getElementById('volNoiseCount').innerText = volNoiseCards.length, dragTarget.remove(), void(dragTarget = null);
             }
             dragTarget = null;
         }
-
-        function allowDrop(event) { event.preventDefault(); event.currentTarget.classList.add('drag-over'); }
-        function dragLeave(event) { event.currentTarget.classList.remove('drag-over'); }
-
-        function dropToSpecificFrame(event, columnIndex, layerNumber) {
-            event.preventDefault(); event.stopPropagation(); event.currentTarget.classList.remove('drag-over');
-            const cardId = event.dataTransfer.getData('text/plain'); if (!cardId) return; 
-            const draggedCard = document.getElementById(cardId); if (draggedCard) executeCardPlacement(draggedCard, event.currentTarget, layerNumber);
-        }
-
-        function executeCardPlacement(cardElement, targetFrame, layerNumber) {
-            const existingCardsCount = targetFrame.children.length;
-            if (layerNumber === 3) { if (existingCardsCount < 2) { targetFrame.appendChild(cardElement); } else { alert('紫色の枠にはこれ以上重ねられません！'); } }
-            else { if (existingCardsCount === 0) { targetFrame.appendChild(cardElement); } else { alert('この枠には既にカードがあります！'); } }
-        }
-        function dropToDirection(event, columnIndex) {
-            event.preventDefault(); event.currentTarget.classList.remove('drag-over');
-            const cardId = event.dataTransfer.getData('text/plain'); if (!cardId) return;
-            const draggedCard = document.getElementById(cardId); if (draggedCard && event.currentTarget.children.length === 0) event.currentTarget.appendChild(draggedCard);
-        }
-
-        function dropToHand(event) {
-            event.preventDefault(); event.currentTarget.classList.remove('drag-over');
-            const cardId = event.dataTransfer.getData('text/plain'); if (!cardId) return;
-            const draggedCard = document.getElementById(cardId); if (draggedCard) document.getElementById('handArea').appendChild(draggedCard);
-        }
-
-        function dropToTrash(event) {
-            event.preventDefault(); event.currentTarget.classList.remove('drag-over');
-            const cardId = event.dataTransfer.getData('text/plain'); if (!cardId) return;
-            const draggedCard = document.getElementById(cardId); if (draggedCard) { draggedCard.remove(); trashCountValue++; document.getElementById('trashCount').innerText = trashCountValue; }
-        }
-
-        // 🆕 PC用マウスドラッグで直接ノイズへ送る処理
-        function dropToVolNoise(event) {
-            event.preventDefault(); event.currentTarget.classList.remove('drag-over');
-            const cardId = event.dataTransfer.getData('text/plain'); if (!cardId) return;
-            const draggedCard = document.getElementById(cardId);
-            if (draggedCard) {
-                volNoiseCards.push({ name: draggedCard.getAttribute('data-cardname'), imagePath: draggedCard.getAttribute('data-imagepath') });
-                document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-                draggedCard.remove();
-            }
-        }
-
-        function drawCard() {
-            if (virtualDeck.length > 0) { const drawnCard = virtualDeck.shift(); document.getElementById('deckCount').innerText = virtualDeck.length; createGameCardToHand(drawnCard.name, drawnCard.imagePath); }
-            else { alert('山札がなくなりました！'); }
-        }
-
-        function shuffleDeckBtn() {
-            if (virtualDeck.length === 0) { alert('山札が空のためシャッフルできません。'); return; }
-            for (let i = virtualDeck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [virtualDeck[i], virtualDeck[j]] = [virtualDeck[j], virtualDeck[i]]; }
-            alert('山札をシャッフルしました！');
-        }
-
-        function trashAllHandBtn() {
-            const handArea = document.getElementById('handArea'); const handCardsCount = handArea.children.length;
-            if (handCardsCount === 0) { alert('手札がありません。'); return; }
-            handArea.innerHTML = ""; trashCountValue += handCardsCount; document.getElementById('trashCount').innerText = trashCountValue;
-        }
-
-        function mulliganBtn() {
-            const handArea = document.getElementById('handArea'); const handCardsCount = handArea.children.length;
-            handArea.innerHTML = ""; trashCountValue += handCardsCount; document.getElementById('trashCount').innerText = trashCountValue;
-            for (let i = virtualDeck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [virtualDeck[i], virtualDeck[j]] = [virtualDeck[j], virtualDeck[i]]; }
-            const drawCount = Math.min(handCardsCount, virtualDeck.length);
-            for (let i = 0; i < drawCount; i++) { const drawnCard = virtualDeck.shift(); createGameCardToHand(drawnCard.name, drawnCard.imagePath); }
-            document.getElementById('deckCount').innerText = virtualDeck.length; alert(`手札を引き直しました！（${drawCount}枚ドロー）`);
-        }
-
-        function resetGameBtn() { if (confirm('ゲーム状態を完全にリセットして山札を再構築しますか？')) startGame(); }
-
-        // 🆕 【新機能】サーチ用ポップアップを開く
-        function openSearchModal(targetType) {
-            const overlay = document.getElementById('searchOverlay');
-            const title = document.getElementById('searchModalTitle');
-            const grid = document.getElementById('searchCardGrid');
-            grid.innerHTML = ""; // 前回の表示をクリア
-
-            let targetList = [];
-            if (targetType === 'deck') {
-                title.innerText = `山札からサーチ (残り: ${virtualDeck.length}枚)`;
-                targetList = virtualDeck;
-            } else {
-                title.innerText = `VOLノイズからサーチ (現在: ${volNoiseCards.length}枚)`;
-                targetList = volNoiseCards;
-            }
-
-            if (targetList.length === 0) {
-                alert('対象のゾーンにカードが1枚もありません！');
-                return;
-            }
-
-            // リスト内のカードを一覧化して生成
-            targetList.forEach((cardData, currentIndex) => {
-                const cardDiv = document.createElement('div');
-                cardDiv.className = 'game-card';
-                cardDiv.innerText = cardData.name;
-                cardDiv.style.backgroundImage = `url('${cardData.imagePath}')`;
-                
-                // カードクリック時の選択・回収イベント
-                cardDiv.onclick = function() {
-                    // 手札に生成
-                    createGameCardToHand(cardData.name, cardData.imagePath);
-                    // 元の配列から1枚削除
-                    if (targetType === 'deck') {
-                        virtualDeck.splice(currentIndex, 1);
-                        document.getElementById('deckCount').innerText = virtualDeck.length;
-                    } else {
-                        volNoiseCards.splice(currentIndex, 1);
-                        document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-                    }
-                    closeSearchModal();
-                };
-                grid.appendChild(cardDiv);
+        function allowDrop(t) { t.preventDefault(); t.currentTarget.classList.add('drag-over'); }
+        function dragLeave(t) { t.currentTarget.classList.remove('drag-over'); }
+        function dropToSpecificFrame(t, e, a) { t.preventDefault(); t.stopPropagation(); t.currentTarget.classList.remove('drag-over'); let n = t.dataTransfer.getData('text/plain'); if (n) { let r = document.getElementById(n); r && executeCardPlacement(r, t.currentTarget, a); } }
+        function executeCardPlacement(t, e, a) { let n = e.children.length; 3 === a ? n < 2 ? e.appendChild(t) : alert('紫色の枠にはこれ以上重ねられません！') : 0 === n ? e.appendChild(t) : alert('この枠には既にカードがあります！'); }
+        function dropToDirection(t, e) { t.preventDefault(); t.currentTarget.classList.remove('drag-over'); let a = t.dataTransfer.getData('text/plain'); if (a) { let n = document.getElementById(a); n && 0 === t.currentTarget.children.length && t.currentTarget.appendChild(n); } }
+        function dropToHand(t) { t.preventDefault(); t.currentTarget.classList.remove('drag-over'); let e = t.dataTransfer.getData('text/plain'); if (e) { let a = document.getElementById(e); a && document.getElementById('handArea').appendChild(a); } }
+        function dropToTrash(t) { t.preventDefault(); t.currentTarget.classList.remove('drag-over'); let e = t.dataTransfer.getData('text/plain'); if (e) { let a = document.getElementById(e); a && (a.remove(), trashCountValue++, document.getElementById('trashCount').innerText = trashCountValue); } }
+        function dropToVolNoise(t) { t.preventDefault(); t.currentTarget.classList.remove('drag-over'); let e = t.dataTransfer.getData('text/plain'); if (e) { let a = document.getElementById(e); a && (volNoiseCards.push({ name: a.getAttribute('data-cardname'), imagePath: a.getAttribute('data-imagepath') }), document.getElementById('volNoiseCount').innerText = volNoiseCards.length, a.remove()); } }
+        function drawCard() { if (virtualDeck.length > 0) { let t = virtualDeck.shift(); document.getElementById('deckCount').innerText = virtualDeck.length; createGameCardToHand(t.name, t.imagePath); } else alert('山札がなくなりました！'); }
+        function shuffleDeckBtn() { if (0 === virtualDeck.length) return void alert('山札が空のためシャッフルできません。'); for (let t = virtualDeck.length - 1; t > 0; t--) { let e = Math.floor(Math.random() * (t + 1)); [virtualDeck[t], virtualDeck[e]] = [virtualDeck[e], virtualDeck[t]]; } alert('山札をシャッフルしました！'); }
+        function trashAllHandBtn() { let t = document.getElementById('handArea'), e = t.children.length; if (0 === e) return void alert('手札がありません。'); t.innerHTML = ""; trashCountValue += e; document.getElementById('trashCount').innerText = trashCountValue; }
+        function mulliganBtn() { let t = document.getElementById('handArea'), e = t.children.length; t.innerHTML = ""; trashCountValue += e; document.getElementById('trashCount').innerText = trashCountValue; for (let a = virtualDeck.length - 1; a > 0; a--) { let n = Math.floor(Math.random() * (a + 1)); [virtualDeck[a], virtualDeck[n]] = [virtualDeck[n], virtualDeck[a]]; } let r = Math.min(e, virtualDeck.length); for (let c = 0; c < r; c++) { let o = virtualDeck.shift(); createGameCardToHand(o.name, o.imagePath); } document.getElementById('deckCount').innerText = virtualDeck.length; alert(`手札を引き直しました！（${r}枚ドロー）`); }
+        function resetGameBtn() { confirm('ゲーム状態を完全にリセットして山札を再構築しますか？') && startGame(); }
+        function openSearchModal(t) { currentSearchType = t; renderSearchList(); document.getElementById('searchOverlay').style.display = 'flex'; }
+        function renderSearchList() {
+            let t = document.getElementById('searchModalTitle'), e = document.getElementById('searchCardGrid'); e.innerHTML = "";
+            let a = 'deck' === currentSearchType ? virtualDeck : volNoiseCards;
+            t.innerText = 'deck' === currentSearchType ? `山札からサーチ (残り: ${virtualDeck.length}枚)` : `VOLノイズからサーチ (現在: ${volNoiseCards.length}枚)`;
+            if (0 === a.length) return void(e.innerHTML = "<div style='color:#666; font-size:14px; padding:20px;'>カードがありません</div>");
+            a.forEach((t,n)=>{
+                let r = document.createElement('div'); r.className = 'game-card'; r.innerText = t.name; r.style.backgroundImage = `url('${t.imagePath}')`; r.setAttribute('draggable', 'true'); r.setAttribute('data-cardname', t.name); r.setAttribute('data-imagepath', t.imagePath);
+                r.ondragstart = function(t){ event.dataTransfer.setData('text/plain', 'search-drag'); event.dataTransfer.setData('search-index', n); };
+                r.addEventListener('touchstart', function(e){
+                    e.preventDefault(); dragTarget = e.currentTarget; let r = e.touches, c = dragTarget.getBoundingClientRect(); startX = r[0].clientX - c.left; startY = r[0].clientY - c.top; dragTarget.classList.add('dragging'); document.body.appendChild(dragTarget);
+                    dragTarget.ontouchend = function(e){ let r = e.changedTouches; dragTarget.style.display = 'none'; let c = document.elementFromPoint(r[0].clientX, r[0].clientY); dragTarget.remove(); c && c.closest('.hand-area') && (createGameCardToHand(t.name, t.imagePath), a.splice(n, 1), document.getElementById('deckCount').innerText = virtualDeck.length, document.getElementById('volNoiseCount').innerText = volNoiseCards.length); dragTarget = null; renderSearchList(); };
+                }, { passive: false });
+                r.addEventListener('touchmove', touchMoveCard, { passive: false });
+                r.onclick = function(e){ e.stopPropagation(); createGameCardToHand(t.name, t.imagePath); a.splice(n, 1); document.getElementById('deckCount').innerText = virtualDeck.length; document.getElementById('volNoiseCount').innerText = volNoiseCards.length; renderSearchList(); };
+                e.appendChild(r);
             });
-
-            overlay.style.display = 'flex';
         }
-
-        // 🆕 【新機能】サーチ用ポップアップを閉じる
-        function closeSearchModal() {
-            document.getElementById('searchOverlay').style.display = 'none';
-        }
-
-        function clickChangeBtn(index) {
-            const currentBtn = document.getElementById(`change-btn-${index}`);
-            if (selectedColumnIndex === null) { selectedColumnIndex = index; currentBtn.classList.add('selecting'); }
-            else if (selectedColumnIndex === index) { currentBtn.classList.remove('selecting'); selectedColumnIndex = null; }
-            else {
-                for (let layer = 1; layer <= 3; layer++) {
-                    const frameA = document.getElementById(`frame-${selectedColumnIndex}-${layer}`); const frameB = document.getElementById(`frame-${index}-${layer}`);
-                    const cardsA = Array.from(frameA.children); const cardsB = Array.from(frameB.children);
-                    frameA.innerHTML = ""; frameB.innerHTML = ""; cardsA.forEach(card => frameB.appendChild(card)); cardsB.forEach(card => frameA.appendChild(card));
-                }
-                document.getElementById(`change-btn-${selectedColumnIndex}`).classList.remove('selecting'); selectedColumnIndex = null;
-            }
-        }
-
+        function handleOverlayClick(t) { "searchOverlay" === t.target.id && closeSearchModal(); }
+        function closeSearchModal() { document.getElementById('searchOverlay').style.display = 'none'; }
+        const originalDropToHand = dropToHand;
+        dropToHand = function(t) { t.preventDefault(); t.currentTarget.classList.remove('drag-over'); if ('search-drag' === t.dataTransfer.getData('text/plain')) { let e = parseInt(t.dataTransfer.getData('search-index')), a = 'deck' === currentSearchType ? virtualDeck : volNoiseCards, n = a.splice(e, 1)[0]; createGameCardToHand(n.name, n.imagePath); document.getElementById('deckCount').innerText = virtualDeck.length; document.getElementById('volNoiseCount').innerText = volNoiseCards.length; renderSearchList(); } else originalDropToHand(t); };
+        function clickChangeBtn(t) { let e = document.getElementById(`change-btn-${t}`); if (null === selectedColumnIndex) selectedColumnIndex = t, e.classList.add('selecting'); else if (selectedColumnIndex === t) e.classList.remove('selecting'), selectedColumnIndex = null; else { for (let a = 1; a <= 3; a++) { let n = document.getElementById(`frame-${selectedColumnIndex}-${a}`), r = document.getElementById(`frame-${t}-${a}`), c = Array.from(n.children), o = Array.from(r.children); n.innerHTML = "", r.innerHTML = "", c.forEach(t=>r.appendChild(t)), o.forEach(e=>n.appendChild(e)); } document.getElementById(`change-btn-${selectedColumnIndex}`).classList.remove('selecting'), selectedColumnIndex = null; } }
         function saveData() { localStorage.setItem('misogi_mode', currentMode); localStorage.setItem('misogi_deck1', document.getElementById('deckInput1').value); localStorage.setItem('misogi_deck2', document.getElementById('deckInput2').value); }
-        function selectMode(mode) { currentMode = mode; const area2 = document.getElementById('areaPlayer2'); if (mode === 1) { document.getElementById('btn1Deck').classList.add('active'); document.getElementById('btn2Deck').classList.remove('active'); document.getElementById('areaPlayer1').querySelector('.label-text').innerText = 'デッキリストを入力してください'; area2.style.display = 'none'; } else { document.getElementById('btn1Deck').classList.remove('active'); document.getElementById('btn2Deck').classList.add('active'); document.getElementById('areaPlayer1').querySelector('.label-text').innerText = 'プレイヤー1のデッキ'; area2.style.display = 'flex'; } saveData(); }
-        function clearInput(targetNum) { document.getElementById(`deckInput${targetNum}`).value = ''; saveData(); }
+        function selectMode(t) { currentMode = mode = t; let e = document.getElementById('areaPlayer2'); 1 === t ? (document.getElementById('btn1Deck').classList.add('active'), document.getElementById('btn2Deck').classList.remove('active'), document.getElementById('areaPlayer1').querySelector('.label-text').innerText = 'デッキリストを入力してください', e.style.display = 'none') : (document.getElementById('btn1Deck').classList.remove('active'), document.getElementById('btn2Deck').classList.add('active'), document.getElementById('areaPlayer1').querySelector('.label-text').innerText = 'プレイヤー1のデッキ', e.style.display = 'flex'); saveData(); }
+        function clearInput(t) { document.getElementById(`deckInput${t}`).value = ''; saveData(); }
         function backToMenu() { document.getElementById('gameScreen').style.display = 'none'; document.getElementById('menuScreen').style.display = 'flex'; }
-        function changeCounter(type, amount) { counters[type] = Math.max(0, counters[type] + amount); document.getElementById(`val-${type}`).innerText = counters[type]; }
+        function changeCounter(t, e) { counters[t] = Math.max(0, counters[t] + e); document.getElementById(`val-${t}`).innerText = counters[t]; }
         function nextTurn() { turn++; document.getElementById('turnCount').innerText = turn; }
+        function rollDice() { alert(`ダイスの出目: ${Math.floor(6 * Math.random()) + 1}`); }
+        function triggerAction(t) { alert(`「${t}」が実行されました`); }
     </script>
 </body>
 </html>
