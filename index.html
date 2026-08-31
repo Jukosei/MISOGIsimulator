@@ -186,13 +186,35 @@
             document.getElementById('deckInput2').value = localStorage.getItem('misogi_deck2') || "GA-13 / GA-13 / DA-34 / DA-34";
             selectMode(parseInt(localStorage.getItem('misogi_mode')) || 2);
         };
+        
+        // 🛠️ 配列と文字列の型衝突を100%回避するパースロジックに完全修正
         function startGame() {
-            let t = document.getElementById('deckInput1').value, e = t.split(/[\/\s\n,]+/).map(t=>t.trim()).filter(t=>t.length>0);
-            if (0 === e.length) return void alert('デッキコードが入力されていません！');
-            let a = []; e.forEach(t=>{ let e = t.split('-'); if (2 === e.length) { let n = e.trim().toUpperCase().slice(-1); a.push({ name: t, suffix: n, imagePath: `images/${t}.png` }); } });
-            let aOrder = { A: 1, S: 2, M: 3, D: 4 }; a.sort((t,e)=>(aOrder[t.suffix] || 99) - (aOrder[e.suffix] || 99));
-            virtualDeck = a; document.getElementById('deckCount').innerText = virtualDeck.length; trashCountValue = 0; document.getElementById('trashCount').innerText = trashCountValue; volNoiseCards = []; document.getElementById('volNoiseCount').innerText = volNoiseCards.length; document.getElementById('handArea').innerHTML = ""; document.getElementById('menuScreen').style.display = 'none'; document.getElementById('gameScreen').style.display = 'flex';
+            let textVal = document.getElementById('deckInput1').value;
+            let codes = textVal.split(/[\/\s\n,]+/).map(c => c.trim()).filter(c => c.length > 0);
+            if (0 === codes.length) return void alert('デッキコードが入力されていません！');
+            
+            let validList = [];
+            codes.forEach(codeStr => {
+                let parts = codeStr.split('-');
+                if (2 === parts.length) {
+                    let letters = parts[0].trim().toUpperCase();
+                    let endChar = letters.slice(-1); // 💡 安全にカード種別文字を抽出
+                    validList.push({ name: codeStr, suffix: endChar, imagePath: `images/${codeStr}.png` });
+                }
+            });
+            
+            let rankMap = { A: 1, S: 2, M: 3, D: 4 };
+            validList.sort((x, y) => (rankMap[x.suffix] || 99) - (rankMap[y.suffix] || 99));
+            
+            virtualDeck = validList;
+            document.getElementById('deckCount').innerText = virtualDeck.length;
+            trashCountValue = 0; document.getElementById('trashCount').innerText = trashCountValue;
+            volNoiseCards = []; document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+            document.getElementById('handArea').innerHTML = "";
+            document.getElementById('menuScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'flex';
         }
+
         function createGameCardToHand(t, e) {
             let a = document.getElementById('handArea'), n = document.createElement('div');
             n.className = 'game-card'; n.id = `card-id-${cardIdCounter++}`; n.innerText = t; n.style.backgroundImage = `url('${e}')`; n.setAttribute('draggable', 'true'); n.setAttribute('data-cardname', t); n.setAttribute('data-imagepath', e); n.ondragstart = function(t){ event.dataTransfer.setData('text/plain', event.target.id); }; n.addEventListener('touchstart', touchStartCard, { passive: false }); n.addEventListener('touchmove', touchMoveCard, { passive: false }); n.addEventListener('touchend', touchEndCard, { passive: false }); a.appendChild(n);
@@ -216,11 +238,8 @@
         function executeCardPlacement(t, e, a) { let n = e.children.length; 3 === a ? n < 2 ? e.appendChild(t) : alert('紫色の枠にはこれ以上重ねられません！') : 0 === n ? e.appendChild(t) : alert('この枠には既にカードがあります！'); }
         function dropToDirection(t, e) { t.preventDefault(); t.currentTarget.classList.remove('drag-over'); let a = t.dataTransfer.getData('text/plain'); if (a) { let n = document.getElementById(a); n && 0 === t.currentTarget.children.length && t.currentTarget.appendChild(n); } }
         function dropToHand(t) { t.preventDefault(); t.currentTarget.classList.remove('drag-over'); let e = t.dataTransfer.getData('text/plain'); if (e) { let a = document.getElementById(e); a && document.getElementById('handArea').appendChild(a); } }
-        
-        // 🆕 サーチ画面からトラッシュへのドロップ（墓地送り）に対応
         function dropToTrash(t) {
-            t.preventDefault(); t.currentTarget.classList.remove('drag-over');
-            let e = t.dataTransfer.getData('text/plain');
+            t.preventDefault(); t.currentTarget.classList.remove('drag-over'); let e = t.dataTransfer.getData('text/plain');
             if ('search-drag' === e) {
                 let idx = parseInt(t.dataTransfer.getData('search-index'));
                 let targetList = 'deck' === currentSearchType ? virtualDeck : volNoiseCards;
@@ -229,9 +248,7 @@
                 document.getElementById('deckCount').innerText = virtualDeck.length;
                 document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
                 renderSearchList();
-            } else if (e) {
-                let a = document.getElementById(e); a && (a.remove(), trashCountValue++, document.getElementById('trashCount').innerText = trashCountValue);
-            }
+            } else if (e) { let a = document.getElementById(e); a && (a.remove(), trashCountValue++, document.getElementById('trashCount').innerText = trashCountValue); }
         }
         function dropToVolNoise(t) { t.preventDefault(); t.currentTarget.classList.remove('drag-over'); let e = t.dataTransfer.getData('text/plain'); if (e) { let a = document.getElementById(e); a && (volNoiseCards.push({ name: a.getAttribute('data-cardname'), imagePath: a.getAttribute('data-imagepath') }), document.getElementById('volNoiseCount').innerText = volNoiseCards.length, a.remove()); } }
         function drawCard() { if (virtualDeck.length > 0) { let t = virtualDeck.shift(); document.getElementById('deckCount').innerText = virtualDeck.length; createGameCardToHand(t.name, t.imagePath); } else alert('山札がなくなりました！'); }
@@ -250,7 +267,6 @@
                 r.ondragstart = function(t){ event.dataTransfer.setData('text/plain', 'search-drag'); event.dataTransfer.setData('search-index', n); };
                 r.addEventListener('touchstart', function(e){
                     e.preventDefault(); dragTarget = e.currentTarget; let r = e.touches, c = dragTarget.getBoundingClientRect(); startX = r.clientX - c.left; startY = r.clientY - c.top; dragTarget.classList.add('dragging'); document.body.appendChild(dragTarget);
-                    // 🆕 サーチ画面内からのスマホ用タッチ移動：手札に加えてトラッシュゾーン判定も拡張
                     dragTarget.ontouchend = function(e){
                         let r = e.changedTouches; dragTarget.style.display = 'none'; let c = document.elementFromPoint(r.clientX, r.clientY); dragTarget.remove();
                         if (c) {
@@ -267,22 +283,16 @@
             });
         }
         function handleOverlayClick(t) { "searchOverlay" === t.target.id && closeSearchModal(); }
-        
-        // 🆕 サーチポップアップを閉じるときに対象エリアを自動シャッフルする処理
         function closeSearchModal() {
             let targetList = ('deck' === currentSearchType) ? virtualDeck : volNoiseCards;
             if (targetList.length > 0) {
-                for (let t = targetList.length - 1; t > 0; t--) {
-                    let e = Math.floor(Math.random() * (t + 1));
-                    [targetList[t], targetList[e]] = [targetList[e], targetList[t]];
-                }
-                if (currentSearchType === 'deck') { alert('サーチを終了したため、山札を自動シャッフルしました。'); }
-                else { alert('サーチを終了したため、VOLノイズエリアを自動シャッフルしました。'); }
+                for (let t = targetList.length - 1; t > 0; t--) { let e = Math.floor(Math.random() * (t + 1)); [targetList[t], targetList[e]] = [targetList[e], targetList[t]]; }
+                if ('deck' === currentSearchType) alert('サーチを終了したため、山札を自動シャッフルしました。'); else alert('サーチを終了したため、VOLノイズエリアを自動シャッフルしました。');
             }
             document.getElementById('searchOverlay').style.display = 'none';
         }
         const originalDropToHand = dropToHand;
-        dropToHand = function(t) { t.preventDefault(); t.currentTarget.classList.remove('drag-over'); if ('search-drag' === t.dataTransfer.getData('text/plain')) { let e = parseInt(t.dataTransfer.getData('search-index')), a = 'deck' === currentSearchType ? virtualDeck : volNoiseCards, n = a.splice(e, 1); createGameCardToHand(n.name, n.imagePath); document.getElementById('deckCount').innerText = virtualDeck.length; document.getElementById('volNoiseCount').innerText = volNoiseCards.length; renderSearchList(); } else originalDropToHand(t); };
+        dropToHand = function(t) { t.preventDefault(); t.currentTarget.classList.remove('drag-over'); if ('search-drag' === t.dataTransfer.getData('text/plain')) { let e = parseInt(t.dataTransfer.getData('search-index')), a = 'deck' === currentSearchType ? virtualDeck : volNoiseCards, n = a.splice(e, 1); createGameCardToHand(n[0].name, n[0].imagePath); document.getElementById('deckCount').innerText = virtualDeck.length; document.getElementById('volNoiseCount').innerText = volNoiseCards.length; renderSearchList(); } else originalDropToHand(t); };
         function clickChangeBtn(t) { let e = document.getElementById(`change-btn-${t}`); if (null === selectedColumnIndex) selectedColumnIndex = t, e.classList.add('selecting'); else if (selectedColumnIndex === t) e.classList.remove('selecting'), selectedColumnIndex = null; else { for (let a = 1; a <= 3; a++) { let n = document.getElementById(`frame-${selectedColumnIndex}-${a}`), r = document.getElementById(`frame-${t}-${a}`), c = Array.from(n.children), o = Array.from(r.children); n.innerHTML = "", r.innerHTML = "", c.forEach(t=>r.appendChild(t)), o.forEach(e=>n.appendChild(e)); } document.getElementById(`change-btn-${selectedColumnIndex}`).classList.remove('selecting'), selectedColumnIndex = null; } }
         function saveData() { localStorage.setItem('misogi_mode', currentMode); localStorage.setItem('misogi_deck1', document.getElementById('deckInput1').value); localStorage.setItem('misogi_deck2', document.getElementById('deckInput2').value); }
         function selectMode(t) { currentMode = t; let e = document.getElementById('areaPlayer2'); 1 === t ? (document.getElementById('btn1Deck').classList.add('active'), document.getElementById('btn2Deck').classList.remove('active'), document.getElementById('areaPlayer1').querySelector('.label-text').innerText = 'デッキリストを入力してください', e.style.display = 'none') : (document.getElementById('btn1Deck').classList.remove('active'), document.getElementById('btn2Deck').classList.add('active'), document.getElementById('areaPlayer1').querySelector('.label-text').innerText = 'プレイヤー1のデッキ', e.style.display = 'flex'); saveData(); }
