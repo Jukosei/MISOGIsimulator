@@ -2,729 +2,108 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>禊シミュレーター</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCG Simulator</title>
     <style>
-        :root {
-            --bg-color: #121212;
-            --panel-bg: #1a1a1a;
-            --border-color: #333333;
-            --btn-blue: #007bff;
-            --btn-red: #dc3545;
-            --btn-green: #28a745;
-            --btn-accent: #e6002d;
-            --text-color: #ffffff;
-            --card-width: 120px;
-            --card-height: 168px;
-        }
-
-        body {
+        /* 基本スタイル設定 */
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+        }
+        body {
             font-family: sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
-            touch-action: none;
-            user-select: none;
-        }
-
-        .menu-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 1100px;
-            padding: 40px 20px;
-            box-sizing: border-box;
-            touch-action: auto;
-        }
-
-        .title {
-            font-size: 54px;
-            font-weight: bold;
-            margin-bottom: 35px;
-            letter-spacing: 6px;
-        }
-
-        .mode-selection {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 35px;
-        }
-
-        .mode-btn {
-            background-color: #242424;
-            color: #8a8a8a;
-            border: 1px solid #3a3a3a;
-            padding: 12px 30px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-
-        .mode-btn.active {
-            background-color: var(--btn-blue);
-            color: #ffffff;
-            border-color: var(--btn-blue);
-        }
-
-        .input-section {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 25px;
-        }
-
-        .deck-code-area {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .label-text {
-            color: #ffffff;
-            font-size: 15px;
-            font-weight: bold;
-            align-self: center;
-            margin-bottom: 12px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 160px;
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: #ffffff;
-            padding: 15px;
-            font-size: 16px;
-            box-sizing: border-box;
-            resize: none;
-            outline: none;
-        }
-
-        .clear-btn {
-            background-color: var(--btn-red);
-            color: #ffffff;
-            border: none;
-            padding: 10px 30px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 4px;
-            margin-top: 12px;
-        }
-
-        .start-btn {
-            background-color: var(--btn-accent);
-            color: #ffffff;
-            border: none;
-            padding: 15px 100px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 4px;
-            margin-top: 45px;
-            letter-spacing: 2px;
-        }
-
-        .game-screen {
-            display: none;
-            width: 100vw;
-            height: 100vh;
-            background-color: #0d0d0d;
-            box-sizing: border-box;
-            padding: 10px;
-            gap: 14px;
-        }
-
-        .left-panel {
-            width: var(--card-width);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100%;
-            box-sizing: border-box;
-            padding-bottom: 15px;
-        }
-
-        .zone-box {
-            background-color: var(--panel-bg);
-            border: 2px dashed #444;
-            border-radius: 6px;
-            width: var(--card-width);
-            height: var(--card-height);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            box-sizing: border-box;
-            position: relative;
-            cursor: pointer;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-
-        .zone-box .count-display {
-            font-size: 36px;
-            font-weight: bold;
-            text-shadow: 0px 0px 4px #000, 0px 0px 4px #000;
-        }
-
-        .zone-label {
-            font-size: 10px;
-            color: #8a8a8a;
-            margin-top: 5px;
-            text-align: center;
-            text-shadow: 0px 0px 4px #000, 0px 0px 4px #000;
-        }
-
-        .zone-box.drag-over {
-            background-color: rgba(255, 255, 255, 0.08);
-            border-color: #fff;
-        }
-
-        .temporary-btn-green {
-            width: 100%;
-            background-color: var(--btn-green);
-            color: white;
-            font-size: 12px;
-            font-weight: bold;
-            border: none;
-            padding: 10px 0;
-            border-radius: 6px;
-            cursor: pointer;
-            text-align: center;
-            margin: auto 0;
-        }
-
-        .center-panel {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            gap: 12px;
-            flex: 1;
-        }
-
-        .field-section-box {
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 15px 20px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .stage-box {
-            flex: 6.4;
-            margin-bottom: 20px;
-        }
-
-        .direction-box {
-            flex: 2.8;
-        }
-
-        .field-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            width: 100%;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .row-label {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-
-        .slot-column-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            gap: 8px;
-            height: 380px;
-        }
-
-        .stage-placeholder-stack {
-            position: relative;
-            width: var(--card-width);
-            height: 336px;
-            margin-top: -6px;
-        }
-
-        .frame-layer {
-            position: absolute;
-            width: var(--card-width);
-            height: var(--card-height);
-            border-radius: 6px;
-            box-sizing: border-box;
-            z-index: 5;
-        }
-
-        .frame-layer.layer-1 { top: 0px; border: 2px dashed #1565c0; }
-        .frame-layer.layer-2 { top: 84px; border: 2px dashed #f9a825; }
-        .frame-layer.layer-3 { top: 168px; border: 2px dashed #6a1b9a; }
-
-        .frame-layer.drag-over {
-            background-color: rgba(255, 255, 255, 0.08);
-        }
-
-        .direction-placeholder {
-            width: var(--card-width);
-            height: var(--card-height);
-            border: 2px dashed #c62828;
-            border-radius: 6px;
-            box-sizing: border-box;
-            position: relative;
-        }
-
-        .direction-placeholder.drag-over {
-            background-color: rgba(198, 40, 40, 0.1);
-        }
-
-        .frame-layer .game-card, .direction-placeholder .game-card {
-            position: absolute;
-            top: 0;
-            left: 0;
-            margin: 0;
-            width: 100%;
-            height: 100%;
-        }
-
-        .slot-tag-btn {
             background-color: #222;
-            color: #aaa;
-            font-size: 11px;
-            border: 1px solid #444;
-            padding: 4px 14px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: bold;
-            z-index: 20;
-        }
-
-        .slot-tag-btn.selecting {
-            background-color: var(--btn-accent);
             color: #fff;
-            border-color: var(--btn-accent);
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
         }
 
-        .hand-area {
-            flex: 2.8;
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 12px;
-            box-sizing: border-box;
-            overflow-y: auto;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-content: flex-start;
-            touch-action: auto;
-        }
-
-        .game-card {
-            width: var(--card-width);
-            height: var(--card-height);
-            background-color: #333;
-            border: 1px solid #555;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
+        /* 山札エリアのドラッグ許可スタイル */
+        .deck-zone {
             cursor: grab;
-            box-sizing: border-box;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            text-shadow: 0px 0px 4px #000, 0px 0px 4px #000;
+            user-select: none;
+            -webkit-user-select: none;
             touch-action: none;
+        }
+
+        /* 既存のレイアウト調整（必要に応じて補完） */
+        #menuScreen, #gameScreen {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+        #gameScreen { display: none; }
+        
+        .drag-over {
+            outline: 2px dashed #ff0;
+        }
+
+        .dragging-mode {
+            pointer-events: auto !important;
         }
 
         .game-card.dragging {
-            opacity: 0.8 !important;
-            position: fixed !important;
-            z-index: 9999 !important;
-            pointer-events: none !important;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.6);
-            transform: scale(1.05);
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0.8;
         }
 
-        .control-panel {
-            width: 190px;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            gap: 6px;
-            touch-action: auto;
-        }
-
-        .control-btn {
-            background-color: #0056b3;
-            color: white;
-            border: none;
-            padding: 10px 6px;
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 4px;
-            text-align: center;
-        }
-
-        .control-btn.orange { background-color: #ff9f00; }
-        .control-btn.gray { background-color: #444; }
-
-        .deck-zone {
-            margin-top: auto;
-            border: 2px dashed #444;
-            background-color: #222;
-            border-radius: 6px;
-            width: 100%;
-            height: var(--card-height);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        .deck-count { font-size: 32px; font-weight: bold; }
-        .deck-label { font-size: 10px; color: #888; margin-top: 4px; }
-
-        .counter-panel {
-            width: 150px;
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            display: flex;
-            flex-direction: column;
-            padding: 20px 5px;
-            box-sizing: border-box;
-            justify-content: flex-start;
-            gap: 22px;
-            height: 100%;
-            touch-action: auto;
-        }
-
-        .counter-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .counter-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: bold;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.4);
-        }
-
-        .icon-vol { background-color: #ffd700; color: #000; }
-        .icon-alpha { background-color: #ff69b4; }
-        .icon-beta { background-color: #1e90ff; }
-        .icon-omega { background-color: #9400d3; }
-
-        .counter-controls {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .counter-btn {
-            background-color: #333;
-            color: white;
-            border: 1px solid #555;
-            width: 32px;
-            height: 32px;
-            cursor: pointer;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-        }
-
-        .counter-value {
-            font-size: 28px;
-            font-weight: bold;
-            width: 35px;
-            text-align: center;
-        }
-
-        .turn-display {
-            margin-top: auto;
-            text-align: center;
-            border-top: 1px solid var(--border-color);
-            padding-top: 15px;
-            font-size: 13px;
-            color: #aaa;
-        }
-
-        .turn-display span {
-            display: block;
-            font-size: 32px;
-            font-weight: bold;
-            color: #fff;
-            margin-top: 5px;
-        }
-
-        .search-overlay {
+        .action-overlay, .search-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 10000;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 900;
             justify-content: center;
-            align-items: flex-start;
-            padding-top: 25px;
-            box-sizing: border-box;
+            align-items: center;
         }
 
-        .search-overlay.dragging-mode {
-            background-color: rgba(0, 0, 0, 0.2);
-        }
-
-        .search-overlay.dragging-mode .search-modal {
-            opacity: 0.3;
-        }
-
-        .search-modal {
-            background-color: #1a1a1a;
-            border: 1px solid #444;
-            border-radius: 8px;
-            width: 85%;
-            max-width: 900px;
-            height: 62%;
-            display: flex;
-            flex-direction: column;
+        .action-box, .search-modal {
+            background: #333;
             padding: 20px;
-            box-sizing: border-box;
-            position: relative;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            pointer-events: auto;
-        }
-
-        .search-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-
-        .search-modal-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: #fff;
-        }
-
-        .search-modal-close {
-            background: none;
-            border: none;
-            color: #888;
-            font-size: 28px;
-            cursor: pointer;
-            font-weight: bold;
-            pointer-events: auto;
-        }
-
-        .search-modal-close:hover { color: #fff; }
-
-        .search-card-grid {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 14px;
-            content-align: flex-start;
-            padding: 5px;
-            pointer-events: auto;
-        }
-
-        .search-modal .game-card {
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
-
-        .search-modal .game-card:hover {
-            transform: scale(1.03);
-            border-color: #fff;
-        }
-
-        .action-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0,0,0,0.6);
-            z-index: 20000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .action-box {
-            background-color: #1e1e1e;
-            border: 2px solid #555;
             border-radius: 8px;
-            padding: 25px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            align-items: center;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.7);
-            max-width: 320px;
-            width: 80%;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
         }
 
-        .action-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #fff;
-            text-align: center;
-            margin-bottom: 6px;
-            word-break: break-all;
-        }
-
-        .action-btn {
-            width: 100%;
-            background-color: #2a2a2a;
-            color: #fff;
-            border: 1px solid #555;
-            padding: 12px;
-            font-size: 14px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        .action-btn:hover {
-            background-color: var(--btn-blue);
-            border-color: var(--btn-blue);
-        }
-
-        .action-btn.cancel {
-            background-color: #444;
-            margin-top: 6px;
-        }
-
-        .action-btn.cancel:hover {
-            background-color: var(--btn-red);
-            border-color: var(--btn-red);
+        .control-btn.selecting {
+            background-color: #ff9800 !important;
         }
     </style>
 </head>
 <body>
-    <div class="menu-container" id="menuScreen">
-        <div class="title">禊</div>
-        <div class="mode-selection">
-            <button class="mode-btn" id="btn1Deck" onclick="selectMode(1)">1デッキモード</button>
-            <button class="mode-btn active" id="btn2Deck" onclick="selectMode(2)">2デッキ対戦モード</button>
+
+    <div id="menuScreen" style="display:flex; flex-direction:column; padding:20px;">
+        <h2>デッキ設定</h2>
+        <div id="areaPlayer1">
+            <span class="label-text">プレイヤー1のデッキ</span>
+            <textarea id="deckInput1" style="width:100%; height:80px;"></textarea>
+            <button onclick="clearInput(1)">クリア</button>
         </div>
-        <div class="input-section">
-            <div class="deck-code-area" id="areaPlayer1">
-                <div class="label-text" id="labelPlayer1">プレイヤー1のデッキ</div>
-                <div class="textarea-container"><textarea id="deckInput1" oninput="saveData()"></textarea></div>
-                <button class="clear-btn" onclick="clearInput(1)">クリア</button>
-            </div>
-            <div class="deck-code-area" id="areaPlayer2">
-                <div class="label-text">プレイヤー2のデッキ</div>
-                <div class="textarea-container"><textarea id="deckInput2" oninput="saveData()"></textarea></div>
-                <button class="clear-btn" onclick="clearInput(2)">クリア</button>
-            </div>
+        <div id="areaPlayer2" style="margin-top:10px;">
+            <span class="label-text">プレイヤー2のデッキ</span>
+            <textarea id="deckInput2" style="width:100%; height:80px;"></textarea>
+            <button onclick="clearInput(2)">クリア</button>
         </div>
-        <button class="start-btn" onclick="startGame()">ゲーム開始</button>
+        <div style="margin-top:10px;">
+            <button id="btn1Deck" onclick="selectMode(1)">1人プレイ</button>
+            <button id="btn2Deck" onclick="selectMode(2)">2人プレイ</button>
+        </div>
+        <button onclick="startGame()" style="margin-top:20px; padding:10px; font-size:16px;">ゲーム開始</button>
     </div>
 
-    <div class="game-screen" id="gameScreen">
-        <div class="left-panel">
-            <div class="zone-box" id="volNoiseZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)">
-                <div class="count-display" id="volNoiseCount">0</div>
-                <div class="zone-label">VOLノイズ</div>
-            </div>
-            <button class="temporary-btn-green" onclick="triggerAction('テンポラリー表示')">テンポラリー</button>
-            <div class="zone-box" id="trashZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)">
-                <div class="count-display" id="trashCount">0</div>
-                <div class="zone-label">トラッシュ (確認はクリック)</div>
-            </div>
-        </div>
-
-        <div class="center-panel">
-            <div class="field-section-box stage-box">
-                <div class="row-label">ステージ</div>
-                <div class="field-row">
-                    <div class="slot-column-wrapper">
-                        <button class="slot-tag-btn" id="change-btn-0" onclick="clickChangeBtn(0)">チェンジ</button>
-                        <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1" id="frame-0-1" data-type="stage" data-col="0" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,0,1)"></div>
-                            <div class="frame-layer layer-2" id="frame-0-2" data-type="stage" data-col="0" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,0,2)"></div>
-                            <div class="frame-layer layer-3" id="frame-0-3" data-type="stage" data-col="0" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,0,3)"></div>
-                        </div>
-                    </div>
-                    <div class="slot-column-wrapper">
-                        <button class="slot-tag-btn" id="change-btn-1" onclick="clickChangeBtn(1)">チェンジ</button>
-                        <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1" id="frame-1-1" data-type="stage" data-col="1" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,1,1)"></div>
-                            <div class="frame-layer layer-2" id="frame-1-2" data-type="stage" data-col="1" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,1,2)"></div>
-                            <div class="frame-layer layer-3" id="frame-1-3" data-type="stage" data-col="1" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,1,3)"></div>
-                        </div>
-                    </div>
-                    <div class="slot-column-wrapper">
-                        <button class="slot-tag-btn" id="change-btn-2" onclick="clickChangeBtn(2)">チェンジ</button>
-                        <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1" id="frame-2-1" data-type="stage" data-col="2" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,2,1)"></div>
-                            <div class="frame-layer layer-2" id="frame-2-2" data-type="stage" data-col="2" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,2,2)"></div>
-                            <div class="frame-layer layer-3" id="frame-2-3" data-type="stage" data-col="2" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,2,3)"></div>
-                        </div>
-                    </div>
-                    <div class="slot-column-wrapper">
-                        <button class="slot-tag-btn" id="change-btn-3" onclick="clickChangeBtn(3)">チェンジ</button>
-                        <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1" id="frame-3-1" data-type="stage" data-col="3" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,3,1)"></div>
-                            <div class="frame-layer layer-2" id="frame-3-2" data-type="stage" data-col="3" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,3,2)"></div>
-                            <div class="frame-layer layer-3" id="frame-3-3" data-type="stage" data-col="3" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,3,3)"></div>
-                        </div>
-                    </div>
-                    <div class="slot-column-wrapper">
-                        <button class="slot-tag-btn" id="change-btn-4" onclick="clickChangeBtn(4)">チェンジ</button>
-                        <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1" id="frame-4-1" data-type="stage" data-col="4" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,4,1)"></div>
-                            <div class="frame-layer layer-2" id="frame-4-2" data-type="stage" data-col="4" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,4,2)"></div>
-                            <div class="frame-layer layer-3" id="frame-4-3" data-type="stage" data-col="4" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,4,3)"></div>
-                        </div>
-                    </div>
-                </div>
-            </div><div class="field-section-box direction-box">
+    <div id="gameScreen">
+        <div class="field-main">
+            <div class="field-section-box direction-box">
                 <div class="field-row">
                     <div class="direction-placeholder" id="dir-slot-0" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event,0)"></div>
                     <div class="direction-placeholder" id="dir-slot-1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event,1)"></div>
@@ -748,9 +127,18 @@
             <button class="control-btn" onclick="triggerAction('山札の下から1枚ドロー')">山札の下から1枚ドロー</button>
             <button class="control-btn gray" style="margin-top:10px;" onclick="backToMenu()">メニュー戻る</button>
 
-            <div class="deck-zone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDeckZone(event)" onclick="drawCard()">
+            <!-- 山札ゾーン（ドラッグ＆ドロップ対応済み） -->
+            <div class="deck-zone" draggable="true" id="deckZone" ondragstart="dragStartDeck(event)" ondragend="dragEndDeck(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDeckZone(event)" onclick="drawCard()">
                 <div class="deck-count" id="deckCount">0</div>
-                <div class="deck-label">山札 (クリックドロー/ドラッグ戻し)</div>
+                <div class="deck-label">山札 (クリックドロー/ドラッグ移動・戻し)</div>
+            </div>
+
+            <!-- トラッシュ / VOLノイズ ゾーン -->
+            <div id="trashZone" style="width:100px; height:60px; border:1px solid #fff; margin-top:10px;" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)">
+                トラッシュ (<span id="trashCount">0</span>)
+            </div>
+            <div id="volNoiseZone" style="width:100px; height:60px; border:1px solid #fff; margin-top:10px;" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)">
+                VOLノイズ (<span id="volNoiseCount">0</span>)
             </div>
         </div>
 
@@ -827,20 +215,79 @@
         let isTrashDragging = false;
         let trashDragStartX = 0;
         let trashDragStartY = 0;
+
+        // 山札ドラッグ用変数
         let isDeckDragging = false;
         let deckDragStartX = 0;
         let deckDragStartY = 0;
 
         window.onload = function() {
-    document.getElementById('deckInput1').value = localStorage.getItem('misogi_deck1') || "...";
-    document.getElementById('deckInput2').value = localStorage.getItem('misogi_deck2') || "...";
-    selectMode(parseInt(localStorage.getItem('misogi_mode')) || 2);
-    setupTrashAreaEvents();
-    setupDeckAreaEvents(); // ★ここに追加
-};
+            document.getElementById('deckInput1').value = localStorage.getItem('misogi_deck1') || "GA-13/GA-13/DA-34/DA-34/DA-34/HA-11/HA-1/HA-1/HA-2/HA-2/HA-2/JS-40/PS-39/HS-1/HS-1/HS-1/JS-27/JS-27/JS-27/JS-27/AS-4/AS-4/DS-38/DS-38/GS-40/GS-40/GS-38/GS-40/GS-40/GS-";
+            document.getElementById('deckInput2').value = localStorage.getItem('misogi_deck2') || "GA-13/GA-13/DA-34/DA-34";
+            selectMode(parseInt(localStorage.getItem('misogi_mode')) || 2);
+            setupTrashAreaEvents();
+            setupDeckAreaEvents();
+        };
+
+        // 山札ドラッグ処理（PC）
+        function dragStartDeck(ev) {
+            if (virtualDeck.length === 0) {
+                ev.preventDefault();
+                return;
+            }
+            ev.dataTransfer.setData('text/plain', 'deck-zone-drag');
+            if (isSearchOpen) document.getElementById('searchOverlay').classList.add('dragging-mode');
+        }
+
+        function dragEndDeck(ev) {
+            document.getElementById('searchOverlay').classList.remove('dragging-mode');
+        }
+
+        // 山札ドラッグ処理（スマホタッチ）
+        function setupDeckAreaEvents() {
+            let el = document.getElementById('deckZone');
+            if (!el) return;
+
+            el.addEventListener('touchstart', function(ev) {
+                if (virtualDeck.length === 0) return;
+                isDeckDragging = true;
+                let touch = ev.touches[0];
+                deckDragStartX = touch.clientX;
+                deckDragStartY = touch.clientY;
+            }, { passive: true });
+
+            el.addEventListener('touchend', function(ev) {
+                if (!isDeckDragging) return;
+                isDeckDragging = false;
+                let touch = ev.changedTouches[0];
+
+                // 短いタップの場合は通常のクリックドローへ譲る
+                if (Math.abs(touch.clientX - deckDragStartX) < 6 && Math.abs(touch.clientY - deckDragStartY) < 6) {
+                    return; 
+                }
+
+                let dropT = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (dropT && virtualDeck.length > 0) {
+                    if (dropT.closest('.hand-area')) {
+                        drawCard();
+                    } else if (dropT.closest('#trashZone')) {
+                        let cardObj = virtualDeck.shift();
+                        trashCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
+                        document.getElementById('deckCount').innerText = virtualDeck.length;
+                        updateTrashUI();
+                    } else if (dropT.closest('#volNoiseZone')) {
+                        let cardObj = virtualDeck.shift();
+                        volNoiseCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
+                        document.getElementById('deckCount').innerText = virtualDeck.length;
+                        document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+                    }
+                }
+            }, { passive: true });
+        }
 
         function setupTrashAreaEvents() {
             let el = document.getElementById('trashZone');
+            if (!el) return;
             el.setAttribute('draggable', 'true');
             
             el.onclick = function(ev) {
@@ -903,6 +350,7 @@
 
         function updateTrashUI() {
             let el = document.getElementById('trashZone');
+            if (!el) return;
             if (trashCards.length > 0) {
                 let lastCard = trashCards[trashCards.length - 1];
                 el.style.backgroundImage = `url('${lastCard.imagePath}')`;
@@ -939,6 +387,9 @@
             document.getElementById('handArea').innerHTML = "";
             document.getElementById('menuScreen').style.display = 'none';
             document.getElementById('gameScreen').style.display = 'flex';
+
+            setupDeckAreaEvents();
+            setupTrashAreaEvents();
         }
 
         function createGameCardToHand(t, e) {
@@ -1246,12 +697,15 @@
             }
         }
 
+        // 手札ドロップ受取処理
         function dropToHand(ev) {
             ev.preventDefault();
             ev.currentTarget.classList.remove('drag-over');
             let dataText = ev.dataTransfer.getData('text/plain');
 
-            if (dataText === 'search-drag') {
+            if (dataText === 'deck-zone-drag' && virtualDeck.length > 0) {
+                drawCard();
+            } else if (dataText === 'search-drag') {
                 let idx = parseInt(ev.dataTransfer.getData('search-index'));
                 let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
                 let cardObj = targetList.splice(idx, 1)[0];
@@ -1270,12 +724,18 @@
             }
         }
 
+        // トラッシュドロップ受取処理
         function dropToTrash(ev) {
             ev.preventDefault();
             ev.currentTarget.classList.remove('drag-over');
             let dataText = ev.dataTransfer.getData('text/plain');
 
-            if (dataText === 'search-drag') {
+            if (dataText === 'deck-zone-drag' && virtualDeck.length > 0) {
+                let cardObj = virtualDeck.shift();
+                trashCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
+                document.getElementById('deckCount').innerText = virtualDeck.length;
+                updateTrashUI();
+            } else if (dataText === 'search-drag') {
                 let idx = parseInt(ev.dataTransfer.getData('search-index'));
                 let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
                 let cardObj = targetList.splice(idx, 1)[0];
@@ -1294,20 +754,23 @@
             }
         }
 
+        // VOLノイズドロップ受取処理
         function dropToVolNoise(ev) {
             ev.preventDefault();
             ev.currentTarget.classList.remove('drag-over');
             let dataText = ev.dataTransfer.getData('text/plain');
 
-            if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
+            if (dataText === 'deck-zone-drag' && virtualDeck.length > 0) {
+                let cardObj = virtualDeck.shift();
+                volNoiseCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
+                document.getElementById('deckCount').innerText = virtualDeck.length;
+                document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+            } else if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
                 let cardObj = trashCards.pop();
                 volNoiseCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
                 document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
                 updateTrashUI();
-                return;
-            }
-
-            if (dataText) {
+            } else if (dataText) {
                 let a = document.getElementById(dataText);
                 if (a) {
                     volNoiseCards.push({ name: a.getAttribute('data-cardname'), imagePath: a.getAttribute('data-imagepath') });
@@ -1333,7 +796,7 @@
                 return;
             }
 
-            if (dataText && dataText !== 'search-drag') {
+            if (dataText && dataText !== 'search-drag' && dataText !== 'deck-zone-drag') {
                 let a = document.getElementById(dataText);
                 if (a) {
                     let cName = a.getAttribute('data-cardname');
@@ -1531,7 +994,7 @@
             t.preventDefault();
             document.getElementById('searchOverlay').classList.remove('dragging-mode');
             let e = t.dataTransfer.getData('text/plain');
-            if (e && e !== 'search-drag') {
+            if (e && e !== 'search-drag' && e !== 'deck-zone-drag') {
                 let a = document.getElementById(e);
                 if (a) returnCardFromHand(a);
             }
