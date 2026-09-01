@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TCG Simulator</title>
     <style>
-        /* 基本スタイル設定 */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -24,7 +23,7 @@
             height: 100vh;
         }
 
-        /* 山札エリアのドラッグ許可スタイル */
+        /* 山札エリアのドラッグ許可 */
         .deck-zone {
             cursor: grab;
             user-select: none;
@@ -32,7 +31,6 @@
             touch-action: none;
         }
 
-        /* 既存のレイアウト調整（必要に応じて補完） */
         #menuScreen, #gameScreen {
             display: flex;
             width: 100%;
@@ -127,7 +125,7 @@
             <button class="control-btn" onclick="triggerAction('山札の下から1枚ドロー')">山札の下から1枚ドロー</button>
             <button class="control-btn gray" style="margin-top:10px;" onclick="backToMenu()">メニュー戻る</button>
 
-            <!-- 山札ゾーン（ドラッグ＆ドロップ対応済み） -->
+            <!-- 山札ゾーン -->
             <div class="deck-zone" draggable="true" id="deckZone" ondragstart="dragStartDeck(event)" ondragend="dragEndDeck(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDeckZone(event)" onclick="drawCard()">
                 <div class="deck-count" id="deckCount">0</div>
                 <div class="deck-label">山札 (クリックドロー/ドラッグ移動・戻し)</div>
@@ -216,20 +214,18 @@
         let trashDragStartX = 0;
         let trashDragStartY = 0;
 
-        // 山札ドラッグ用変数
         let isDeckDragging = false;
         let deckDragStartX = 0;
         let deckDragStartY = 0;
 
         window.onload = function() {
-            document.getElementById('deckInput1').value = localStorage.getItem('misogi_deck1') || "GA-13/GA-13/DA-34/DA-34/DA-34/HA-11/HA-1/HA-1/HA-2/HA-2/HA-2/JS-40/PS-39/HS-1/HS-1/HS-1/JS-27/JS-27/JS-27/JS-27/AS-4/AS-4/DS-38/DS-38/GS-40/GS-40/GS-38/GS-40/GS-40/GS-";
-            document.getElementById('deckInput2').value = localStorage.getItem('misogi_deck2') || "GA-13/GA-13/DA-34/DA-34";
+            document.getElementById('deckInput1').value = localStorage.getItem('misogi_deck1') || "";
+            document.getElementById('deckInput2').value = localStorage.getItem('misogi_deck2') || "";
             selectMode(parseInt(localStorage.getItem('misogi_mode')) || 2);
             setupTrashAreaEvents();
             setupDeckAreaEvents();
         };
 
-        // 山札ドラッグ処理（PC）
         function dragStartDeck(ev) {
             if (virtualDeck.length === 0) {
                 ev.preventDefault();
@@ -243,7 +239,6 @@
             document.getElementById('searchOverlay').classList.remove('dragging-mode');
         }
 
-        // 山札ドラッグ処理（スマホタッチ）
         function setupDeckAreaEvents() {
             let el = document.getElementById('deckZone');
             if (!el) return;
@@ -261,7 +256,6 @@
                 isDeckDragging = false;
                 let touch = ev.changedTouches[0];
 
-                // 短いタップの場合は通常のクリックドローへ譲る
                 if (Math.abs(touch.clientX - deckDragStartX) < 6 && Math.abs(touch.clientY - deckDragStartY) < 6) {
                     return; 
                 }
@@ -697,7 +691,6 @@
             }
         }
 
-        // 手札ドロップ受取処理
         function dropToHand(ev) {
             ev.preventDefault();
             ev.currentTarget.classList.remove('drag-over');
@@ -724,7 +717,6 @@
             }
         }
 
-        // トラッシュドロップ受取処理
         function dropToTrash(ev) {
             ev.preventDefault();
             ev.currentTarget.classList.remove('drag-over');
@@ -754,7 +746,6 @@
             }
         }
 
-        // VOLノイズドロップ受取処理
         function dropToVolNoise(ev) {
             ev.preventDefault();
             ev.currentTarget.classList.remove('drag-over');
