@@ -179,8 +179,8 @@
             if(!pendingActionData) return;
             let cName = pendingActionData.name, imgP = pendingActionData.imagePath;
             let letters = cName.toUpperCase(), r = letters.slice(-1);
-            if(value === "top") { virtualDeck.unshift({name:cName, suffix:r, imagePath:imgP}); alert('山札の一番上に戻しました。'); }
-            else if(value === "bottom") { virtualDeck.push({name:cName, suffix:r, imagePath:imgP}); alert('山札の一番下に戻しました。'); }
+            if(value === "top") { virtualDeck.unshift({name:cName, suffix:r, imagePath:imgP}); }
+            else if(value === "bottom") { virtualDeck.push({name:cName, suffix:r, imagePath:imgP}); }
             document.getElementById('deckCount').innerText = virtualDeck.length;
             if(pendingActionData.fromHand && pendingActionData.elementId) {
                 let el = document.getElementById(pendingActionData.elementId); if(el) el.remove();
@@ -238,9 +238,9 @@
             if(!pendingActionData) return;
             let cName = pendingActionData.name, imgP = pendingActionData.imagePath, idx = pendingActionData.index, list = pendingActionData.list;
             let letters = cName.toUpperCase(), suff = letters.slice(-1);
-            if(value === "hand") { createGameCardToHand(cName, imgP); list.splice(idx,1); alert('手札に加えました。'); }
-            else if(value === "top") { virtualDeck.unshift({name:cName, suffix:suff, imagePath:imgP}); list.splice(idx,1); alert('山札の一番上に戻しました。'); }
-            else if(value === "bottom") { virtualDeck.push({name:cName, suffix:suff, imagePath:imgP}); list.splice(idx,1); alert('山札の一番下に戻しました。'); }
+            if(value === "hand") { createGameCardToHand(cName, imgP); list.splice(idx,1); }
+            else if(value === "top") { virtualDeck.unshift({name:cName, suffix:suff, imagePath:imgP}); list.splice(idx,1); }
+            else if(value === "bottom") { virtualDeck.push({name:cName, suffix:suff, imagePath:imgP}); list.splice(idx,1); }
             document.getElementById('deckCount').innerText=virtualDeck.length;document.getElementById('volNoiseCount').innerText=volNoiseCards.length;document.getElementById('trashCount').innerText=trashCards.length;
             closeActionMenu(); renderSearchList();
         }
