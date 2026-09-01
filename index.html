@@ -827,13 +827,17 @@
         let isTrashDragging = false;
         let trashDragStartX = 0;
         let trashDragStartY = 0;
+        let isDeckDragging = false;
+        let deckDragStartX = 0;
+        let deckDragStartY = 0;
 
         window.onload = function() {
-            document.getElementById('deckInput1').value = localStorage.getItem('misogi_deck1') || "GA-13/GA-13/DA-34/DA-34/DA-34/HA-11/HA-1/HA-1/HA-2/HA-2/HA-2/JS-40/PS-39/HS-1/HS-1/HS-1/JS-27/JS-27/JS-27/JS-27/AS-4/AS-4/DS-38/DS-38/GS-40/GS-40/GS-38/GS-40/GS-40/GS-";
-            document.getElementById('deckInput2').value = localStorage.getItem('misogi_deck2') || "GA-13/GA-13/DA-34/DA-34";
-            selectMode(parseInt(localStorage.getItem('misogi_mode')) || 2);
-            setupTrashAreaEvents();
-        };
+    document.getElementById('deckInput1').value = localStorage.getItem('misogi_deck1') || "...";
+    document.getElementById('deckInput2').value = localStorage.getItem('misogi_deck2') || "...";
+    selectMode(parseInt(localStorage.getItem('misogi_mode')) || 2);
+    setupTrashAreaEvents();
+    setupDeckAreaEvents(); // ★ここに追加
+};
 
         function setupTrashAreaEvents() {
             let el = document.getElementById('trashZone');
