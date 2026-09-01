@@ -60,7 +60,7 @@
         .search-overlay { display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background-color:rgba(0, 0, 0, 0.7);z-index:10000;justify-content:center;align-items:flex-start;padding-top:25px;box-sizing:border-box; }
         .search-overlay.dragging-mode { background-color:rgba(0, 0, 0, 0.2); }
         .search-overlay.dragging-mode .search-modal { opacity:0.3; }
-        .search-modal { background-color:#1a1a1a;border:1px solid #444;border-radius:8px;width:85%;max-width:900px;height:62%;display:flex;flex-direction:column;padding:20px;box-sizing:border-box;position:relative;box-shadow:0 10px 30px rgba(0,0,0,0.8); }
+        .search-modal { background-color:#1a1a1a;border:1px solid #444;border-radius:8px;width:85%;max-width:900px;height:62%;display:flex;flex-direction:column;padding:20px;box-sizing:border-box;position:relative;box-shadow:0 10px 30px rgba(0,0,0,0.8); pointer-events:auto; }
         .search-modal-header { display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #333;padding-bottom:10px;margin-bottom:15px; }
         .search-modal-title { font-size:20px;font-weight:bold;color:#fff; }
         .search-modal-close { background:none;border:none;color:#888;font-size:28px;cursor:pointer;font-weight:bold;pointer-events:auto; }
@@ -158,7 +158,17 @@
         function touchEndCard(t){
             if(!dragTarget)return;t.preventDefault();let e=t.changedTouches;dragTarget.style.display='none';if(isSearchOpen)document.getElementById('searchOverlay').classList.remove('dragging-mode');let a=document.elementFromPoint(e.clientX,e.clientY);dragTarget.style.display='';dragTarget.classList.remove('dragging');dragTarget.style.left='';dragTarget.style.top='';
             if(a){
-                let mBox=a.closest('#searchModalEl')||a.closest('#searchOverlay');if(isSearchOpen&&mBox)return returnCardFromHand(dragTarget),void(dragTarget=null);
+                let mBox=a.closest('#searchModalEl')||a.closest('#searchOverlay');
+                if(isSearchOpen && mBox && dragTarget.getAttribute('data-from-search')!=='true') { return returnCardFromHand(dragTarget),void(dragTarget=null); }
+                if(dragTarget.getAttribute('data-from-search')==='true'){
+                    let idx=parseInt(dragTarget.getAttribute('data-search-index'));
+                    let targetList=(currentSearchType==='deck')?virtualDeck:(currentSearchType==='noise'?volNoiseCards:trashCards);
+                    if(a.closest('.hand-area')){let cut=targetList.splice(idx,1)[0];createGameCardToHand(cut.name,cut.imagePath);}
+                    else if(a.closest('#trashZone') && currentSearchType!=='trash'){let cut=targetList.splice(idx,1)[0];trashCards.push({name:cut.name,imagePath:cut.imagePath});}
+                    else if(a.closest('.frame-layer')){let cut=targetList.splice(idx,1)[0];createGameCardToHand(cut.name,cut.imagePath);let gen=document.getElementById(`card-id-${cardIdCounter-1}`);if(gen){let layerNum=parseInt(a.closest('.frame-layer').getAttribute('data-layer'));executeCardPlacement(gen,a.closest('.frame-layer'),layerNum);}}
+                    else if(a.closest('.direction-placeholder')){let cut=targetList.splice(idx,1)[0];createGameCardToHand(cut.name,cut.imagePath);let gen=document.getElementById(`card-id-${cardIdCounter-1}`);if(gen && 0===a.closest('.direction-placeholder').children.length){a.closest('.direction-placeholder').appendChild(gen);}}
+                    document.getElementById('deckCount').innerText=virtualDeck.length;document.getElementById('volNoiseCount').innerText=volNoiseCards.length;updateTrashUI();dragTarget.remove();dragTarget=null;renderSearchList();return;
+                }
                 if(a.closest('.deck-zone')){
                     let cName=dragTarget.getAttribute('data-cardname'),imgP=dragTarget.getAttribute('data-imagepath');
                     pendingActionData = { name: cName, imagePath: imgP, elementId: dragTarget.id, fromHand: true };
@@ -171,6 +181,7 @@
                 if(a.closest('#trashZone'))return trashCards.push({name:dragTarget.getAttribute('data-cardname'),imagePath:dragTarget.getAttribute('data-imagepath')}),updateTrashUI(),dragTarget.remove(),void(dragTarget=null);
                 if(a.closest('#volNoiseZone'))return volNoiseCards.push({name:dragTarget.getAttribute('data-cardname'),imagePath:dragTarget.getAttribute('data-imagepath')}),document.getElementById('volNoiseCount').innerText=volNoiseCards.length,dragTarget.remove(),void(dragTarget=null);
             }
+            if(dragTarget && dragTarget.getAttribute('data-from-search')==='true'){dragTarget.remove();renderSearchList();}
             dragTarget=null;
         }
         function handleDeckReturnChoice(value) {
@@ -272,20 +283,11 @@
                 r.ondragstart=function(ev){ev.dataTransfer.setData('text/plain','search-drag');ev.dataTransfer.setData('search-index',n);document.getElementById('searchOverlay').classList.add('dragging-mode');};
                 r.ondragend=function(ev){document.getElementById('searchOverlay').classList.remove('dragging-mode');};
                 r.addEventListener('touchstart',function(ev){
-                    ev.preventDefault();dragTarget=ev.currentTarget;let touch=ev.touches,c=dragTarget.getBoundingClientRect();startX=touch.clientX-c.left;startY=touch.clientY-c.top;dragTarget.classList.add('dragging');document.body.appendChild(dragTarget);if(isSearchOpen)document.getElementById('searchOverlay').classList.add('dragging-mode');
-                    dragTarget.ontouchend=function(e){
-                        let touchEnd=e.changedTouches;dragTarget.style.display='none';document.getElementById('searchOverlay').classList.remove('dragging-mode');let dropT=document.elementFromPoint(touchEnd.clientX,touchEnd.clientY);dragTarget.remove();
-                        if(dropT){
-                            if(dropT.closest('.hand-area')){let cut=a.splice(n,1)[0];createGameCardToHand(cut.name,cut.imagePath);}
-                            else if(dropT.closest('#trashZone') && currentSearchType!=='trash'){let cut=a.splice(n,1)[0];trashCards.push({name:cut.name,imagePath:cut.imagePath});}
-                            else if(dropT.closest('.frame-layer')){let cut=a.splice(n,1)[0];createGameCardToHand(cut.name,cut.imagePath);let gen=document.getElementById(`card-id-${cardIdCounter-1}`);if(gen){let layerNum=parseInt(dropT.closest('.frame-layer').getAttribute('data-layer'));executeCardPlacement(gen,dropT.closest('.frame-layer'),layerNum);}}
-                            else if(dropT.closest('.direction-placeholder')){let cut=a.splice(n,1)[0];createGameCardToHand(cut.name,cut.imagePath);let gen=document.getElementById(`card-id-${cardIdCounter-1}`);if(gen && 0===dropT.closest('.direction-placeholder').children.length){dropT.closest('.direction-placeholder').appendChild(gen);}}
-                            document.getElementById('deckCount').innerText=virtualDeck.length;document.getElementById('volNoiseCount').innerText=volNoiseCards.length;updateTrashUI();
-                        }
-                        dragTarget=null;renderSearchList();
-                    };
+                    ev.preventDefault();dragTarget=ev.currentTarget;let touch=ev.touches,c=dragTarget.getBoundingClientRect();startX=touch.clientX-c.left;startY=touch.clientY-c.top;dragTarget.classList.add('dragging');
+                    dragTarget.setAttribute('data-from-search','true');dragTarget.setAttribute('data-search-index',n);
+                    dragTarget.style.backgroundImage=`url('${cardData.imagePath}')`;dragTarget.innerText=cardData.name;
+                    document.body.appendChild(dragTarget);if(isSearchOpen)document.getElementById('searchOverlay').classList.add('dragging-mode');
                 },{passive:false});
-                r.addEventListener('touchmove',touchMoveCard,{passive:false});
                 r.onclick=function(ev){ev.stopPropagation();
                     if(currentSearchType==='trash'){
                         pendingActionData = { name: cardData.name, imagePath: cardData.imagePath, index: n, list: a };
@@ -312,7 +314,7 @@
         function returnCardFromHand(t){let e=t.getAttribute('data-cardname'),a=t.getAttribute('data-imagepath'),letters=e.toUpperCase(),r=letters.slice(-1);if(currentSearchType==='deck'){virtualDeck.push({name:e,suffix:r,imagePath:a});document.getElementById('deckCount').innerText=virtualDeck.length;}else if(currentSearchType==='noise'){volNoiseCards.push({name:e,imagePath:a});document.getElementById('volNoiseCount').innerText=volNoiseCards.length;}else{trashCards.push({name:e,imagePath:a});updateTrashUI();}t.remove();renderSearchList();}
         function clickChangeBtn(t){let e=document.getElementById(`change-btn-${t}`);if(null===selectedColumnIndex)selectedColumnIndex=t,e.classList.add('selecting');else if(selectedColumnIndex===t)e.classList.remove('selecting'),selectedColumnIndex=null;else {for(let a=1;a<=3;a++){let n=document.getElementById(`frame-${selectedColumnIndex}-${a}`),r=document.getElementById(`frame-${t}-${a}`),c=Array.from(n.children),o=Array.from(r.children);n.innerHTML="",r.innerHTML="",c.forEach(t=>r.appendChild(t)),o.forEach(e=>n.appendChild(e));}document.getElementById(`change-btn-${selectedColumnIndex}`).classList.remove('selecting'),selectedColumnIndex=null;}}
         function saveData(){localStorage.setItem('misogi_mode',currentMode);localStorage.setItem('misogi_deck1',document.getElementById('deckInput1').value);localStorage.setItem('misogi_deck2',document.getElementById('deckInput2').value);}
-        function selectMode(t){currentMode=t;let e=document.getElementById('areaPlayer2');1===t?(document.getElementById('btn1Deck').classList.add('active'),document.getElementById('btn2Deck').classList.remove('active'),document.getElementById('areaPlayer1').querySelector('.label-text').innerText='デッキリストを入力してください',e.style.display='none'):(document.getElementById('btn1Deck').classList.remove('active'),document.getElementById('btn2Deck').classList.add('active'),document.getElementById('areaPlayer1').querySelector('.label-text').innerText='プレイヤー1 of デッキ',e.style.display='flex');saveData();}
+        function selectMode(t){currentMode=t;let e=document.getElementById('areaPlayer2');1===t?(document.getElementById('btn1Deck').classList.add('active'),document.getElementById('btn2Deck').classList.remove('active'),document.getElementById('areaPlayer1').querySelector('.label-text').innerText='デッキリストを入力してください',e.style.display='none'):(document.getElementById('btn1Deck').classList.remove('active'),document.getElementById('btn2Deck').classList.add('active'),document.getElementById('areaPlayer1').querySelector('.label-text').innerText='プレイヤー1のデッキ',e.style.display='flex');saveData();}
         function clearInput(t){document.getElementById(`deckInput${t}`).value='';saveData();} function backToMenu(){document.getElementById('gameScreen').style.display='none';document.getElementById('menuScreen').style.flexDirection='column';document.getElementById('menuScreen').style.display='flex';}
         function changeCounter(t,e){counters[t]=Math.max(0,counters[t]+e);document.getElementById(`val-${t}`).innerText=counters[t];} function nextTurn(){turn++;document.getElementById('turnCount').innerText=turn;} function rollDice(){alert(`ダイスの出目: ${Math.floor(Math.random()*6)+1}`);} function triggerAction(t){alert(`「${t}」が実行されました`);}
     </script>
