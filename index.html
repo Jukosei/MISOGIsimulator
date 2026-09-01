@@ -91,7 +91,7 @@
         <div class="left-panel">
             <div class="zone-box" id="volNoiseZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)"><div class="count-display" id="volNoiseCount">0</div><div class="zone-label">VOLノイズ</div></div>
             <button class="temporary-btn-green" onclick="triggerAction('テンポラリー表示')">テンポラリー</button>
-            <div class="zone-box" id="trashZone" onclick="openSearchModal('trash')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)"><div class="count-display" id="trashCount">0</div><div class="zone-label">トラッシュ (クリックで中身確認)</div></div>
+            <div class="zone-box" id="trashZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)"><div class="count-display" id="trashCount">0</div><div class="zone-label">トラッシュ (確認はクリック)</div></div>
         </div>
         <div class="center-panel">
             <div class="field-section-box stage-box">
@@ -130,8 +130,21 @@
     <div class="search-overlay" id="searchOverlay" onclick="handleOverlayClick(event)" ondragover="allowDrop(event)" ondrop="dropReturnToSearch(event)"><div class="search-modal" id="searchModalEl" ondragover="allowDrop(event)" ondrop="dropReturnToSearch(event)"><div class="search-modal-header"><div class="search-modal-title" id="searchModalTitle">カードをサーチ</div><button class="search-modal-close" onclick="closeSearchModal()">×</button></div><div class="search-card-grid" id="searchCardGrid" ondragover="allowDrop(event)" ondrop="dropReturnToSearch(event)"></div></div></div>
     <div class="action-overlay" id="actionOverlay"><div class="action-box" id="actionBoxEl"><div class="action-title" id="actionMenuTitle">カードの移動先</div><div id="actionButtonsContainer" style="width:100%; display:flex; flex-direction:column; gap:8px;"></div><button class="action-btn cancel" onclick="closeActionMenu()">キャンセル</button></div></div>
     <script>
-        let currentMode=2,turn=1,counters={vol:0,alpha:0,beta:0,omega:0},selectedColumnIndex=null,cardIdCounter=0,virtualDeck=[],dragTarget=null,startX=0,startY=0,volNoiseCards=[],trashCards=[],currentSearchType="",isSearchOpen=false,pendingActionData=null;
-        window.onload=function(){document.getElementById('deckInput1').value=localStorage.getItem('misogi_deck1')||"GA-13/GA-13/DA-34/DA-34/DA-34/HA-11/HA-1/HA-1/HA-2/HA-2/HA-2/JS-40/PS-39/HS-1/HS-1/HS-1/JS-27/JS-27/JS-27/JS-27/AS-4/AS-4/DS-38/DS-38/GS-40/GS-40/GS-38/GS-40/GS-40/GS-";document.getElementById('deckInput2').value=localStorage.getItem('misogi_deck2')||"GA-13/GA-13/DA-34/DA-34";selectMode(parseInt(localStorage.getItem('misogi_mode'))||2);};
+        let currentMode=2,turn=1,counters={vol:0,alpha:0,beta:0,omega:0},selectedColumnIndex=null,cardIdCounter=0,virtualDeck=[],dragTarget=null,startX=0,startY=0,volNoiseCards=[],trashCards=[],currentSearchType="",isSearchOpen=false,pendingActionData=null,isTrashDragging=false,trashDragStartX=0,trashDragStartY=0;
+        window.onload=function(){
+            document.getElementById('deckInput1').value=localStorage.getItem('misogi_deck1')||"GA-13/GA-13/DA-34/DA-34/DA-34/HA-11/HA-1/HA-1/HA-2/HA-2/HA-2/JS-40/PS-39/HS-1/HS-1/HS-1/JS-27/JS-27/JS-27/JS-27/AS-4/AS-4/DS-38/DS-38/GS-40/GS-40/GS-38/GS-40/GS-40/GS-";
+            document.getElementById('deckInput2').value=localStorage.getItem('misogi_deck2')||"GA-13/GA-13/DA-34/DA-34";
+            selectMode(parseInt(localStorage.getItem('misogi_mode'))||2);
+            setupTrashAreaEvents();
+        };
+        function setupTrashAreaEvents(){
+            let el=document.getElementById('trashZone'); el.setAttribute('draggable','true');
+            el.onclick=function(ev){if(!isTrashDragging){openSearchModal('trash');}};
+            el.ondragstart=function(ev){if(trashCards.length===0){ev.preventDefault();return;} ev.dataTransfer.setData('text/plain','trash-zone-drag');if(isSearchOpen)document.getElementById('searchOverlay').classList.add('dragging-mode');};
+            el.ondragend=function(ev){document.getElementById('searchOverlay').classList.remove('dragging-mode');};
+            el.addEventListener('touchstart',function(ev){if(trashCards.length===0)return; isTrashDragging=true;let touch=ev.touches[0];trashDragStartX=touch.clientX;trashDragStartY=touch.touches?touch.clientY:touch.clientY;},{passive:true});
+            el.addEventListener('touchend',function(ev){if(!isTrashDragging)return; isTrashDragging=false;let touch=ev.changedTouches[0];if(Math.abs(touch.clientX-trashDragStartX)<6 && Math.abs(touch.clientY-trashDragStartY)<6){openSearchModal('trash');}else{let dropT=document.elementFromPoint(touch.clientX,touch.clientY);if(dropT){let last=trashCards[trashCards.length-1];if(dropT.closest('.hand-area')){let cut=trashCards.pop();createGameCardToHand(cut.name,cut.imagePath);updateTrashUI();}else if(dropT.closest('.frame-layer')){let cut=trashCards.pop();createGameCardToHand(cut.name,cut.imagePath);let gen=document.getElementById(`card-id-${cardIdCounter-1}`);if(gen){let num=parseInt(dropT.closest('.frame-layer').getAttribute('data-layer'));executeCardPlacement(gen,dropT.closest('.frame-layer'),num);}updateTrashUI();}else if(dropT.closest('.direction-placeholder')){let cut=trashCards.pop();createGameCardToHand(cut.name,cut.imagePath);let gen=document.getElementById(`card-id-${cardIdCounter-1}`);if(gen && 0===dropT.closest('.direction-placeholder').children.length){dropT.closest('.direction-placeholder').appendChild(gen);}updateTrashUI();}}}}},{passive:true});
+        }
         function updateTrashUI(){let el=document.getElementById('trashZone');if(trashCards.length>0){let lastCard=trashCards[trashCards.length-1];el.style.backgroundImage=`url('${lastCard.imagePath}')`;}else{el.style.backgroundImage='none';}document.getElementById('trashCount').innerText=trashCards.length;}
         function startGame(){
             let t=document.getElementById('deckInput1').value,e=t.split(/[\/\s\n,]+/).map(t=>t.trim()).filter(t=>t.length>0);if(0===e.length)return void alert('デッキコードが入力されていません！');
@@ -203,11 +216,16 @@
             if(dataText==='search-drag'){
                 let idx=parseInt(ev.dataTransfer.getData('search-index'));
                 let targetList=(currentSearchType==='deck')?virtualDeck:(currentSearchType==='noise'?volNoiseCards:trashCards);
-                let cardObj=targetList.splice(idx,1)[0];
-                createGameCardToHand(cardObj.name,cardObj.imagePath);
+                let cardObj=targetList.splice(idx,1)[0]; createGameCardToHand(cardObj.name,cardObj.imagePath);
                 let genCard=document.getElementById(`card-id-${cardIdCounter-1}`);
                 if(genCard){executeCardPlacement(genCard,ev.currentTarget,layerNum);}
                 document.getElementById('deckCount').innerText=virtualDeck.length;document.getElementById('volNoiseCount').innerText=volNoiseCards.length;updateTrashUI();renderSearchList();return;
+            }
+            if(dataText==='trash-zone-drag' && trashCards.length>0){
+                let cardObj=trashCards.pop(); createGameCardToHand(cardObj.name,cardObj.imagePath);
+                let genCard=document.getElementById(`card-id-${cardIdCounter-1}`);
+                if(genCard){executeCardPlacement(genCard,ev.currentTarget,layerNum);}
+                updateTrashUI();return;
             }
             if(dataText){let r=document.getElementById(dataText);r&&executeCardPlacement(r,ev.currentTarget,layerNum);}
         }
@@ -219,11 +237,18 @@
                 let idx=parseInt(ev.dataTransfer.getData('search-index'));
                 let targetList=(currentSearchType==='deck')?virtualDeck:(currentSearchType==='noise'?volNoiseCards:trashCards);
                 if(0===ev.currentTarget.children.length){
-                    let cardObj=targetList.splice(idx,1)[0];
-                    createGameCardToHand(cardObj.name,cardObj.imagePath);
+                    let cardObj=targetList.splice(idx,1)[0]; createGameCardToHand(cardObj.name,cardObj.imagePath);
                     let genCard=document.getElementById(`card-id-${cardIdCounter-1}`);
                     if(genCard){ev.currentTarget.appendChild(genCard);}
                     document.getElementById('deckCount').innerText=virtualDeck.length;document.getElementById('volNoiseCount').innerText=volNoiseCards.length;updateTrashUI();renderSearchList();
+                }
+                return;
+            }
+            if(dataText==='trash-zone-drag' && trashCards.length>0){
+                if(0===ev.currentTarget.children.length){
+                    let cardObj=trashCards.pop(); createGameCardToHand(cardObj.name,cardObj.imagePath);
+                    let genCard=document.getElementById(`card-id-${cardIdCounter-1}`);
+                    if(genCard){ev.currentTarget.appendChild(genCard);} updateTrashUI();
                 }
                 return;
             }
@@ -235,9 +260,10 @@
             if('search-drag'===dataText){
                 let idx=parseInt(ev.dataTransfer.getData('search-index'));
                 let targetList=(currentSearchType==='deck')?virtualDeck:(currentSearchType==='noise'?volNoiseCards:trashCards);
-                let cardObj=targetList.splice(idx,1)[0];
-                createGameCardToHand(cardObj.name,cardObj.imagePath);
+                let cardObj=targetList.splice(idx,1)[0]; createGameCardToHand(cardObj.name,cardObj.imagePath);
                 document.getElementById('deckCount').innerText=virtualDeck.length;document.getElementById('volNoiseCount').innerText=volNoiseCards.length;updateTrashUI();renderSearchList();
+            }else if(dataText==='trash-zone-drag' && trashCards.length>0){
+                let cardObj=trashCards.pop(); createGameCardToHand(cardObj.name,cardObj.imagePath); updateTrashUI();
             }else if(dataText){let a=document.getElementById(dataText);a&&document.getElementById('handArea').appendChild(a);}
         }
         function dropToTrash(ev){
@@ -246,22 +272,29 @@
             if('search-drag'===dataText){
                 let idx=parseInt(ev.dataTransfer.getData('search-index'));
                 let targetList=(currentSearchType==='deck')?virtualDeck:(currentSearchType==='noise'?volNoiseCards:trashCards);
-                let cardObj=targetList.splice(idx,1)[0];
-                trashCards.push({name:cardObj.name,imagePath:cardObj.imagePath});
+                let cardObj=targetList.splice(idx,1)[0]; trashCards.push({name:cardObj.name,imagePath:cardObj.imagePath});
                 document.getElementById('deckCount').innerText=virtualDeck.length;document.getElementById('volNoiseCount').innerText=volNoiseCards.length;updateTrashUI();renderSearchList();
-            }else if(dataText){let a=document.getElementById(dataText);a&&(trashCards.push({name:a.getAttribute('data-cardname'),imagePath:a.getAttribute('data-imagepath')}),updateTrashUI(),a.remove());}
+            }else if(dataText && dataText!=='trash-zone-drag'){let a=document.getElementById(dataText);a&&(trashCards.push({name:a.getAttribute('data-cardname'),imagePath:a.getAttribute('data-imagepath')}),updateTrashUI(),a.remove());}
         }
         function dropToVolNoise(ev){
             ev.preventDefault();ev.currentTarget.classList.remove('drag-over');
             let dataText=ev.dataTransfer.getData('text/plain');
+            if(dataText==='trash-zone-drag' && trashCards.length>0){
+                let cardObj=trashCards.pop(); volNoiseCards.push({name:cardObj.name,imagePath:cardObj.imagePath});
+                document.getElementById('volNoiseCount').innerText=volNoiseCards.length;updateTrashUI();return;
+            }
             if(dataText){let a=document.getElementById(dataText);a&&(volNoiseCards.push({name:a.getAttribute('data-cardname'),imagePath:a.getAttribute('data-imagepath')}),document.getElementById('volNoiseCount').innerText=volNoiseCards.length,a.remove());}
         }
         function dropToDeckZone(ev){
             ev.preventDefault();ev.currentTarget.classList.remove('drag-over');
             let dataText=ev.dataTransfer.getData('text/plain');
+            if(dataText && dataText==='trash-zone-drag' && trashCards.length>0){
+                let cardObj=trashCards.pop(); pendingActionData = { name: cardObj.name, imagePath: cardObj.imagePath, elementId: null, fromHand: false };
+                updateTrashUI(); openActionMenu(`カード「${cardObj.name}」の戻し先`, [{label:"山札の一番上に戻す", value:"top"}, {label:"山札の一番下に戻す", value:"bottom"}], handleDeckReturnChoice);
+                return;
+            }
             if(dataText&&'search-drag'!==dataText){
-                let a=document.getElementById(dataText);
-                if(a){
+                let a=document.getElementById(dataText); if(a){
                     let cName=a.getAttribute('data-cardname'),imgP=a.getAttribute('data-imagepath');
                     pendingActionData = { name: cName, imagePath: imgP, elementId: a.id, fromHand: true };
                     openActionMenu(`カード「${cName}」の戻し先`, [{label:"山札の一番上に戻す", value:"top"}, {label:"山札の一番下に戻す", value:"bottom"}], handleDeckReturnChoice);
@@ -293,20 +326,16 @@
                         pendingActionData = { name: cardData.name, imagePath: cardData.imagePath, index: n, list: a };
                         openActionMenu(`トラッシュ：${cardData.name}`, [{label:"手札に加える", value:"hand"},{label:"山札の一番上に戻す", value:"top"},{label:"山札の一番下に戻す", value:"bottom"}], handleTrashChoice);
                     } else { let cut=a.splice(n,1)[0]; createGameCardToHand(cut.name,cut.imagePath); document.getElementById('deckCount').innerText=virtualDeck.length;document.getElementById('volNoiseCount').innerText=volNoiseCards.length;updateTrashUI();renderSearchList(); }
-                };
-                e.appendChild(r);
+                }; e.appendChild(r);
             });
         }
         function handleTrashChoice(value) {
             if(!pendingActionData) return;
-            let idx = pendingActionData.index, list = pendingActionData.list;
-            let cut = list.splice(idx,1)[0];
-            let letters = cut.name.toUpperCase(), suff = letters.slice(-1);
+            let idx = pendingActionData.index, list = pendingActionData.list; let cut = list.splice(idx,1)[0]; let letters = cut.name.toUpperCase(), suff = letters.slice(-1);
             if(value === "hand") { createGameCardToHand(cut.name, cut.imagePath); }
             else if(value === "top") { virtualDeck.unshift({name:cut.name, suffix:suff, imagePath:cut.imagePath}); }
             else if(value === "bottom") { virtualDeck.push({name:cut.name, suffix:suff, imagePath:cut.imagePath}); }
-            document.getElementById('deckCount').innerText=virtualDeck.length;document.getElementById('volNoiseCount').innerText=volNoiseCards.length;updateTrashUI();
-            closeActionMenu(); renderSearchList();
+            document.getElementById('deckCount').innerText=virtualDeck.length;document.getElementById('volNoiseCount').innerText=volNoiseCards.length;updateTrashUI(); closeActionMenu(); renderSearchList();
         }
         function handleOverlayClick(t){if(t.target.id==="searchOverlay"||t.target.id==="searchCardGrid"){closeSearchModal();}}
         function closeSearchModal(){let t=(currentSearchType==='deck')?virtualDeck:(currentSearchType==='noise'?volNoiseCards:trashCards);if(t.length>0&&currentSearchType!=='trash'){for(let e=t.length-1;e>0;e--){let a=Math.floor(Math.random()*(e+1));[t[e],t[a]]=[t[a],t[e]];}if('deck'===currentSearchType)alert('サーチを終了したため、山札を自動シャッフルしました。');else alert('サーチを終了したため、VOLノイズエリアを自動シャッフルしました。');}isSearchOpen=false;document.getElementById('searchOverlay').style.display='none';}
