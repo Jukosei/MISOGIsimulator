@@ -226,11 +226,12 @@
         }
         function handleTrashChoice(value) {
             if(!pendingActionData) return;
-            let cName = pendingActionData.name, imgP = pendingActionData.imagePath, idx = pendingActionData.index, list = pendingActionData.list;
-            let letters = cName.toUpperCase(), suff = letters.slice(-1);
-            if(value === "hand") { let cut=list.splice(idx,1)[0]; createGameCardToHand(cut.name, cut.imagePath); }
-            else if(value === "top") { let cut=list.splice(idx,1)[0]; virtualDeck.unshift({name:cut.name, suffix:suff, imagePath:cut.imagePath}); }
-            else if(value === "bottom") { let cut=list.splice(idx,1)[0]; virtualDeck.push({name:cut.name, suffix:suff, imagePath:cut.imagePath}); }
+            let idx = pendingActionData.index, list = pendingActionData.list;
+            let cut = list.splice(idx,1)[0];
+            let letters = cut.name.toUpperCase(), suff = letters.slice(-1);
+            if(value === "hand") { createGameCardToHand(cut.name, cut.imagePath); }
+            else if(value === "top") { virtualDeck.unshift({name:cut.name, suffix:suff, imagePath:cut.imagePath}); }
+            else if(value === "bottom") { virtualDeck.push({name:cut.name, suffix:suff, imagePath:cut.imagePath}); }
             document.getElementById('deckCount').innerText=virtualDeck.length;document.getElementById('volNoiseCount').innerText=volNoiseCards.length;updateTrashUI();
             closeActionMenu(); renderSearchList();
         }
@@ -241,7 +242,7 @@
         function clickChangeBtn(t){let e=document.getElementById(`change-btn-${t}`);if(null===selectedColumnIndex)selectedColumnIndex=t,e.classList.add('selecting');else if(selectedColumnIndex===t)e.classList.remove('selecting'),selectedColumnIndex=null;else {for(let a=1;a<=3;a++){let n=document.getElementById(`frame-${selectedColumnIndex}-${a}`),r=document.getElementById(`frame-${t}-${a}`),c=Array.from(n.children),o=Array.from(r.children);n.innerHTML="",r.innerHTML="",c.forEach(t=>r.appendChild(t)),o.forEach(e=>n.appendChild(e));}document.getElementById(`change-btn-${selectedColumnIndex}`).classList.remove('selecting'),selectedColumnIndex=null;}}
         function saveData(){localStorage.setItem('misogi_mode',currentMode);localStorage.setItem('misogi_deck1',document.getElementById('deckInput1').value);localStorage.setItem('misogi_deck2',document.getElementById('deckInput2').value);}
         function selectMode(t){currentMode=t;let e=document.getElementById('areaPlayer2');1===t?(document.getElementById('btn1Deck').classList.add('active'),document.getElementById('btn2Deck').classList.remove('active'),document.getElementById('areaPlayer1').querySelector('.label-text').innerText='デッキリストを入力してください',e.style.display='none'):(document.getElementById('btn1Deck').classList.remove('active'),document.getElementById('btn2Deck').classList.add('active'),document.getElementById('areaPlayer1').querySelector('.label-text').innerText='プレイヤー1のデッキ',e.style.display='flex');saveData();}
-        function clearInput(t){document.getElementById(`deckInput${t}`).value='';saveData();} function backToMenu(){document.getElementById('gameScreen').style.display='none';document.getElementById('menuScreen').style.display='flex';}
+        function clearInput(t){document.getElementById(`deckInput${t}`).value='';saveData();} function backToMenu(){document.getElementById('gameScreen').style.display='none';document.getElementById('menuScreen').style.flexDirection='column';document.getElementById('menuScreen').style.display='flex';}
         function changeCounter(t,e){counters[t]=Math.max(0,counters[t]+e);document.getElementById(`val-${t}`).innerText=counters[t];} function nextTurn(){turn++;document.getElementById('turnCount').innerText=turn;} function rollDice(){alert(`ダイスの出目: ${Math.floor(Math.random()*6)+1}`);} function triggerAction(t){alert(`「${t}」が実行されました`);}
     </script>
 </body>
