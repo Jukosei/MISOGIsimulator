@@ -68,8 +68,13 @@
         .search-card-grid { flex:1;overflow-y:auto;display:flex;flex-wrap:wrap;gap:14px;content-align:flex-start;padding:5px;pointer-events:auto; }
         .search-modal .game-card { cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,0.5); }
         .search-modal .game-card:hover { transform:scale(1.03);border-color:#fff; }
-        .context-menu-btn { background-color:#333;color:#fff;border:1px solid #555;padding:6px 12px;margin:4px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:bold; }
-        .context-menu-btn:hover { background-color:var(--btn-blue); }
+        .action-overlay { display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background-color:rgba(0,0,0,0.6);z-index:20000;justify-content:center;align-items:center; }
+        .action-box { background-color:#1e1e1e;border:2px solid #555;border-radius:8px;padding:25px;display:flex;flex-direction:column;gap:14px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,0.7);max-width:320px;width:80%; }
+        .action-title { font-size:16px;font-weight:bold;color:#fff;text-align:center;margin-bottom:6px;word-break:break-all; }
+        .action-btn { width:100%;background-color:#2a2a2a;color:#fff;border:1px solid #555;padding:12px;font-size:14px;font-weight:bold;border-radius:6px;cursor:pointer;text-align:center; }
+        .action-btn:hover { background-color:var(--btn-blue);border-color:var(--btn-blue); }
+        .action-btn.cancel { background-color:#444;margin-top:6px; }
+        .action-btn.cancel:hover { background-color:var(--btn-red);border-color:var(--btn-red); }
     </style>
 </head>
 <body>
@@ -123,8 +128,16 @@
         </div>
     </div>
     <div class="search-overlay" id="searchOverlay" onclick="handleOverlayClick(event)" ondragover="allowDrop(event)" ondrop="dropReturnToSearch(event)"><div class="search-modal" id="searchModalEl" ondragover="allowDrop(event)" ondrop="dropReturnToSearch(event)"><div class="search-modal-header"><div class="search-modal-title" id="searchModalTitle">カードをサーチ</div><button class="search-modal-close" onclick="closeSearchModal()">×</button></div><div class="search-card-grid" id="searchCardGrid" ondragover="allowDrop(event)" ondrop="dropReturnToSearch(event)"></div></div></div>
+    
+    <div class="action-overlay" id="actionOverlay">
+        <div class="action-box" id="actionBoxEl">
+            <div class="action-title" id="actionMenuTitle">カードの移動先</div>
+            <div id="actionButtonsContainer" style="width:100%; display:flex; flex-direction:column; gap:8px;"></div>
+            <button class="action-btn cancel" onclick="closeActionMenu()">キャンセル</button>
+        </div>
+    </div>
     <script>
-        let currentMode=2,turn=1,counters={vol:0,alpha:0,beta:0,omega:0},selectedColumnIndex=null,cardIdCounter=0,virtualDeck=[],dragTarget=null,startX=0,startY=0,volNoiseCards=[],trashCards=[],currentSearchType="",isSearchOpen=false;
+        let currentMode=2,turn=1,counters={vol:0,alpha:0,beta:0,omega:0},selectedColumnIndex=null,cardIdCounter=0,virtualDeck=[],dragTarget=null,startX=0,startY=0,volNoiseCards=[],trashCards=[],currentSearchType="",isSearchOpen=false,pendingActionData=null;
         window.onload=function(){document.getElementById('deckInput1').value=localStorage.getItem('misogi_deck1')||"GA-13/GA-13/DA-34/DA-34/DA-34/HA-11/HA-1/HA-1/HA-2/HA-2/HA-2/JS-40/PS-39/HS-1/HS-1/HS-1/JS-27/JS-27/JS-27/JS-27/AS-4/AS-4/DS-38/DS-38/GS-40/GS-40/GS-38/GS-40/GS-40/GS-";document.getElementById('deckInput2').value=localStorage.getItem('misogi_deck2')||"GA-13/GA-13/DA-34/DA-34";selectMode(parseInt(localStorage.getItem('misogi_mode'))||2);};
         function startGame(){
             let t=document.getElementById('deckInput1').value,e=t.split(/[\/\s\n,]+/).map(t=>t.trim()).filter(t=>t.length>0);if(0===e.length)return void alert('デッキコードが入力されていません！');
@@ -134,11 +147,26 @@
         function createGameCardToHand(t,e){let a=document.getElementById('handArea'),n=document.createElement('div');n.className='game-card';n.id=`card-id-${cardIdCounter++}`;n.innerText=t;n.style.backgroundImage=`url('${e}')`;n.setAttribute('draggable','true');n.setAttribute('data-cardname',t);n.setAttribute('data-imagepath',e);n.ondragstart=function(t){event.dataTransfer.setData('text/plain',event.target.id);if(isSearchOpen)document.getElementById('searchOverlay').classList.add('dragging-mode');};n.ondragend=function(t){document.getElementById('searchOverlay').classList.remove('dragging-mode');};n.oncontextmenu=function(t){if(isSearchOpen){t.preventDefault();returnCardFromHand(n);}};n.addEventListener('touchstart',touchStartCard,{passive:false});n.addEventListener('touchmove',touchMoveCard,{passive:false});n.addEventListener('touchend',touchEndCard,{passive:false});a.appendChild(n);}
         function touchStartCard(t){t.preventDefault();dragTarget=t.currentTarget;let e=t.touches,a=dragTarget.getBoundingClientRect();startX=e.clientX-a.left;startY=e.clientY-a.top;dragTarget.classList.add('dragging');dragTarget.style.left=e.clientX-startX+'px';dragTarget.style.top=e.clientY-startY+'px';if(isSearchOpen)document.getElementById('searchOverlay').classList.add('dragging-mode');}
         function touchMoveCard(t){if(dragTarget){t.preventDefault();let e=t.touches;dragTarget.style.left=e.clientX-startX+'px';dragTarget.style.top=e.clientY-startY+'px';}}
+        function openActionMenu(title, options, callback) {
+            document.getElementById('actionMenuTitle').innerText = title;
+            let container = document.getElementById('actionButtonsContainer'); container.innerHTML = "";
+            options.forEach(opt => {
+                let btn = document.createElement('button'); btn.className = 'action-btn'; btn.innerText = opt.label;
+                btn.onclick = function() { callback(opt.value); closeActionMenu(); }; container.appendChild(btn);
+            });
+            document.getElementById('actionOverlay').style.display = 'flex';
+        }
+        function closeActionMenu() { document.getElementById('actionOverlay').style.display = 'none'; pendingActionData = null; }
         function touchEndCard(t){
             if(!dragTarget)return;t.preventDefault();let e=t.changedTouches;dragTarget.style.display='none';if(isSearchOpen)document.getElementById('searchOverlay').classList.remove('dragging-mode');let a=document.elementFromPoint(e.clientX,e.clientY);dragTarget.style.display='';dragTarget.classList.remove('dragging');dragTarget.style.left='';dragTarget.style.top='';
             if(a){
                 let mBox=a.closest('#searchModalEl')||a.closest('#searchOverlay');if(isSearchOpen&&mBox)return returnCardFromHand(dragTarget),void(dragTarget=null);
-                if(a.closest('.deck-zone')){let cName=dragTarget.getAttribute('data-cardname'),imgP=dragTarget.getAttribute('data-imagepath');let choice=confirm(`カード「${cName}」を山札に戻します。\n\n【OK】= 山札の一番上に戻す\n【キャンセル】= 山札の一番下に戻す`);let letters=cName.toUpperCase(),r=letters.slice(-1);if(choice){virtualDeck.unshift({name:cName,suffix:r,imagePath:imgP});alert('山札の一番上に戻しました。');}else{virtualDeck.push({name:cName,suffix:r,imagePath:imgP});alert('山札の一番下に戻しました。');}document.getElementById('deckCount').innerText=virtualDeck.length;dragTarget.remove();dragTarget=null;return;}
+                if(a.closest('.deck-zone')){
+                    let cName=dragTarget.getAttribute('data-cardname'),imgP=dragTarget.getAttribute('data-imagepath');
+                    pendingActionData = { name: cName, imagePath: imgP, elementId: dragTarget.id, fromHand: true };
+                    openActionMenu(`カード「${cName}」の戻し先`, [{label:"山札の一番上に戻す", value:"top"}, {label:"山札の一番下に戻す", value:"bottom"}], handleDeckReturnChoice);
+                    dragTarget=null;return;
+                }
                 let n=a.closest('.frame-layer');if(n&&n.hasAttribute('data-layer'))return executeCardPlacement(dragTarget,n,parseInt(n.getAttribute('data-layer'))),void(dragTarget=null);
                 let r=a.closest('.direction-placeholder');if(r&&0===r.children.length)return r.appendChild(dragTarget),void(dragTarget=null);
                 if(a.closest('.hand-area'))return document.getElementById('handArea').appendChild(dragTarget),void(dragTarget=null);
@@ -147,6 +175,18 @@
             }
             dragTarget=null;
         }
+        function handleDeckReturnChoice(value) {
+            if(!pendingActionData) return;
+            let cName = pendingActionData.name, imgP = pendingActionData.imagePath;
+            let letters = cName.toUpperCase(), r = letters.slice(-1);
+            if(value === "top") { virtualDeck.unshift({name:cName, suffix:r, imagePath:imgP}); alert('山札の一番上に戻しました。'); }
+            else if(value === "bottom") { virtualDeck.push({name:cName, suffix:r, imagePath:imgP}); alert('山札の一番下に戻しました。'); }
+            document.getElementById('deckCount').innerText = virtualDeck.length;
+            if(pendingActionData.fromHand && pendingActionData.elementId) {
+                let el = document.getElementById(pendingActionData.elementId); if(el) el.remove();
+            }
+            closeActionMenu();
+        }
         function allowDrop(t){t.preventDefault();t.currentTarget.classList.add('drag-over');} function dragLeave(t){t.currentTarget.classList.remove('drag-over');}
         function dropToSpecificFrame(t,e,a){t.preventDefault();t.stopPropagation();t.currentTarget.classList.remove('drag-over');let n=t.dataTransfer.getData('text/plain');if(n){let r=document.getElementById(n);r&&executeCardPlacement(r,t.currentTarget,a);}}
         function executeCardPlacement(t,e,a){let n=e.children.length;3===a?n<2?e.appendChild(t):alert('紫色の枠にはこれ以上重ねられません！'):0===n?e.appendChild(t):alert('この枠には既にカードがあります！');}
@@ -154,11 +194,11 @@
         function dropToHand(t){t.preventDefault();t.currentTarget.classList.remove('drag-over');let e=t.dataTransfer.getData('text/plain');if('search-drag'===e){let idx=parseInt(t.dataTransfer.getData('search-index')),targetList=(currentSearchType==='deck')?virtualDeck:(currentSearchType==='noise'?volNoiseCards:trashCards),n=targetList.splice(idx,1);createGameCardToHand(n.name,n.imagePath);document.getElementById('deckCount').innerText=virtualDeck.length;document.getElementById('volNoiseCount').innerText=volNoiseCards.length;document.getElementById('trashCount').innerText=trashCards.length;renderSearchList();}else if(e){let a=document.getElementById(e);a&&document.getElementById('handArea').appendChild(a);}}
         function dropToTrash(t){t.preventDefault();t.currentTarget.classList.remove('drag-over');let e=t.dataTransfer.getData('text/plain');if('search-drag'===e){let idx=parseInt(t.dataTransfer.getData('search-index')),targetList=(currentSearchType==='deck')?virtualDeck:(currentSearchType==='noise'?volNoiseCards:trashCards),n=targetList.splice(idx,1);trashCards.push({name:n.name,imagePath:n.imagePath});document.getElementById('deckCount').innerText=virtualDeck.length;document.getElementById('volNoiseCount').innerText=volNoiseCards.length;document.getElementById('trashCount').innerText=trashCards.length;renderSearchList();}else if(e){let a=document.getElementById(e);a&&(trashCards.push({name:a.getAttribute('data-cardname'),imagePath:a.getAttribute('data-imagepath')}),document.getElementById('trashCount').innerText=trashCards.length,a.remove());}}
         function dropToVolNoise(t){t.preventDefault();t.currentTarget.classList.remove('drag-over');let e=t.dataTransfer.getData('text/plain');if(e){let a=document.getElementById(e);a&&(volNoiseCards.push({name:a.getAttribute('data-cardname'),imagePath:a.getAttribute('data-imagepath')}),document.getElementById('volNoiseCount').innerText=volNoiseCards.length,a.remove());}}
-        function dropToDeckZone(t){t.preventDefault();t.currentTarget.classList.remove('drag-over');let e=t.dataTransfer.getData('text/plain');if(e&&'search-drag'!==e){let a=document.getElementById(e);if(a){let cName=a.getAttribute('data-cardname'),imgP=a.getAttribute('data-imagepath');let choice=confirm(`カード「${cName}」を山札に戻します。\n\n【OK】= 山札の一番上に戻す\n【キャンセル】= 山札の一番下に戻す`);let letters=cName.toUpperCase(),r=letters.slice(-1);if(choice){virtualDeck.unshift({name:cName,suffix:r,imagePath:imgP});}else{virtualDeck.push({name:cName,suffix:r,imagePath:imgP});}document.getElementById('deckCount').innerText=virtualDeck.length;a.remove();}}}
+        function dropToDeckZone(t){t.preventDefault();t.currentTarget.classList.remove('drag-over');let e=t.dataTransfer.getData('text/plain');if(e&&'search-drag'!==e){let a=document.getElementById(e);if(a){let cName=a.getAttribute('data-cardname'),imgP=a.getAttribute('data-imagepath');pendingActionData = { name: cName, imagePath: imgP, elementId: a.id, fromHand: true };openActionMenu(`カード「${cName}」の戻し先`, [{label:"山札の一番上に戻す", value:"top"}, {label:"山札の一番下に戻す", value:"bottom"}], handleDeckReturnChoice);}}}
         function drawCard(){if(virtualDeck.length>0){let t=virtualDeck.shift();document.getElementById('deckCount').innerText=virtualDeck.length;createGameCardToHand(t.name,t.imagePath);}else alert('山札がなくなりました！');}
         function shuffleDeckBtn(){if(0===virtualDeck.length)return void alert('山札が空のためシャッフルできません。');for(let t=virtualDeck.length-1; t>0; t--){let e=Math.floor(Math.random()*(t+1));[virtualDeck[t],virtualDeck[e]]=[virtualDeck[e],virtualDeck[t]];}alert('山札をシャッフルしました！');}
-        function trashAllHandBtn(){let t=document.getElementById('handArea'),e=t.children.length;if(0===e)return void alert('手札がありません。');Array.from(t.children).forEach(a=>{trashCards.push({name:a.getAttribute('data-cardname'),imagePath:a.getAttribute('data-imagepath')});});t.innerHTML="";document.getElementById('trashCount').innerText=trashCards.length;}
-        function mulliganBtn(){let t=document.getElementById('handArea'),e=t.children.length;Array.from(t.children).forEach(a=>{trashCards.push({name:a.getAttribute('data-cardname'),imagePath:a.getAttribute('data-imagepath')});});t.innerHTML="";document.getElementById('trashCount').innerText=trashCards.length;for(let a=virtualDeck.length-1; a>0; a--){let n=Math.floor(Math.random()*(a+1));[virtualDeck[a],virtualDeck[n]]=[virtualDeck[n],virtualDeck[a]];}let r=Math.min(e,virtualDeck.length);for(let c=0; c<r; c++){let o=virtualDeck.shift();createGameCardToHand(o.name,o.imagePath);}document.getElementById('deckCount').innerText=virtualDeck.length;alert(`手札を引き直しました！（${r}枚ドロー）`);}
+        function trashAllHandBtn(){let t=document.getElementById('handArea'),e=t.children.length;if(0===e)return void alert('手札がありません。');let list=Array.from(t.children);list.forEach(a=>{trashCards.push({name:a.getAttribute('data-cardname'),imagePath:a.getAttribute('data-imagepath')});a.remove();});document.getElementById('trashCount').innerText=trashCards.length;}
+        function mulliganBtn(){let t=document.getElementById('handArea'),e=t.children.length;let list=Array.from(t.children);list.forEach(a=>{trashCards.push({name:a.getAttribute('data-cardname'),imagePath:a.getAttribute('data-imagepath')});a.remove();});document.getElementById('trashCount').innerText=trashCards.length;for(let a=virtualDeck.length-1; a>0; a--){let n=Math.floor(Math.random()*(a+1));[virtualDeck[a],virtualDeck[n]]=[virtualDeck[n],virtualDeck[a]];}let r=Math.min(e,virtualDeck.length);for(let c=0; c<r; c++){let o=virtualDeck.shift();createGameCardToHand(o.name,o.imagePath);}document.getElementById('deckCount').innerText=virtualDeck.length;alert(`手札を引き直しました！（${r}枚ドロー）`);}
         function resetGameBtn(){confirm('ゲーム状態を完全にリセットして山札を再構築しますか？')&&startGame();}
         function openSearchModal(t){currentSearchType=t;isSearchOpen=true;renderSearchList();document.getElementById('searchOverlay').style.display='flex';}
         function renderSearchList(){
@@ -183,38 +223,35 @@
                 r.addEventListener('touchmove',touchMoveCard,{passive:false});
                 r.onclick=function(ev){ev.stopPropagation();
                     if(currentSearchType==='trash'){
-                        let menuChoice=prompt(`カード「${cardData.name}」の移動先を選んでください。\n\n【1】= 手札に加える\n【2】= 山札の一番上に戻す\n【3】= 山札の一番下に戻す\n\n半角数字で入力してください。`);
-                        let letters=cardData.name.toUpperCase(),suff=letters.slice(-1);
-                        if("1"===menuChoice){createGameCardToHand(cardData.name,cardData.imagePath);a.splice(n,1);alert('手札に加えました。');}
-                        else if("2"===menuChoice){virtualDeck.unshift({name:cardData.name,suffix:suff,imagePath:cardData.imagePath});a.splice(n,1);alert('山札の一番上に戻しました。');}
-                        else if("3"===menuChoice){virtualDeck.push({name:cardData.name,suffix:suff,imagePath:cardData.imagePath});a.splice(n,1);alert('山札の一番下に戻しました。');}
-                    } else { createGameCardToHand(cardData.name,cardData.imagePath); a.splice(n,1); }
-                    document.getElementById('deckCount').innerText=virtualDeck.length;document.getElementById('volNoiseCount').innerText=volNoiseCards.length;document.getElementById('trashCount').innerText=trashCards.length;renderSearchList();
+                        pendingActionData = { name: cardData.name, imagePath: cardData.imagePath, index: n, list: a };
+                        openActionMenu(`トラッシュ：${cardData.name}`, [
+                            {label:"手札に加える", value:"hand"},
+                            {label:"山札の一番上に戻す", value:"top"},
+                            {label:"山札の一番下に戻す", value:"bottom"}
+                        ], handleTrashChoice);
+                    } else { createGameCardToHand(cardData.name,cardData.imagePath); a.splice(n,1); document.getElementById('deckCount').innerText=virtualDeck.length;document.getElementById('volNoiseCount').innerText=volNoiseCards.length;document.getElementById('trashCount').innerText=trashCards.length;renderSearchList(); }
                 };
                 e.appendChild(r);
             });
         }
+        function handleTrashChoice(value) {
+            if(!pendingActionData) return;
+            let cName = pendingActionData.name, imgP = pendingActionData.imagePath, idx = pendingActionData.index, list = pendingActionData.list;
+            let letters = cName.toUpperCase(), suff = letters.slice(-1);
+            if(value === "hand") { createGameCardToHand(cName, imgP); list.splice(idx,1); alert('手札に加えました。'); }
+            else if(value === "top") { virtualDeck.unshift({name:cName, suffix:suff, imagePath:imgP}); list.splice(idx,1); alert('山札の一番上に戻しました。'); }
+            else if(value === "bottom") { virtualDeck.push({name:cName, suffix:suff, imagePath:imgP}); list.splice(idx,1); alert('山札の一番下に戻しました。'); }
+            document.getElementById('deckCount').innerText=virtualDeck.length;document.getElementById('volNoiseCount').innerText=volNoiseCards.length;document.getElementById('trashCount').innerText=trashCards.length;
+            closeActionMenu(); renderSearchList();
+        }
         function handleOverlayClick(t){if(t.target.id==="searchOverlay"||t.target.id==="searchCardGrid"){closeSearchModal();}}
-        function closeSearchModal(){
-            let t=(currentSearchType==='deck')?virtualDeck:(currentSearchType==='noise'?volNoiseCards:trashCards);
-            if(t.length>0 && currentSearchType!=='trash'){
-                for(let e=t.length-1; e>0; e--){let a=Math.floor(Math.random()*(e+1));[t[e], t[a]]=[t[a], t[e]];}
-                if('deck'===currentSearchType)alert('サーチを終了したため、山札を自動シャッフルしました。');else alert('サーチを終了したため、VOLノイズエリアを自動シャッフルしました。');
-            }
-            isSearchOpen=false;document.getElementById('searchOverlay').style.display='none';
-        }
-        function dropReturnToSearch(t){t.preventDefault();document.getElementById('searchOverlay').classList.remove('dragging-mode');let e=t.dataTransfer.getData('text/plain');if(e&&'search-drag'!== e){let a=document.getElementById(e);a&&returnCardFromHand(a);}}
-        function returnCardFromHand(t){
-            let e=t.getAttribute('data-cardname'),a=t.getAttribute('data-imagepath'),letters=e.toUpperCase(),r=letters.slice(-1);
-            if(currentSearchType==='deck'){virtualDeck.push({name:e,suffix:r,imagePath:a});document.getElementById('deckCount').innerText=virtualDeck.length;}
-            else if(currentSearchType==='noise'){volNoiseCards.push({name:e,imagePath:a});document.getElementById('volNoiseCount').innerText=volNoiseCards.length;}
-            else{trashCards.push({name:e,imagePath:a});document.getElementById('trashCount').innerText=trashCards.length;}
-            t.remove();renderSearchList();
-        }
-        function clickChangeBtn(t){let e=document.getElementById(`change-btn-${t}`);if(null===selectedColumnIndex)selectedColumnIndex=t,e.classList.add('selecting');else if(selectedColumnIndex===t)e.classList.remove('selecting'),selectedColumnIndex=null;else {for(let a=1; a<=3; a++){let n=document.getElementById(`frame-${selectedColumnIndex}-${a}`),r=document.getElementById(`frame-${t}-${a}`),c=Array.from(n.children),o=Array.from(r.children);n.innerHTML="",r.innerHTML="",c.forEach(t=>r.appendChild(t)),o.forEach(e=>n.appendChild(e));}document.getElementById(`change-btn-${selectedColumnIndex}`).classList.remove('selecting'),selectedColumnIndex=null;}}
+        function closeSearchModal(){let t=(currentSearchType==='deck')?virtualDeck:(currentSearchType==='noise'?volNoiseCards:trashCards);if(t.length>0&&currentSearchType!=='trash'){for(let e=t.length-1;e>0;e--){let a=Math.floor(Math.random()*(e+1));[t[e],t[a]]=[t[a],t[e]];}if('deck'===currentSearchType)alert('サーチを終了したため、山札を自動シャッフルしました。');else alert('サーチを終了したため、VOLノイズエリアを自動シャッフルしました。');}isSearchOpen=false;document.getElementById('searchOverlay').style.display='none';}
+        function dropReturnToSearch(t){t.preventDefault();document.getElementById('searchOverlay').classList.remove('dragging-mode');let e=t.dataTransfer.getData('text/plain');if(e&&'search-drag'!==e){let a=document.getElementById(e);a&&returnCardFromHand(a);}}
+        function returnCardFromHand(t){let e=t.getAttribute('data-cardname'),a=t.getAttribute('data-imagepath'),letters=e.toUpperCase(),r=letters.slice(-1);if(currentSearchType==='deck'){virtualDeck.push({name:e,suffix:r,imagePath:a});document.getElementById('deckCount').innerText=virtualDeck.length;}else if(currentSearchType==='noise'){volNoiseCards.push({name:e,imagePath:a});document.getElementById('volNoiseCount').innerText=volNoiseCards.length;}else{trashCards.push({name:e,imagePath:a});document.getElementById('trashCount').innerText=trashCards.length;}t.remove();renderSearchList();}
+        function clickChangeBtn(t){let e=document.getElementById(`change-btn-${t}`);if(null===selectedColumnIndex)selectedColumnIndex=t,e.classList.add('selecting');else if(selectedColumnIndex===t)e.classList.remove('selecting'),selectedColumnIndex=null;else {for(let a=1;a<=3;a++){let n=document.getElementById(`frame-${selectedColumnIndex}-${a}`),r=document.getElementById(`frame-${t}-${a}`),c=Array.from(n.children),o=Array.from(r.children);n.innerHTML="",r.innerHTML="",c.forEach(t=>r.appendChild(t)),o.forEach(e=>n.appendChild(e));}document.getElementById(`change-btn-${selectedColumnIndex}`).classList.remove('selecting'),selectedColumnIndex=null;}}
         function saveData(){localStorage.setItem('misogi_mode',currentMode);localStorage.setItem('misogi_deck1',document.getElementById('deckInput1').value);localStorage.setItem('misogi_deck2',document.getElementById('deckInput2').value);}
         function selectMode(t){currentMode=t;let e=document.getElementById('areaPlayer2');1===t?(document.getElementById('btn1Deck').classList.add('active'),document.getElementById('btn2Deck').classList.remove('active'),document.getElementById('areaPlayer1').querySelector('.label-text').innerText='デッキリストを入力してください',e.style.display='none'):(document.getElementById('btn1Deck').classList.remove('active'),document.getElementById('btn2Deck').classList.add('active'),document.getElementById('areaPlayer1').querySelector('.label-text').innerText='プレイヤー1のデッキ',e.style.display='flex');saveData();}
-        function clearInput(t){document.getElementById(`deckInput${t}`).value='';saveData();} function backToMenu(){document.getElementById('gameScreen').style.display='none'; document.getElementById('menuScreen').style.display='flex';}
+        function clearInput(t){document.getElementById(`deckInput${t}`).value='';saveData();} function backToMenu(){document.getElementById('gameScreen').style.display='none';document.getElementById('menuScreen').style.display='flex';}
         function changeCounter(t,e){counters[t]=Math.max(0,counters[t]+e);document.getElementById(`val-${t}`).innerText=counters[t];} function nextTurn(){turn++;document.getElementById('turnCount').innerText=turn;} function rollDice(){alert(`ダイスの出目: ${Math.floor(Math.random()*6)+1}`);} function triggerAction(t){alert(`「${t}」が実行されました`);}
     </script>
 </body>
