@@ -842,43 +842,92 @@
             setupDeckAreaEvents();
         };
 
-        // --- 山札のドラッグ＆ドロップイベント設定 ---
-        function dragStartDeck(ev) {
+        // --- 1. 山札ドラッグ開始（追従画像を透明化して見えないようにする） ---
+function dragStartDeck(ev) {
     if (virtualDeck.length === 0) {
         ev.preventDefault();
         return;
     }
 
-    // 1. データ識別子をセット
+    // データ識別子をセット
     ev.dataTransfer.setData('text/plain', 'deck-zone-drag');
     if (isSearchOpen) document.getElementById('searchOverlay').classList.add('dragging-mode');
 
-    // 2. 山札の一番上のカード情報を取り出す
-    let topCard = virtualDeck[0];
+    // 完全透明なダミー要素を作成してドラッグ画像に指定
+    let blankImage = document.createElement('div');
+    blankImage.style.width = '1px';
+    blankImage.style.height = '1px';
+    blankImage.style.opacity = '0';
+    document.body.appendChild(blankImage);
 
-    // 3. ドラッグ追従用の要素を一時作成
-    let dragImage = document.createElement('div');
-    dragImage.className = 'game-card';
-    dragImage.style.position = 'absolute';
-    dragImage.style.top = '-9999px'; // 画面外に配置
-    dragImage.style.width = '70px';   // 手札カードと同じ幅
-    dragImage.style.height = '100px'; // 手札カードと同じ高さ
-    dragImage.style.backgroundImage = `url('${topCard.imagePath}')`;
-    dragImage.style.backgroundSize = 'cover';
-    dragImage.style.borderRadius = '6px';
-    dragImage.innerText = topCard.name;
+    // ドラッグ中の見た目を非表示にする
+    ev.dataTransfer.setDragImage(blankImage, 0, 0);
 
-    document.body.appendChild(dragImage);
-
-    // 4. ブラウザのドラッグ画像として指定（位置合わせは中央付近）
-    ev.dataTransfer.setDragImage(dragImage, 35, 50);
-
-    // 5. ドラッグ終了後に一時要素を削除
     setTimeout(() => {
-        document.body.removeChild(dragImage);
+        if (blankImage.parentNode) {
+            document.body.removeChild(blankImage);
+        }
     }, 0);
 }
 
+// --- 2. フィールド枠（.frame-layer）へのドロップ処理 ---
+function dropToSpecificFrame(ev, colIndex, layerNum) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    ev.currentTarget.classList.remove('drag-over');
+    let dataText = ev.dataTransfer.getData('text/plain');
+
+    // 山札からフィールド枠へ置く処理
+    if (dataText === 'deck-zone-drag' && virtualDeck.length > 0) {
+        let topCard = virtualDeck.shift(); // 先頭カードを取得
+        document.getElementById('deckCount').innerText = virtualDeck.length;
+        
+        // 手札用要素を作成したうえで、対象の枠へ配置
+        createGameCardToHand(topCard.name, topCard.imagePath);
+        let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
+        if (genCard) {
+            executeCardPlacement(genCard, ev.currentTarget, layerNum);
+        }
+        return;
+    }
+
+    // トラッシュエリアから枠へ置く処理
+    if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
+        let cardObj = trashCards.pop();
+        createGameCardToHand(cardObj.name, cardObj.imagePath);
+        let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
+        if (genCard) {
+            executeCardPlacement(genCard, ev.currentTarget, layerNum);
+        }
+        updateTrashUI();
+        return;
+    }
+
+    // サーチ画面から枠へ置く処理
+    if (dataText === 'search-drag') {
+        let idx = parseInt(ev.dataTransfer.getData('search-index'));
+        let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
+        let cardObj = targetList.splice(idx, 1)[0];
+        createGameCardToHand(cardObj.name, cardObj.imagePath);
+        let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
+        if (genCard) {
+            executeCardPlacement(genCard, ev.currentTarget, layerNum);
+        }
+        document.getElementById('deckCount').innerText = virtualDeck.length;
+        document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+        updateTrashUI();
+        renderSearchList();
+        return;
+    }
+
+    // 通常の手札等からのドロップ処理
+    if (dataText) {
+        let r = document.getElementById(dataText);
+        if (r) {
+            executeCardPlacement(r, ev.currentTarget, layerNum);
+        }
+    }
+}
         // --- スマホ・タッチ操作用：山札の一番上のカードをドロップ先へ移動 ---
         function setupDeckAreaEvents() {
             let el = document.getElementById('deckZone');
