@@ -839,7 +839,6 @@
             document.getElementById('deckInput2').value = localStorage.getItem('misogi_deck2') || "GA-13/GA-13/DA-34/DA-34";
             selectMode(parseInt(localStorage.getItem('misogi_mode')) || 2);
             setupTrashAreaEvents();
-            setupDeckAreaEvents();
         };
             function dragStartDeck(ev) {
     if (!virtualDeck || virtualDeck.length === 0) {
