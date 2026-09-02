@@ -748,10 +748,10 @@
             <button class="control-btn" onclick="triggerAction('山札の下から1枚ドロー')">山札の下から1枚ドロー</button>
             <button class="control-btn gray" style="margin-top:10px;" onclick="backToMenu()">メニュー戻る</button>
 
-            <div class="deck-zone" draggable="true" id="deckZone" ondragstart="dragStartDeck(event)" ondragend="dragEndDeck(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDeckZone(event)" onclick="drawCard()">
-                <div class="deck-count" id="deckCount">0</div>
-                <div class="deck-label">山札 (クリックドロー/ドラッグ移動・戻し)</div>
-            </div>
+            <div class="deck-zone" draggable="true" id="deckZone" ondragstart="dragStartDeck(event)" ondragend="dragEndDeck(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDeck(event)">
+    <div class="count-display" id="deckCount">0</div>
+    <div class="zone-label">山札（クリックドロー/ドラッグ移動・戻し）</div>
+</div>
         </div>
 
         <div class="counter-panel">
@@ -1421,14 +1421,49 @@ function dropToSpecificFrame(ev, colIndex, layerNum) {
             closeActionMenu();
         }
 
-        function allowDrop(t) {
-            t.preventDefault();
-            t.currentTarget.classList.add('drag-over');
-        }
+        // ドラッグオーバー許可（自分自身（山札）からのドラッグ時はドロップを許可しない）
+function allowDrop(ev) {
+    ev.preventDefault();
+    ev.currentTarget.classList.add('drag-over');
+}
 
-        function dragLeave(t) {
-            t.currentTarget.classList.remove('drag-over');
+function dragLeave(ev) {
+    ev.currentTarget.classList.remove('drag-over');
+}
+
+// 山札エリアへのドロップ処理（他ゾーンから山札に戻す）
+function dropToDeck(ev) {
+    ev.preventDefault();
+    ev.currentTarget.classList.remove('drag-over');
+    
+    let dataText = ev.dataTransfer.getData('text/plain') || ev.dataTransfer.getData('text');
+
+    // 自分自身（山札）を自分にドロップした場合は何もしない
+    if (dataText === 'deck-zone-drag') {
+        return;
+    }
+
+    // トラッシュから山札の上に戻す
+    if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
+        let cardObj = trashCards.pop();
+        virtualDeck.unshift({ name: cardObj.name, imagePath: cardObj.imagePath }); // 山札の先頭（上）に追加
+        document.getElementById('deckCount').innerText = virtualDeck.length;
+        updateTrashUI();
+    } 
+    // 手札やフィールドの実体カードから山札の上に戻す
+    else if (dataText) {
+        let cardEl = document.getElementById(dataText);
+        if (cardEl) {
+            let name = cardEl.getAttribute('data-cardname');
+            let imagePath = cardEl.getAttribute('data-imagepath');
+            if (name && imagePath) {
+                virtualDeck.unshift({ name: name, imagePath: imagePath }); // 山札の先頭（上）に追加
+                document.getElementById('deckCount').innerText = virtualDeck.length;
+                cardEl.remove();
+            }
         }
+    }
+}
 
         function dropToSpecificFrame(ev, colIndex, layerNum) {
             ev.preventDefault();
