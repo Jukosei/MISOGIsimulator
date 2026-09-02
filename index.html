@@ -878,31 +878,34 @@
 
         // 山札ドラッグ開始関数
         function dragStartDeck(ev) {
-            if (virtualDeck.length === 0) {
-                ev.preventDefault();
-                return;
-            }
+    if (!virtualDeck || virtualDeck.length === 0) {
+        ev.preventDefault();
+        return;
+    }
 
-            // データ識別子をセット
-            ev.dataTransfer.setData('text/plain', 'deck-zone-drag');
-            if (isSearchOpen) document.getElementById('searchOverlay').classList.add('dragging-mode');
+    // ブラウザ互換性を高めるため text/plain と text の両方にセット
+    ev.dataTransfer.setData('text/plain', 'deck-zone-drag');
+    ev.dataTransfer.setData('text', 'deck-zone-drag');
 
-            // 完全透明なダミー要素を作成してドラッグ画像に指定
-            let blankImage = document.createElement('div');
-            blankImage.style.width = '1px';
-            blankImage.style.height = '1px';
-            blankImage.style.opacity = '0';
-            document.body.appendChild(blankImage);
+    if (isSearchOpen) {
+        let overlay = document.getElementById('searchOverlay');
+        if (overlay) overlay.classList.add('dragging-mode');
+    }
 
-            // ドラッグ中の見た目を非表示にする
-            ev.dataTransfer.setDragImage(blankImage, 0, 0);
+    // 透明な要素をドラッグ画像に指定してカーソル追従を非表示化
+    let blankImage = document.createElement('div');
+    blankImage.style.width = '1px';
+    blankImage.style.height = '1px';
+    blankImage.style.opacity = '0';
+    document.body.appendChild(blankImage);
+    ev.dataTransfer.setDragImage(blankImage, 0, 0);
 
-            setTimeout(() => {
-                if (blankImage.parentNode) {
-                    document.body.removeChild(blankImage);
-                }
-            }, 0);
+    setTimeout(() => {
+        if (blankImage.parentNode) {
+            document.body.removeChild(blankImage);
         }
+    }, 0);
+}
             
 // --- 2. フィールド枠（.frame-layer）へのドロップ処理 ---
 function dropToSpecificFrame(ev, colIndex, layerNum) {
@@ -1049,70 +1052,78 @@ function dropToSpecificFrame(ev, colIndex, layerNum) {
 
         // トラッシュエリアへのドロップ処理
         function dropToTrash(ev) {
-            ev.preventDefault();
-            ev.currentTarget.classList.remove('drag-over');
-            let dataText = ev.dataTransfer.getData('text/plain');
+    ev.preventDefault();
+    ev.currentTarget.classList.remove('drag-over');
+    
+    // text/plain または text の両方をサポート
+    let dataText = ev.dataTransfer.getData('text/plain') || ev.dataTransfer.getData('text');
 
-            // 1. 山札からトラッシュへ移動
-            if (dataText === 'deck-zone-drag' && virtualDeck.length > 0) {
-                let topCard = virtualDeck.shift(); // 山札の一番上を取り出す
-                trashCards.push({ name: topCard.name, imagePath: topCard.imagePath });
-                document.getElementById('deckCount').innerText = virtualDeck.length;
-                updateTrashUI();
-            } 
-            // 2. サーチ画面からトラッシュへ移動
-            else if (dataText === 'search-drag') {
-                let idx = parseInt(ev.dataTransfer.getData('search-index'));
-                let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
-                let cardObj = targetList.splice(idx, 1)[0];
-                trashCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
-                document.getElementById('deckCount').innerText = virtualDeck.length;
-                document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-                updateTrashUI();
-                if (typeof renderSearchList === 'function') renderSearchList();
-            } 
-            // 3. 手札やフィールドなど実体カードからトラッシュへ移動
-            else if (dataText && dataText !== 'trash-zone-drag') {
-                let a = document.getElementById(dataText);
-                if (a) {
-                    trashCards.push({ name: a.getAttribute('data-cardname'), imagePath: a.getAttribute('data-imagepath') });
-                    updateTrashUI();
-                    a.remove();
-                }
-            }
+    // 山札からトラッシュへ移動
+    if (dataText === 'deck-zone-drag' && virtualDeck && virtualDeck.length > 0) {
+        let topCard = virtualDeck.shift(); // 先頭カードを取得
+        trashCards.push({ name: topCard.name, imagePath: topCard.imagePath });
+        
+        let deckCountEl = document.getElementById('deckCount');
+        if (deckCountEl) deckCountEl.innerText = virtualDeck.length;
+        
+        updateTrashUI();
+    } 
+    // 手札やフィールド等からトラッシュへ移動
+    else if (dataText && dataText !== 'trash-zone-drag') {
+        let a = document.getElementById(dataText);
+        if (a) {
+            trashCards.push({ 
+                name: a.getAttribute('data-cardname'), 
+                imagePath: a.getAttribute('data-imagepath') 
+            });
+            updateTrashUI();
+            a.remove();
         }
-
+    }
+}
+            
         // VOLノイズエリアへのドロップ処理
         function dropToVolNoise(ev) {
-            ev.preventDefault();
-            ev.currentTarget.classList.remove('drag-over');
-            let dataText = ev.dataTransfer.getData('text/plain');
+    ev.preventDefault();
+    ev.currentTarget.classList.remove('drag-over');
+    
+    // text/plain または text の両方をサポート
+    let dataText = ev.dataTransfer.getData('text/plain') || ev.dataTransfer.getData('text');
 
-            // 1. 山札からVOLノイズへ移動
-            if (dataText === 'deck-zone-drag' && virtualDeck.length > 0) {
-                let topCard = virtualDeck.shift(); // 山札の一番上を取り出す
-                volNoiseCards.push({ name: topCard.name, imagePath: topCard.imagePath });
-                document.getElementById('deckCount').innerText = virtualDeck.length;
-                document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-            } 
-            // 2. トラッシュからVOLノイズへ移動
-            else if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
-                let cardObj = trashCards.pop();
-                volNoiseCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
-                document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-                updateTrashUI();
-            } 
-            // 3. 手札やフィールドなど実体カードからVOLノイズへ移動
-            else if (dataText) {
-                let a = document.getElementById(dataText);
-                if (a) {
-                    volNoiseCards.push({ name: a.getAttribute('data-cardname'), imagePath: a.getAttribute('data-imagepath') });
-                    document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-                    a.remove();
-                }
-            }
+    // 山札からVOLノイズへ移動
+    if (dataText === 'deck-zone-drag' && virtualDeck && virtualDeck.length > 0) {
+        let topCard = virtualDeck.shift(); // 先頭カードを取得
+        volNoiseCards.push({ name: topCard.name, imagePath: topCard.imagePath });
+        
+        let deckCountEl = document.getElementById('deckCount');
+        let volCountEl = document.getElementById('volNoiseCount');
+        if (deckCountEl) deckCountEl.innerText = virtualDeck.length;
+        if (volCountEl) volCountEl.innerText = volNoiseCards.length;
+    } 
+    // トラッシュからVOLノイズへ移動
+    else if (dataText === 'trash-zone-drag' && trashCards && trashCards.length > 0) {
+        let cardObj = trashCards.pop();
+        volNoiseCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
+        
+        let volCountEl = document.getElementById('volNoiseCount');
+        if (volCountEl) volCountEl.innerText = volNoiseCards.length;
+        updateTrashUI();
+    } 
+    // 手札やフィールド等からVOLノイズへ移動
+    else if (dataText) {
+        let a = document.getElementById(dataText);
+        if (a) {
+            volNoiseCards.push({ 
+                name: a.getAttribute('data-cardname'), 
+                imagePath: a.getAttribute('data-imagepath') 
+            });
+            let volCountEl = document.getElementById('volNoiseCount');
+            if (volCountEl) volCountEl.innerText = volNoiseCards.length;
+            a.remove();
         }
-
+    }
+}
+            
         // 4. フィールド（枠）へドロップ
         function dropToSpecificFrame(ev, colIndex, layerNum) {
             ev.preventDefault();
