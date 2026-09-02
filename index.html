@@ -668,10 +668,10 @@
 
     <div class="game-screen" id="gameScreen">
         <div class="left-panel">
-            <div class="zone-box" id="volNoiseZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)">
-                <div class="count-display" id="volNoiseCount">0</div>
-                <div class="zone-label">VOLノイズ</div>
-            </div>
+            <div class="zone-box" id="volNoiseZone" onclick="openVolNoiseModal()" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)" style="cursor:pointer;">
+    <div class="count-display" id="volNoiseCount">0</div>
+    <div class="zone-label">VOLノイズ（確認はクリック）</div>
+</div>
             <button class="temporary-btn-green" onclick="triggerAction('テンポラリー表示')">テンポラリー</button>
             <div class="zone-box" id="trashZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)">
                 <div class="count-display" id="trashCount">0</div>
@@ -819,6 +819,18 @@
             <button onclick="confirmDeckReturn('shuffle')" style="padding:10px; cursor:pointer; background:#333; color:#fff; border:1px solid #777; border-radius:4px;">山札に戻してシャッフル</button>
             <button onclick="closeDeckReturnModal()" style="padding:8px; cursor:pointer; background:#555; color:#ccc; border:none; border-radius:4px; margin-top:5px;">キャンセル</button>
         </div>
+    </div>
+</div>
+
+    <!-- VOLノイズ確認用ポップアップモーダル -->
+<div id="volNoiseViewModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; flex-direction:column;">
+    <div style="background:#1e1e1e; border:2px solid #555; padding:20px; border-radius:12px; max-width:90%; max-height:80%; display:flex; flex-direction:column; align-items:center; gap:15px; box-shadow:0 0 20px rgba(0,0,0,0.8);">
+        <h3 style="color:#fff; margin:0; font-size:18px;">VOLノイズ（置かれた順）</h3>
+        
+        <!-- カード裏面が横一列に並ぶコンテナ -->
+        <div id="volNoiseCardContainer" style="display:flex; gap:12px; overflow-x:auto; padding:10px; max-width:100%;"></div>
+        
+        <button onclick="closeVolNoiseModal()" style="padding:8px 24px; cursor:pointer; background:#444; color:#fff; border:1px solid #777; border-radius:6px; font-weight:bold;">閉じる</button>
     </div>
 </div>
     
@@ -1471,6 +1483,48 @@ function dropToVolNoise(ev) {
             }
         }
 
+            // VOLノイズの裏面表示モーダルを開く
+function openVolNoiseModal() {
+    let container = document.getElementById('volNoiseCardContainer');
+    if (!container) return;
+    
+    // 中身をリセット
+    container.innerHTML = '';
+
+    if (!volNoiseCards || volNoiseCards.length === 0) {
+        container.innerHTML = '<p style="color:#aaa; margin:20px;">カードはありません</p>';
+    } else {
+        // 置かれた順（配列の先頭〜末尾）に左から順に生成
+        volNoiseCards.forEach((card, index) => {
+            let cardWrapper = document.createElement('div');
+            cardWrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:6px;';
+
+            // カード裏面要素
+            let cardEl = document.createElement('div');
+            cardEl.style.cssText = 'width:100px; height:140px; background:#2c3e50; border:2px solid #ecf0f1; border-radius:8px; display:flex; justify-content:center; align-items:center; color:#bdc3c7; font-weight:bold; font-size:14px; box-shadow:0 4px 8px rgba(0,0,0,0.5); user-select:none;';
+            cardEl.innerText = '裏面'; // 必要に応じて「VOL」ロゴ画像や背景画像に変更可能
+
+            // 順序ラベル（1番目、2番目...）
+            let label = document.createElement('span');
+            label.style.cssText = 'color:#aaa; font-size:12px;';
+            label.innerText = `${index + 1}枚目`;
+
+            cardWrapper.appendChild(cardEl);
+            cardWrapper.appendChild(label);
+            container.appendChild(cardWrapper);
+        });
+    }
+
+    let modal = document.getElementById('volNoiseViewModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+// モーダルを閉じる
+function closeVolNoiseModal() {
+    let modal = document.getElementById('volNoiseViewModal');
+    if (modal) modal.style.display = 'none';
+}
+            
         function drawCard() {
             if (virtualDeck.length > 0) {
                 let t = virtualDeck.shift();
