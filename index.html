@@ -846,15 +846,9 @@
         ev.preventDefault();
         return;
     }
-
-    // データ識別子をセット
+    // ドロップ先で判定するための識別子をセット
     ev.dataTransfer.setData('text/plain', 'deck-zone-drag');
-    ev.dataTransfer.setData('text', 'deck-zone-drag');
-
-    if (isSearchOpen) {
-        let overlay = document.getElementById('searchOverlay');
-        if (overlay) overlay.classList.add('dragging-mode');
-    }
+    ev.dataTransfer.effectAllowed = 'move';
 }
 
 function setupTrashAreaEvents() {
@@ -1322,52 +1316,55 @@ function dropToDeck(ev) {
             }
         }
 
-        function dropToTrash(ev) {
-            ev.preventDefault();
-            ev.currentTarget.classList.remove('drag-over');
-            let dataText = ev.dataTransfer.getData('text/plain');
+        // トラッシュへドロップ
+function dropToTrash(ev) {
+    ev.preventDefault();
+    ev.currentTarget.classList.remove('drag-over');
+    let dataText = ev.dataTransfer.getData('text/plain');
 
-            if (dataText === 'search-drag') {
-                let idx = parseInt(ev.dataTransfer.getData('search-index'));
-                let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
-                let cardObj = targetList.splice(idx, 1)[0];
-                trashCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
-                document.getElementById('deckCount').innerText = virtualDeck.length;
-                document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-                updateTrashUI();
-                renderSearchList();
-            } else if (dataText && dataText !== 'trash-zone-drag') {
-                let a = document.getElementById(dataText);
-                if (a) {
-                    trashCards.push({ name: a.getAttribute('data-cardname'), imagePath: a.getAttribute('data-imagepath') });
-                    updateTrashUI();
-                    a.remove();
-                }
-            }
+    // 山札からのドラッグ判定
+    if (dataText === 'deck-zone-drag' && virtualDeck && virtualDeck.length > 0) {
+        let topCard = virtualDeck.shift(); // 先頭を取得して除外
+        trashCards.push({ name: topCard.name, imagePath: topCard.imagePath });
+        
+        document.getElementById('deckCount').innerText = virtualDeck.length;
+        updateTrashUI();
+    } 
+    // その他のカード要素からのドラッグ
+    else if (dataText && dataText !== 'trash-zone-drag' && dataText !== 'deck-zone-drag') {
+        let a = document.getElementById(dataText);
+        if (a) {
+            trashCards.push({ name: a.getAttribute('data-cardname'), imagePath: a.getAttribute('data-imagepath') });
+            updateTrashUI();
+            a.remove();
         }
+    }
+}
 
-        function dropToVolNoise(ev) {
-            ev.preventDefault();
-            ev.currentTarget.classList.remove('drag-over');
-            let dataText = ev.dataTransfer.getData('text/plain');
+// VOLノイズへドロップ
+function dropToVolNoise(ev) {
+    ev.preventDefault();
+    ev.currentTarget.classList.remove('drag-over');
+    let dataText = ev.dataTransfer.getData('text/plain');
 
-            if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
-                let cardObj = trashCards.pop();
-                volNoiseCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
-                document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-                updateTrashUI();
-                return;
-            }
-
-            if (dataText) {
-                let a = document.getElementById(dataText);
-                if (a) {
-                    volNoiseCards.push({ name: a.getAttribute('data-cardname'), imagePath: a.getAttribute('data-imagepath') });
-                    document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-                    a.remove();
-                }
-            }
+    // 山札からのドラッグ判定
+    if (dataText === 'deck-zone-drag' && virtualDeck && virtualDeck.length > 0) {
+        let topCard = virtualDeck.shift(); // 先頭を取得して除外
+        volNoiseCards.push({ name: topCard.name, imagePath: topCard.imagePath });
+        
+        document.getElementById('deckCount').innerText = virtualDeck.length;
+        document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+    } 
+    // その他のカード要素からのドラッグ
+    else if (dataText && dataText !== 'deck-zone-drag') {
+        let a = document.getElementById(dataText);
+        if (a) {
+            volNoiseCards.push({ name: a.getAttribute('data-cardname'), imagePath: a.getAttribute('data-imagepath') });
+            document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+            a.remove();
         }
+    }
+}
 
         function dropToDeckZone(ev) {
             ev.preventDefault();
