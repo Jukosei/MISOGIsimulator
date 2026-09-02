@@ -748,7 +748,7 @@
             <button class="control-btn" onclick="triggerAction('山札の下から1枚ドロー')">山札の下から1枚ドロー</button>
             <button class="control-btn gray" style="margin-top:10px;" onclick="backToMenu()">メニュー戻る</button>
 
-            <div class="deck-zone" draggable="true" id="deckZone" ondragstart="dragStartDeck(event)" ondragend="dragEndDeck(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDeck(event)">
+            <div class="deck-zone" draggable="true" id="deckZone" onclick="drawCard()" ondragstart="dragStartDeck(event)" ondragend="dragEndDeck(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDeck(event)">
     <div class="count-display" id="deckCount">0</div>
     <div class="zone-label">山札（クリックドロー/ドラッグ移動・戻し）</div>
 </div>
@@ -847,7 +847,7 @@
         return;
     }
 
-    // ブラウザ互換性を高めるため text/plain と text の両方に識別子をセット
+    // データ識別子をセット
     ev.dataTransfer.setData('text/plain', 'deck-zone-drag');
     ev.dataTransfer.setData('text', 'deck-zone-drag');
 
@@ -855,20 +855,6 @@
         let overlay = document.getElementById('searchOverlay');
         if (overlay) overlay.classList.add('dragging-mode');
     }
-
-    // 完全透明なダミー要素を作成してドラッグ画像に指定（標準のドラッグプレビューを非表示化）
-    let blankImage = document.createElement('div');
-    blankImage.style.width = '1px';
-    blankImage.style.height = '1px';
-    blankImage.style.opacity = '0';
-    document.body.appendChild(blankImage);
-    ev.dataTransfer.setDragImage(blankImage, 0, 0);
-
-    setTimeout(() => {
-        if (blankImage.parentNode) {
-            document.body.removeChild(blankImage);
-        }
-    }, 0);
 }
 
 function setupTrashAreaEvents() {
