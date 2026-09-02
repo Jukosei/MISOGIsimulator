@@ -1398,36 +1398,36 @@ function dropToTrash(ev) {
     }
 }
 
-// VOLノイズへドロップ
 function dropToVolNoise(ev) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
 
-    // ★ 最大枚数チェック（5枚以上の場合は追加を阻止）
-    if (volNoiseCards && volNoiseCards.length >= 5) {
-        alert('VOLノイズエリアには最大5枚までしか置けません。');
+    // 配列の存在確認と枚数チェック（5枚以上なら即中断）
+    if (!volNoiseCards) volNoiseCards = [];
+    if (volNoiseCards.length >= 5) {
+        alert('VOLノイズエリアは最大5枚までです。');
         return;
     }
 
     let dataText = ev.dataTransfer.getData('text/plain') || ev.dataTransfer.getData('text');
 
-    // 山札からのドラッグ判定
     if (dataText === 'deck-zone-drag' && virtualDeck && virtualDeck.length > 0) {
-        let topCard = virtualDeck.shift(); // 先頭を取得して除外
+        let topCard = virtualDeck.shift();
         volNoiseCards.push({ name: topCard.name, imagePath: topCard.imagePath });
         
-        document.getElementById('deckCount').innerText = virtualDeck.length;
-        document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+        let deckCountEl = document.getElementById('deckCount');
+        let volCountEl = document.getElementById('volNoiseCount');
+        if (deckCountEl) deckCountEl.innerText = virtualDeck.length;
+        if (volCountEl) volCountEl.innerText = volNoiseCards.length;
     } 
-    // トラッシュからのドラッグ判定
     else if (dataText === 'trash-zone-drag' && trashCards && trashCards.length > 0) {
         let cardObj = trashCards.pop();
         volNoiseCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
         
-        document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+        let volCountEl = document.getElementById('volNoiseCount');
+        if (volCountEl) volCountEl.innerText = volNoiseCards.length;
         updateTrashUI();
     } 
-    // その他のカード要素からのドラッグ（手札やフィールド）
     else if (dataText && dataText !== 'deck-zone-drag') {
         let a = document.getElementById(dataText);
         if (a) {
@@ -1435,7 +1435,8 @@ function dropToVolNoise(ev) {
                 name: a.getAttribute('data-cardname'), 
                 imagePath: a.getAttribute('data-imagepath') 
             });
-            document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+            let volCountEl = document.getElementById('volNoiseCount');
+            if (volCountEl) volCountEl.innerText = volNoiseCards.length;
             a.remove();
         }
     }
