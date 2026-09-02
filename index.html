@@ -1871,6 +1871,13 @@ function dropToSpecificFrame(ev, colIndex, layerNum) {
         function triggerAction(t) {
             alert(`「${t}」が実行されました`);
         }
+        // --- 山札ドラッグ終了時のエラー回避処理 ---
+        function dragEndDeck(ev) {
+            let overlay = document.getElementById('searchOverlay');
+            if (overlay) {
+                overlay.classList.remove('dragging-mode');
+    }
+}
     </script>
 </body>
 </html>
