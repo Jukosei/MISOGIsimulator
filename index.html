@@ -749,10 +749,9 @@
             <button class="control-btn gray" style="margin-top:10px;" onclick="backToMenu()">メニュー戻る</button>
 
             <div class="deck-zone" draggable="true" id="deckZone" onclick="drawCard()" ondragstart="dragStartDeck(event)" ondragend="dragEndDeck(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDeck(event)" style="position: relative; overflow: hidden;">
-    <!-- 山札の裏面画像（ファイル名に合わせて images/ の先を変更してください） -->
-    <img src="images/card_back.png" alt="山札裏面" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 0; pointer-events: none;">
+    <!-- id="deckBackImg" を付与し、初期状態は非表示 -->
+    <img id="deckBackImg" src="images/card_back.png" alt="山札裏面" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 0; pointer-events: none; display: none;">
     
-    <!-- カウント表示とラベル（画像の上に重ねて表示） -->
     <div class="count-display" id="deckCount" style="position: relative; z-index: 1;">0</div>
     <div class="zone-label" style="position: relative; z-index: 1;">山札（クリックドロー/ドラッグ移動・戻し）</div>
 </div>
@@ -951,6 +950,52 @@ function setupTrashAreaEvents() {
             }
             document.getElementById('trashCount').innerText = trashCards.length;
         }
+
+            // 山札の表示（枚数カウントおよび裏面画像）を更新する共通関数
+function updateDeckUI() {
+    let count = virtualDeck ? virtualDeck.length : 0;
+    
+    // カウント表示の更新
+    let deckCountEl = document.getElementById('deckCount');
+    if (deckCountEl) deckCountEl.innerText = count;
+
+    // 枚数に応じた裏面画像の表示切り替え
+    let backImgEl = document.getElementById('deckBackImg');
+    if (backImgEl) {
+        backImgEl.style.display = (count > 0) ? 'block' : 'none';
+    }
+}
+
+            // 山札の表示（枚数カウントおよび裏面画像）を更新する共通関数
+function updateDeckUI() {
+    let count = virtualDeck ? virtualDeck.length : 0;
+    
+    // カウント表示の更新
+    let deckCountEl = document.getElementById('deckCount');
+    if (deckCountEl) deckCountEl.innerText = count;
+
+    // 枚数に応じた裏面画像の表示切り替え
+    let backImgEl = document.getElementById('deckBackImg');
+    if (backImgEl) {
+        backImgEl.style.display = (count > 0) ? 'block' : 'none';
+    }
+}
+
+            // VOLノイズエリアの表示（枚数カウントおよび裏面画像）を更新する共通関数
+function updateVolNoiseUI() {
+    let count = volNoiseCards ? volNoiseCards.length : 0;
+
+    // カウント表示の更新
+    let countEl = document.getElementById('volNoiseCount');
+    if (countEl) countEl.innerText = count;
+
+    // 枚数に応じた裏面画像の表示切り替え（1枚以上で表示、0枚で非表示）
+    let backImgEl = document.getElementById('volNoiseBackImg');
+    if (backImgEl) {
+        backImgEl.style.display = (count > 0) ? 'block' : 'none';
+    }
+}
+            
         function startGame() {
             let t = document.getElementById('deckInput1').value;
             let e = t.split(/[\/\s\n,]+/).map(t => t.trim()).filter(t => t.length > 0);
@@ -1105,8 +1150,8 @@ function setupTrashAreaEvents() {
                         }
                     }
 
-                    document.getElementById('deckCount').innerText = virtualDeck.length;
-                    document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+                    updateDeckUI();
+                    updateVolNoiseUI();
                     updateTrashUI();
                     dragTarget.remove();
                     dragTarget = null;
@@ -1156,7 +1201,7 @@ function setupTrashAreaEvents() {
 
                 if (a.closest('#volNoiseZone')) {
                     volNoiseCards.push({ name: dragTarget.getAttribute('data-cardname'), imagePath: dragTarget.getAttribute('data-imagepath') });
-                    document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+                    updateVolNoiseUI();
                     dragTarget.remove();
                     dragTarget = null;
                     return;
