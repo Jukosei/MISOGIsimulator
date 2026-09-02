@@ -842,12 +842,38 @@
             setupDeckAreaEvents();
         };
 
-        // --- 1. 山札ドラッグ開始（追従画像を透明化して見えないようにする） ---
+        // 山札ドラッグ開始（透明要素で画像を非表示化）
 function dragStartDeck(ev) {
     if (virtualDeck.length === 0) {
         ev.preventDefault();
         return;
     }
+
+    ev.dataTransfer.setData('text/plain', 'deck-zone-drag');
+    if (isSearchOpen) document.getElementById('searchOverlay').classList.add('dragging-mode');
+
+    let blankImage = document.createElement('div');
+    blankImage.style.width = '1px';
+    blankImage.style.height = '1px';
+    blankImage.style.opacity = '0';
+    document.body.appendChild(blankImage);
+
+    ev.dataTransfer.setDragImage(blankImage, 0, 0);
+
+    setTimeout(() => {
+        if (blankImage.parentNode) {
+            document.body.removeChild(blankImage);
+        }
+    }, 0);
+}
+
+// エラーの原因となっていたドラッグ終了時関数
+function dragEndDeck(ev) {
+    let overlay = document.getElementById('searchOverlay');
+    if (overlay) {
+        overlay.classList.remove('dragging-mode');
+    }
+}
 
     // データ識別子をセット
     ev.dataTransfer.setData('text/plain', 'deck-zone-drag');
