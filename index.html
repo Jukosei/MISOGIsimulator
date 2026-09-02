@@ -809,6 +809,19 @@
         </div>
     </div>
 
+    <!-- 山札戻し先選択モーダル -->
+<div id="deckReturnModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:#222; border:2px solid #555; padding:20px; border-radius:8px; text-align:center; color:#fff; min-width:260px;">
+        <p style="margin-bottom:15px; font-weight:bold;">山札のどこに戻しますか？</p>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <button onclick="confirmDeckReturn('top')" style="padding:10px; cursor:pointer; background:#333; color:#fff; border:1px solid #777; border-radius:4px;">山札の上に戻す</button>
+            <button onclick="confirmDeckReturn('bottom')" style="padding:10px; cursor:pointer; background:#333; color:#fff; border:1px solid #777; border-radius:4px;">山札の下に戻す</button>
+            <button onclick="confirmDeckReturn('shuffle')" style="padding:10px; cursor:pointer; background:#333; color:#fff; border:1px solid #777; border-radius:4px;">山札に戻してシャッフル</button>
+            <button onclick="closeDeckReturnModal()" style="padding:8px; cursor:pointer; background:#555; color:#ccc; border:none; border-radius:4px; margin-top:5px;">キャンセル</button>
+        </div>
+    </div>
+</div>
+    
         <script>
         // --- 既存の変数群 ---
         let currentMode = 2;
@@ -1141,27 +1154,7 @@ function setupTrashAreaEvents() {
             dragTarget = null;
         }
 
-        function handleDeckReturnChoice(value) {
-            if (!pendingActionData) return;
-            let cName = pendingActionData.name;
-            let imgP = pendingActionData.imagePath;
-            let letters = cName.toUpperCase();
-            let r = letters.slice(-1);
-
-            if (value === "top") {
-                virtualDeck.unshift({ name: cName, suffix: r, imagePath: imgP });
-            } else if (value === "bottom") {
-                virtualDeck.push({ name: cName, suffix: r, imagePath: imgP });
-            }
-
-            document.getElementById('deckCount').innerText = virtualDeck.length;
-
-            if (pendingActionData.fromHand && pendingActionData.elementId) {
-                let el = document.getElementById(pendingActionData.elementId);
-                if (el) el.remove();
-            }
-            closeActionMenu();
-        }
+        let pendingDeckReturn = null;
 
         // ドラッグ許可設定
 function allowDrop(ev) {
@@ -1189,37 +1182,89 @@ function dragEndDeck(ev) {
     if (overlay) overlay.classList.remove('dragging-mode');
 }
 
-// 山札へのドロップ処理（他エリアからの戻し）
+// 山札へのドロップ処理（選択モーダルを開く）
 function dropToDeck(ev) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
-    let dataText = ev.dataTransfer.getData('text/plain');
+    let dataText = ev.dataTransfer.getData('text/plain') || ev.dataTransfer.getData('text');
 
     // 自分自身へのドロップは無視
     if (dataText === 'deck-zone-drag') return;
 
-    // トラッシュから山札の上に戻す
+    // トラッシュから山札に戻す場合
     if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
-        let cardObj = trashCards.pop();
-        virtualDeck.unshift({ name: cardObj.name, imagePath: cardObj.imagePath });
-        document.getElementById('deckCount').innerText = virtualDeck.length;
-        updateTrashUI();
+        let cardObj = trashCards.slice(-1)[0];
+        pendingDeckReturn = {
+            type: 'trash',
+            card: cardObj
+        };
+        openDeckReturnModal();
     } 
-    // 実体カード要素から山札の上に戻す
+    // 手札やフィールドの実体カードから戻す場合
     else if (dataText) {
         let cardEl = document.getElementById(dataText);
         if (cardEl) {
             let name = cardEl.getAttribute('data-cardname');
             let imagePath = cardEl.getAttribute('data-imagepath');
             if (name && imagePath) {
-                virtualDeck.unshift({ name: name, imagePath: imagePath });
-                document.getElementById('deckCount').innerText = virtualDeck.length;
-                cardEl.remove();
+                pendingDeckReturn = {
+                    type: 'element',
+                    elementId: dataText,
+                    card: { name: name, imagePath: imagePath }
+                };
+                openDeckReturnModal();
             }
         }
     }
 }
 
+            // モーダル表示制御
+function openDeckReturnModal() {
+    let modal = document.getElementById('deckReturnModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeDeckReturnModal() {
+    let modal = document.getElementById('deckReturnModal');
+    if (modal) modal.style.display = 'none';
+    pendingDeckReturn = null;
+}
+
+// 戻し先の確定処理
+function confirmDeckReturn(position) {
+    if (!pendingDeckReturn) return;
+
+    let card = pendingDeckReturn.card;
+
+    // 1. 移動元データ・要素の削除処理
+    if (pendingDeckReturn.type === 'trash') {
+        trashCards.pop();
+        updateTrashUI();
+    } else if (pendingDeckReturn.type === 'element') {
+        let el = document.getElementById(pendingDeckReturn.elementId);
+        if (el) el.remove();
+    }
+
+    // 2. 山札への追加処理
+    if (position === 'top') {
+        virtualDeck.unshift(card); // 先頭（上）に追加
+    } else if (position === 'bottom') {
+        virtualDeck.push(card);    // 末尾（下）に追加
+    } else if (position === 'shuffle') {
+        virtualDeck.push(card);
+        // Fisher-Yates シャッフル
+        for (let i = virtualDeck.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1));
+            [virtualDeck[i], virtualDeck[j]] = [virtualDeck[j], virtualDeck[i]];
+        }
+    }
+
+    // 3. UIの更新と閉じる処理
+    let deckCountEl = document.getElementById('deckCount');
+    if (deckCountEl) deckCountEl.innerText = virtualDeck.length;
+
+    closeDeckReturnModal();
+}
         function dropToSpecificFrame(ev, colIndex, layerNum) {
             ev.preventDefault();
             ev.stopPropagation();
