@@ -748,9 +748,9 @@
             <button class="control-btn" onclick="triggerAction('山札の下から1枚ドロー')">山札の下から1枚ドロー</button>
             <button class="control-btn gray" style="margin-top:10px;" onclick="backToMenu()">メニュー戻る</button>
 
-            <div class="deck-zone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDeckZone(event)" onclick="drawCard()">
+            <div class="deck-zone" draggable="true" id="deckZone" ondragstart="dragStartDeck(event)" ondragend="dragEndDeck(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDeckZone(event)" onclick="drawCard()">
                 <div class="deck-count" id="deckCount">0</div>
-                <div class="deck-label">山札 (クリックドロー/ドラッグ戻し)</div>
+                <div class="deck-label">山札 (クリックドロー/ドラッグ移動・戻し)</div>
             </div>
         </div>
 
@@ -810,6 +810,8 @@
     </div>
 
     <script>
+        <script>
+        // --- 既存の変数群 ---
         let currentMode = 2;
         let turn = 1;
         let counters = { vol: 0, alpha: 0, beta: 0, omega: 0 };
@@ -828,73 +830,153 @@
         let trashDragStartX = 0;
         let trashDragStartY = 0;
 
+        // --- 山札のドラッグ＆ドロップ用追加変数 ---
+        let isDeckDragging = false;
+        let deckDragStartX = 0;
+        let deckDragStartY = 0;
+
         window.onload = function() {
             document.getElementById('deckInput1').value = localStorage.getItem('misogi_deck1') || "GA-13/GA-13/DA-34/DA-34/DA-34/HA-11/HA-1/HA-1/HA-2/HA-2/HA-2/JS-40/PS-39/HS-1/HS-1/HS-1/JS-27/JS-27/JS-27/JS-27/AS-4/AS-4/DS-38/DS-38/GS-40/GS-40/GS-38/GS-40/GS-40/GS-";
             document.getElementById('deckInput2').value = localStorage.getItem('misogi_deck2') || "GA-13/GA-13/DA-34/DA-34";
             selectMode(parseInt(localStorage.getItem('misogi_mode')) || 2);
             setupTrashAreaEvents();
+            setupDeckAreaEvents();
         };
 
-        function setupTrashAreaEvents() {
-            let el = document.getElementById('trashZone');
-            el.setAttribute('draggable', 'true');
+        // --- 山札のPC / スマホ(タッチ)ドラッグイベント設定 ---
+        function dragStartDeck(ev) {
+            if (virtualDeck.length === 0) {
+                ev.preventDefault();
+                return;
+            }
+            ev.dataTransfer.setData('text/plain', 'deck-zone-drag');
+            if (isSearchOpen) document.getElementById('searchOverlay').classList.add('dragging-mode');
+        }
+
+        function dragEndDeck(ev) {
+            document.getElementById('searchOverlay').classList.remove('dragging-mode');
+        }
+
+        function setupDeckAreaEvents() {
+            let el = document.getElementById('deckZone');
             
-            el.onclick = function(ev) {
-                if (!isTrashDragging) { openSearchModal('trash'); }
-            };
-
-            el.ondragstart = function(ev) {
-                if (trashCards.length === 0) { ev.preventDefault(); return; }
-                ev.dataTransfer.setData('text/plain', 'trash-zone-drag');
-                if (isSearchOpen) document.getElementById('searchOverlay').classList.add('dragging-mode');
-            };
-
-            el.ondragend = function(ev) {
-                document.getElementById('searchOverlay').classList.remove('dragging-mode');
-            };
-
             el.addEventListener('touchstart', function(ev) {
-                if (trashCards.length === 0) return;
-                isTrashDragging = true;
+                if (virtualDeck.length === 0) return;
+                isDeckDragging = true;
                 let touch = ev.touches[0];
-                trashDragStartX = touch.clientX;
-                trashDragStartY = touch.clientY;
+                deckDragStartX = touch.clientX;
+                deckDragStartY = touch.clientY;
             }, { passive: true });
 
             el.addEventListener('touchend', function(ev) {
-                if (!isTrashDragging) return;
-                isTrashDragging = false;
+                if (!isDeckDragging) return;
+                isDeckDragging = false;
                 let touch = ev.changedTouches[0];
-                if (Math.abs(touch.clientX - trashDragStartX) < 6 && Math.abs(touch.clientY - trashDragStartY) < 6) {
-                    openSearchModal('trash');
-                } else {
-                    let dropT = document.elementFromPoint(touch.clientX, touch.clientY);
-                    if (dropT) {
-                        if (dropT.closest('.hand-area')) {
-                            let cut = trashCards.pop();
-                            createGameCardToHand(cut.name, cut.imagePath);
-                            updateTrashUI();
-                        } else if (dropT.closest('.frame-layer')) {
-                            let cut = trashCards.pop();
-                            createGameCardToHand(cut.name, cut.imagePath);
-                            let gen = document.getElementById(`card-id-${cardIdCounter - 1}`);
-                            if (gen) {
-                                let num = parseInt(dropT.closest('.frame-layer').getAttribute('data-layer'));
-                                executeCardPlacement(gen, dropT.closest('.frame-layer'), num);
-                            }
-                            updateTrashUI();
-                        } else if (dropT.closest('.direction-placeholder')) {
-                            let cut = trashCards.pop();
-                            createGameCardToHand(cut.name, cut.imagePath);
-                            let gen = document.getElementById(`card-id-${cardIdCounter - 1}`);
-                            if (gen && dropT.closest('.direction-placeholder').children.length === 0) {
-                                dropT.closest('.direction-placeholder').appendChild(gen);
-                            }
-                            updateTrashUI();
-                        }
+
+                // クリック（タップ）動作判定（移動距離がわずかな場合はドローを実行）
+                if (Math.abs(touch.clientX - deckDragStartX) < 6 && Math.abs(touch.clientY - deckDragStartY) < 6) {
+                    return; 
+                }
+
+                // ドロップ先の判定
+                let dropT = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (dropT && virtualDeck.length > 0) {
+                    if (dropT.closest('.hand-area')) {
+                        drawCard();
+                    } else if (dropT.closest('#trashZone')) {
+                        let cardObj = virtualDeck.shift();
+                        trashCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
+                        document.getElementById('deckCount').innerText = virtualDeck.length;
+                        updateTrashUI();
+                    } else if (dropT.closest('#volNoiseZone')) {
+                        let cardObj = virtualDeck.shift();
+                        volNoiseCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
+                        document.getElementById('deckCount').innerText = virtualDeck.length;
+                        document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
                     }
                 }
             }, { passive: true });
+        }
+
+        // --- PCドラッグドロップ受取側の処理追加（手札・トラッシュ・VOLノイズ） ---
+        function dropToHand(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('drag-over');
+            let dataText = ev.dataTransfer.getData('text/plain');
+
+            if (dataText === 'deck-zone-drag' && virtualDeck.length > 0) {
+                drawCard();
+            } else if (dataText === 'search-drag') {
+                let idx = parseInt(ev.dataTransfer.getData('search-index'));
+                let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
+                let cardObj = targetList.splice(idx, 1)[0];
+                createGameCardToHand(cardObj.name, cardObj.imagePath);
+                document.getElementById('deckCount').innerText = virtualDeck.length;
+                document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+                updateTrashUI();
+                renderSearchList();
+            } else if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
+                let cardObj = trashCards.pop();
+                createGameCardToHand(cardObj.name, cardObj.imagePath);
+                updateTrashUI();
+            } else if (dataText) {
+                let a = document.getElementById(dataText);
+                if (a) document.getElementById('handArea').appendChild(a);
+            }
+        }
+
+        function dropToTrash(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('drag-over');
+            let dataText = ev.dataTransfer.getData('text/plain');
+
+            if (dataText === 'deck-zone-drag' && virtualDeck.length > 0) {
+                let cardObj = virtualDeck.shift();
+                trashCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
+                document.getElementById('deckCount').innerText = virtualDeck.length;
+                updateTrashUI();
+            } else if (dataText === 'search-drag') {
+                let idx = parseInt(ev.dataTransfer.getData('search-index'));
+                let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
+                let cardObj = targetList.splice(idx, 1)[0];
+                trashCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
+                document.getElementById('deckCount').innerText = virtualDeck.length;
+                document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+                updateTrashUI();
+                renderSearchList();
+            } else if (dataText && dataText !== 'trash-zone-drag') {
+                let a = document.getElementById(dataText);
+                if (a) {
+                    trashCards.push({ name: a.getAttribute('data-cardname'), imagePath: a.getAttribute('data-imagepath') });
+                    updateTrashUI();
+                    a.remove();
+                }
+            }
+        }
+
+        function dropToVolNoise(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('drag-over');
+            let dataText = ev.dataTransfer.getData('text/plain');
+
+            if (dataText === 'deck-zone-drag' && virtualDeck.length > 0) {
+                let cardObj = virtualDeck.shift();
+                volNoiseCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
+                document.getElementById('deckCount').innerText = virtualDeck.length;
+                document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+            } else if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
+                let cardObj = trashCards.pop();
+                volNoiseCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
+                document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+                updateTrashUI();
+            } else if (dataText) {
+                let a = document.getElementById(dataText);
+                if (a) {
+                    volNoiseCards.push({ name: a.getAttribute('data-cardname'), imagePath: a.getAttribute('data-imagepath') });
+                    document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+                    a.remove();
+                }
+            }
         }
 
         function updateTrashUI() {
