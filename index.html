@@ -1402,7 +1402,14 @@ function dropToTrash(ev) {
 function dropToVolNoise(ev) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
-    let dataText = ev.dataTransfer.getData('text/plain');
+
+    // ★ 最大枚数チェック（5枚以上の場合は追加を阻止）
+    if (volNoiseCards && volNoiseCards.length >= 5) {
+        alert('VOLノイズエリアには最大5枚までしか置けません。');
+        return;
+    }
+
+    let dataText = ev.dataTransfer.getData('text/plain') || ev.dataTransfer.getData('text');
 
     // 山札からのドラッグ判定
     if (dataText === 'deck-zone-drag' && virtualDeck && virtualDeck.length > 0) {
@@ -1412,17 +1419,27 @@ function dropToVolNoise(ev) {
         document.getElementById('deckCount').innerText = virtualDeck.length;
         document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
     } 
-    // その他のカード要素からのドラッグ
+    // トラッシュからのドラッグ判定
+    else if (dataText === 'trash-zone-drag' && trashCards && trashCards.length > 0) {
+        let cardObj = trashCards.pop();
+        volNoiseCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
+        
+        document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+        updateTrashUI();
+    } 
+    // その他のカード要素からのドラッグ（手札やフィールド）
     else if (dataText && dataText !== 'deck-zone-drag') {
         let a = document.getElementById(dataText);
         if (a) {
-            volNoiseCards.push({ name: a.getAttribute('data-cardname'), imagePath: a.getAttribute('data-imagepath') });
+            volNoiseCards.push({ 
+                name: a.getAttribute('data-cardname'), 
+                imagePath: a.getAttribute('data-imagepath') 
+            });
             document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
             a.remove();
         }
     }
 }
-
         function dropToDeckZone(ev) {
             ev.preventDefault();
             ev.currentTarget.classList.remove('drag-over');
