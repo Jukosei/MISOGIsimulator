@@ -844,18 +844,40 @@
 
         // --- 山札のドラッグ＆ドロップイベント設定 ---
         function dragStartDeck(ev) {
-            if (virtualDeck.length === 0) {
-                ev.preventDefault();
-                return;
-            }
-            // 山札ドラッグ時の専用データ識別子をセット
-            ev.dataTransfer.setData('text/plain', 'deck-zone-drag');
-            if (isSearchOpen) document.getElementById('searchOverlay').classList.add('dragging-mode');
-        }
+    if (virtualDeck.length === 0) {
+        ev.preventDefault();
+        return;
+    }
 
-        function dragEndDeck(ev) {
-            document.getElementById('searchOverlay').classList.remove('dragging-mode');
-        }
+    // 1. データ識別子をセット
+    ev.dataTransfer.setData('text/plain', 'deck-zone-drag');
+    if (isSearchOpen) document.getElementById('searchOverlay').classList.add('dragging-mode');
+
+    // 2. 山札の一番上のカード情報を取り出す
+    let topCard = virtualDeck[0];
+
+    // 3. ドラッグ追従用の要素を一時作成
+    let dragImage = document.createElement('div');
+    dragImage.className = 'game-card';
+    dragImage.style.position = 'absolute';
+    dragImage.style.top = '-9999px'; // 画面外に配置
+    dragImage.style.width = '70px';   // 手札カードと同じ幅
+    dragImage.style.height = '100px'; // 手札カードと同じ高さ
+    dragImage.style.backgroundImage = `url('${topCard.imagePath}')`;
+    dragImage.style.backgroundSize = 'cover';
+    dragImage.style.borderRadius = '6px';
+    dragImage.innerText = topCard.name;
+
+    document.body.appendChild(dragImage);
+
+    // 4. ブラウザのドラッグ画像として指定（位置合わせは中央付近）
+    ev.dataTransfer.setDragImage(dragImage, 35, 50);
+
+    // 5. ドラッグ終了後に一時要素を削除
+    setTimeout(() => {
+        document.body.removeChild(dragImage);
+    }, 0);
+}
 
         // --- スマホ・タッチ操作用：山札の一番上のカードをドロップ先へ移動 ---
         function setupDeckAreaEvents() {
