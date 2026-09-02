@@ -1047,18 +1047,21 @@ function dropToSpecificFrame(ev, colIndex, layerNum) {
             }
         }
 
-        // 2. トラッシュエリアへドロップ
+        // トラッシュエリアへのドロップ処理
         function dropToTrash(ev) {
             ev.preventDefault();
             ev.currentTarget.classList.remove('drag-over');
             let dataText = ev.dataTransfer.getData('text/plain');
 
+            // 1. 山札からトラッシュへ移動
             if (dataText === 'deck-zone-drag' && virtualDeck.length > 0) {
-                let topCard = virtualDeck.shift(); // 先頭から1枚取得
+                let topCard = virtualDeck.shift(); // 山札の一番上を取り出す
                 trashCards.push({ name: topCard.name, imagePath: topCard.imagePath });
                 document.getElementById('deckCount').innerText = virtualDeck.length;
                 updateTrashUI();
-            } else if (dataText === 'search-drag') {
+            } 
+            // 2. サーチ画面からトラッシュへ移動
+            else if (dataText === 'search-drag') {
                 let idx = parseInt(ev.dataTransfer.getData('search-index'));
                 let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
                 let cardObj = targetList.splice(idx, 1)[0];
@@ -1066,8 +1069,10 @@ function dropToSpecificFrame(ev, colIndex, layerNum) {
                 document.getElementById('deckCount').innerText = virtualDeck.length;
                 document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
                 updateTrashUI();
-                renderSearchList();
-            } else if (dataText && dataText !== 'trash-zone-drag') {
+                if (typeof renderSearchList === 'function') renderSearchList();
+            } 
+            // 3. 手札やフィールドなど実体カードからトラッシュへ移動
+            else if (dataText && dataText !== 'trash-zone-drag') {
                 let a = document.getElementById(dataText);
                 if (a) {
                     trashCards.push({ name: a.getAttribute('data-cardname'), imagePath: a.getAttribute('data-imagepath') });
@@ -1077,23 +1082,28 @@ function dropToSpecificFrame(ev, colIndex, layerNum) {
             }
         }
 
-        // 3. VOLノイズエリアへドロップ
+        // VOLノイズエリアへのドロップ処理
         function dropToVolNoise(ev) {
             ev.preventDefault();
             ev.currentTarget.classList.remove('drag-over');
             let dataText = ev.dataTransfer.getData('text/plain');
 
+            // 1. 山札からVOLノイズへ移動
             if (dataText === 'deck-zone-drag' && virtualDeck.length > 0) {
-                let topCard = virtualDeck.shift(); // 先頭から1枚取得
+                let topCard = virtualDeck.shift(); // 山札の一番上を取り出す
                 volNoiseCards.push({ name: topCard.name, imagePath: topCard.imagePath });
                 document.getElementById('deckCount').innerText = virtualDeck.length;
                 document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-            } else if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
+            } 
+            // 2. トラッシュからVOLノイズへ移動
+            else if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
                 let cardObj = trashCards.pop();
                 volNoiseCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
                 document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
                 updateTrashUI();
-            } else if (dataText) {
+            } 
+            // 3. 手札やフィールドなど実体カードからVOLノイズへ移動
+            else if (dataText) {
                 let a = document.getElementById(dataText);
                 if (a) {
                     volNoiseCards.push({ name: a.getAttribute('data-cardname'), imagePath: a.getAttribute('data-imagepath') });
