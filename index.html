@@ -842,331 +842,66 @@
             setupDeckAreaEvents();
         };
 
-        // 山札ドラッグ開始（透明要素で画像を非表示化）
-            function dragStartDeck(ev) {
-                if (virtualDeck.length === 0) {
-        ev.preventDefault();
-        return;
-    }
-
-    ev.dataTransfer.setData('text/plain', 'deck-zone-drag');
-    if (isSearchOpen) document.getElementById('searchOverlay').classList.add('dragging-mode');
-
-    let blankImage = document.createElement('div');
-    blankImage.style.width = '1px';
-    blankImage.style.height = '1px';
-    blankImage.style.opacity = '0';
-    document.body.appendChild(blankImage);
-
-    ev.dataTransfer.setDragImage(blankImage, 0, 0);
-
-    setTimeout(() => {
-        if (blankImage.parentNode) {
-            document.body.removeChild(blankImage);
-        }
-    }, 0);
-}
-
-    
-// エラーの原因となっていたドラッグ終了時関数
-        function dragEndDeck(ev) {
-            let overlay = document.getElementById('searchOverlay');
-            if (overlay) {
-                overlay.classList.remove('dragging-mode');
-            }
-        }
-
-        // 山札ドラッグ開始関数
-        function dragStartDeck(ev) {
-    if (!virtualDeck || virtualDeck.length === 0) {
-        ev.preventDefault();
-        return;
-    }
-
-    // ブラウザ互換性を高めるため text/plain と text の両方にセット
-    ev.dataTransfer.setData('text/plain', 'deck-zone-drag');
-    ev.dataTransfer.setData('text', 'deck-zone-drag');
-
-    if (isSearchOpen) {
-        let overlay = document.getElementById('searchOverlay');
-        if (overlay) overlay.classList.add('dragging-mode');
-    }
-
-    // 透明な要素をドラッグ画像に指定してカーソル追従を非表示化
-    let blankImage = document.createElement('div');
-    blankImage.style.width = '1px';
-    blankImage.style.height = '1px';
-    blankImage.style.opacity = '0';
-    document.body.appendChild(blankImage);
-    ev.dataTransfer.setDragImage(blankImage, 0, 0);
-
-    setTimeout(() => {
-        if (blankImage.parentNode) {
-            document.body.removeChild(blankImage);
-        }
-    }, 0);
-}
+function setupTrashAreaEvents() {
+            let el = document.getElementById('trashZone');
+            el.setAttribute('draggable', 'true');
             
-// --- 2. フィールド枠（.frame-layer）へのドロップ処理 ---
-function dropToSpecificFrame(ev, colIndex, layerNum) {
-    ev.preventDefault();
-    ev.stopPropagation();
-    ev.currentTarget.classList.remove('drag-over');
-    let dataText = ev.dataTransfer.getData('text/plain');
+            el.onclick = function(ev) {
+                if (!isTrashDragging) { openSearchModal('trash'); }
+            };
 
-    // 山札からフィールド枠へ置く処理
-    if (dataText === 'deck-zone-drag' && virtualDeck.length > 0) {
-        let topCard = virtualDeck.shift(); // 先頭カードを取得
-        document.getElementById('deckCount').innerText = virtualDeck.length;
-        
-        // 手札用要素を作成したうえで、対象の枠へ配置
-        createGameCardToHand(topCard.name, topCard.imagePath);
-        let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-        if (genCard) {
-            executeCardPlacement(genCard, ev.currentTarget, layerNum);
-        }
-        return;
-    }
+            el.ondragstart = function(ev) {
+                if (trashCards.length === 0) { ev.preventDefault(); return; }
+                ev.dataTransfer.setData('text/plain', 'trash-zone-drag');
+                if (isSearchOpen) document.getElementById('searchOverlay').classList.add('dragging-mode');
+            };
 
-    // トラッシュエリアから枠へ置く処理
-    if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
-        let cardObj = trashCards.pop();
-        createGameCardToHand(cardObj.name, cardObj.imagePath);
-        let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-        if (genCard) {
-            executeCardPlacement(genCard, ev.currentTarget, layerNum);
-        }
-        updateTrashUI();
-        return;
-    }
+            el.ondragend = function(ev) {
+                document.getElementById('searchOverlay').classList.remove('dragging-mode');
+            };
 
-    // サーチ画面から枠へ置く処理
-    if (dataText === 'search-drag') {
-        let idx = parseInt(ev.dataTransfer.getData('search-index'));
-        let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
-        let cardObj = targetList.splice(idx, 1)[0];
-        createGameCardToHand(cardObj.name, cardObj.imagePath);
-        let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-        if (genCard) {
-            executeCardPlacement(genCard, ev.currentTarget, layerNum);
-        }
-        document.getElementById('deckCount').innerText = virtualDeck.length;
-        document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-        updateTrashUI();
-        renderSearchList();
-        return;
-    }
-
-    // 通常の手札等からのドロップ処理
-    if (dataText) {
-        let r = document.getElementById(dataText);
-        if (r) {
-            executeCardPlacement(r, ev.currentTarget, layerNum);
-        }
-    }
-}
-        // --- スマホ・タッチ操作用：山札の一番上のカードをドロップ先へ移動 ---
-        function setupDeckAreaEvents() {
-            let el = document.getElementById('deckZone');
-            if (!el) return;
-            
             el.addEventListener('touchstart', function(ev) {
-                if (virtualDeck.length === 0) return;
-                isDeckDragging = true;
+                if (trashCards.length === 0) return;
+                isTrashDragging = true;
                 let touch = ev.touches[0];
-                deckDragStartX = touch.clientX;
-                deckDragStartY = touch.clientY;
+                trashDragStartX = touch.clientX;
+                trashDragStartY = touch.clientY;
             }, { passive: true });
 
             el.addEventListener('touchend', function(ev) {
-                if (!isDeckDragging) return;
-                isDeckDragging = false;
+                if (!isTrashDragging) return;
+                isTrashDragging = false;
                 let touch = ev.changedTouches[0];
-
-                // タップ（クリック）動作判定：移動距離が短ければ通常のクリックドローへ任せる
-                if (Math.abs(touch.clientX - deckDragStartX) < 6 && Math.abs(touch.clientY - deckDragStartY) < 6) {
-                    return; 
-                }
-
-                // 指を離した場所の要素を取得して、山札の一番上のカードを移動
-                let dropT = document.elementFromPoint(touch.clientX, touch.clientY);
-                if (dropT && virtualDeck.length > 0) {
-                    if (dropT.closest('.hand-area')) {
-                        // 手札へ移動
-                        drawCard();
-                    } else if (dropT.closest('#trashZone')) {
-                        // トラッシュへ一番上のカードを移動
-                        let topCard = virtualDeck.shift();
-                        trashCards.push({ name: topCard.name, imagePath: topCard.imagePath });
-                        document.getElementById('deckCount').innerText = virtualDeck.length;
-                        updateTrashUI();
-                    } else if (dropT.closest('#volNoiseZone')) {
-                        // VOLノイズへ一番上のカードを移動
-                        let topCard = virtualDeck.shift();
-                        volNoiseCards.push({ name: topCard.name, imagePath: topCard.imagePath });
-                        document.getElementById('deckCount').innerText = virtualDeck.length;
-                        document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-                    } else if (dropT.closest('.direction-placeholder')) {
-                        // ディレクションスロットへ移動
-                        let slot = dropT.closest('.direction-placeholder');
-                        if (slot.children.length === 0) {
-                            let topCard = virtualDeck.shift();
-                            document.getElementById('deckCount').innerText = virtualDeck.length;
-                            createGameCardToHand(topCard.name, topCard.imagePath);
-                            let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-                            if (genCard) slot.appendChild(genCard);
+                if (Math.abs(touch.clientX - trashDragStartX) < 6 && Math.abs(touch.clientY - trashDragStartY) < 6) {
+                    openSearchModal('trash');
+                } else {
+                    let dropT = document.elementFromPoint(touch.clientX, touch.clientY);
+                    if (dropT) {
+                        if (dropT.closest('.hand-area')) {
+                            let cut = trashCards.pop();
+                            createGameCardToHand(cut.name, cut.imagePath);
+                            updateTrashUI();
+                        } else if (dropT.closest('.frame-layer')) {
+                            let cut = trashCards.pop();
+                            createGameCardToHand(cut.name, cut.imagePath);
+                            let gen = document.getElementById(`card-id-${cardIdCounter - 1}`);
+                            if (gen) {
+                                let num = parseInt(dropT.closest('.frame-layer').getAttribute('data-layer'));
+                                executeCardPlacement(gen, dropT.closest('.frame-layer'), num);
+                            }
+                            updateTrashUI();
+                        } else if (dropT.closest('.direction-placeholder')) {
+                            let cut = trashCards.pop();
+                            createGameCardToHand(cut.name, cut.imagePath);
+                            let gen = document.getElementById(`card-id-${cardIdCounter - 1}`);
+                            if (gen && dropT.closest('.direction-placeholder').children.length === 0) {
+                                dropT.closest('.direction-placeholder').appendChild(gen);
+                            }
+                            updateTrashUI();
                         }
                     }
                 }
             }, { passive: true });
-        }
-
-        // --- PCドラッグ＆ドロップ受取処理の改修 ---
-
-        // 1. 手札エリアへドロップ
-        function dropToHand(ev) {
-            ev.preventDefault();
-            ev.currentTarget.classList.remove('drag-over');
-            let dataText = ev.dataTransfer.getData('text/plain');
-
-            if (dataText === 'deck-zone-drag' && virtualDeck.length > 0) {
-                drawCard(); // 先頭1枚を手札に追加
-            } else if (dataText === 'search-drag') {
-                let idx = parseInt(ev.dataTransfer.getData('search-index'));
-                let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
-                let cardObj = targetList.splice(idx, 1)[0];
-                createGameCardToHand(cardObj.name, cardObj.imagePath);
-                document.getElementById('deckCount').innerText = virtualDeck.length;
-                document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-                updateTrashUI();
-                renderSearchList();
-            } else if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
-                let cardObj = trashCards.pop();
-                createGameCardToHand(cardObj.name, cardObj.imagePath);
-                updateTrashUI();
-            } else if (dataText) {
-                let a = document.getElementById(dataText);
-                if (a) document.getElementById('handArea').appendChild(a);
-            }
-        }
-
-        // トラッシュエリアへのドロップ処理
-        function dropToTrash(ev) {
-    ev.preventDefault();
-    ev.currentTarget.classList.remove('drag-over');
-    
-    // text/plain または text の両方をサポート
-    let dataText = ev.dataTransfer.getData('text/plain') || ev.dataTransfer.getData('text');
-
-    // 山札からトラッシュへ移動
-    if (dataText === 'deck-zone-drag' && virtualDeck && virtualDeck.length > 0) {
-        let topCard = virtualDeck.shift(); // 先頭カードを取得
-        trashCards.push({ name: topCard.name, imagePath: topCard.imagePath });
-        
-        let deckCountEl = document.getElementById('deckCount');
-        if (deckCountEl) deckCountEl.innerText = virtualDeck.length;
-        
-        updateTrashUI();
-    } 
-    // 手札やフィールド等からトラッシュへ移動
-    else if (dataText && dataText !== 'trash-zone-drag') {
-        let a = document.getElementById(dataText);
-        if (a) {
-            trashCards.push({ 
-                name: a.getAttribute('data-cardname'), 
-                imagePath: a.getAttribute('data-imagepath') 
-            });
-            updateTrashUI();
-            a.remove();
-        }
-    }
-}
-            
-        // VOLノイズエリアへのドロップ処理
-        function dropToVolNoise(ev) {
-    ev.preventDefault();
-    ev.currentTarget.classList.remove('drag-over');
-    
-    // text/plain または text の両方をサポート
-    let dataText = ev.dataTransfer.getData('text/plain') || ev.dataTransfer.getData('text');
-
-    // 山札からVOLノイズへ移動
-    if (dataText === 'deck-zone-drag' && virtualDeck && virtualDeck.length > 0) {
-        let topCard = virtualDeck.shift(); // 先頭カードを取得
-        volNoiseCards.push({ name: topCard.name, imagePath: topCard.imagePath });
-        
-        let deckCountEl = document.getElementById('deckCount');
-        let volCountEl = document.getElementById('volNoiseCount');
-        if (deckCountEl) deckCountEl.innerText = virtualDeck.length;
-        if (volCountEl) volCountEl.innerText = volNoiseCards.length;
-    } 
-    // トラッシュからVOLノイズへ移動
-    else if (dataText === 'trash-zone-drag' && trashCards && trashCards.length > 0) {
-        let cardObj = trashCards.pop();
-        volNoiseCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
-        
-        let volCountEl = document.getElementById('volNoiseCount');
-        if (volCountEl) volCountEl.innerText = volNoiseCards.length;
-        updateTrashUI();
-    } 
-    // 手札やフィールド等からVOLノイズへ移動
-    else if (dataText) {
-        let a = document.getElementById(dataText);
-        if (a) {
-            volNoiseCards.push({ 
-                name: a.getAttribute('data-cardname'), 
-                imagePath: a.getAttribute('data-imagepath') 
-            });
-            let volCountEl = document.getElementById('volNoiseCount');
-            if (volCountEl) volCountEl.innerText = volNoiseCards.length;
-            a.remove();
-        }
-    }
-}
-            
-        // 4. フィールド（枠）へドロップ
-        function dropToSpecificFrame(ev, colIndex, layerNum) {
-            ev.preventDefault();
-            ev.stopPropagation();
-            ev.currentTarget.classList.remove('drag-over');
-            let dataText = ev.dataTransfer.getData('text/plain');
-
-            if (dataText === 'deck-zone-drag' && virtualDeck.length > 0) {
-                let topCard = virtualDeck.shift();
-                document.getElementById('deckCount').innerText = virtualDeck.length;
-                createGameCardToHand(topCard.name, topCard.imagePath);
-                let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-                if (genCard) executeCardPlacement(genCard, ev.currentTarget, layerNum);
-                return;
-            }
-
-            if (dataText === 'search-drag') {
-                let idx = parseInt(ev.dataTransfer.getData('search-index'));
-                let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
-                let cardObj = targetList.splice(idx, 1)[0];
-                createGameCardToHand(cardObj.name, cardObj.imagePath);
-                let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-                if (genCard) executeCardPlacement(genCard, ev.currentTarget, layerNum);
-                document.getElementById('deckCount').innerText = virtualDeck.length;
-                document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-                updateTrashUI();
-                renderSearchList();
-                return;
-            }
-
-            if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
-                let cardObj = trashCards.pop();
-                createGameCardToHand(cardObj.name, cardObj.imagePath);
-                let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-                if (genCard) executeCardPlacement(genCard, ev.currentTarget, layerNum);
-                updateTrashUI();
-                return;
-            }
-
-            if (dataText) {
-                let r = document.getElementById(dataText);
-                if (r) executeCardPlacement(r, ev.currentTarget, layerNum);
-            }
         }
 
         function updateTrashUI() {
@@ -1179,7 +914,6 @@ function dropToSpecificFrame(ev, colIndex, layerNum) {
             }
             document.getElementById('trashCount').innerText = trashCards.length;
         }
-
         function startGame() {
             let t = document.getElementById('deckInput1').value;
             let e = t.split(/[\/\s\n,]+/).map(t => t.trim()).filter(t => t.length > 0);
