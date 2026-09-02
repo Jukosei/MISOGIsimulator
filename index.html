@@ -1163,7 +1163,7 @@ function setupTrashAreaEvents() {
             closeActionMenu();
         }
 
-        // ドラッグオーバー許可（自分自身（山札）からのドラッグ時はドロップを許可しない）
+        // ドラッグ許可設定
 function allowDrop(ev) {
     ev.preventDefault();
     ev.currentTarget.classList.add('drag-over');
@@ -1173,33 +1173,46 @@ function dragLeave(ev) {
     ev.currentTarget.classList.remove('drag-over');
 }
 
-// 山札エリアへのドロップ処理（他ゾーンから山札に戻す）
+// 山札ドラッグ開始
+function dragStartDeck(ev) {
+    if (!virtualDeck || virtualDeck.length === 0) {
+        ev.preventDefault();
+        return;
+    }
+    ev.dataTransfer.setData('text/plain', 'deck-zone-drag');
+    ev.dataTransfer.effectAllowed = 'move';
+}
+
+// 山札終了処理
+function dragEndDeck(ev) {
+    let overlay = document.getElementById('searchOverlay');
+    if (overlay) overlay.classList.remove('dragging-mode');
+}
+
+// 山札へのドロップ処理（他エリアからの戻し）
 function dropToDeck(ev) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
-    
-    let dataText = ev.dataTransfer.getData('text/plain') || ev.dataTransfer.getData('text');
+    let dataText = ev.dataTransfer.getData('text/plain');
 
-    // 自分自身（山札）を自分にドロップした場合は何もしない
-    if (dataText === 'deck-zone-drag') {
-        return;
-    }
+    // 自分自身へのドロップは無視
+    if (dataText === 'deck-zone-drag') return;
 
     // トラッシュから山札の上に戻す
     if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
         let cardObj = trashCards.pop();
-        virtualDeck.unshift({ name: cardObj.name, imagePath: cardObj.imagePath }); // 山札の先頭（上）に追加
+        virtualDeck.unshift({ name: cardObj.name, imagePath: cardObj.imagePath });
         document.getElementById('deckCount').innerText = virtualDeck.length;
         updateTrashUI();
     } 
-    // 手札やフィールドの実体カードから山札の上に戻す
+    // 実体カード要素から山札の上に戻す
     else if (dataText) {
         let cardEl = document.getElementById(dataText);
         if (cardEl) {
             let name = cardEl.getAttribute('data-cardname');
             let imagePath = cardEl.getAttribute('data-imagepath');
             if (name && imagePath) {
-                virtualDeck.unshift({ name: name, imagePath: imagePath }); // 山札の先頭（上）に追加
+                virtualDeck.unshift({ name: name, imagePath: imagePath });
                 document.getElementById('deckCount').innerText = virtualDeck.length;
                 cardEl.remove();
             }
