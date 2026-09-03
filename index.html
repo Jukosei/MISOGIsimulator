@@ -1411,28 +1411,34 @@ function confirmDeckReturn(position) {
         }
 
         function dropToHand(ev) {
-            ev.preventDefault();
-            ev.currentTarget.classList.remove('drag-over');
-            let dataText = ev.dataTransfer.getData('text/plain');
+    ev.preventDefault();
+    ev.currentTarget.classList.remove('drag-over');
+    let dataText = ev.dataTransfer.getData('text/plain');
 
-            if (dataText === 'search-drag') {
-                let idx = parseInt(ev.dataTransfer.getData('search-index'));
-                let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
-                let cardObj = targetList.splice(idx, 1)[0];
-                createGameCardToHand(cardObj.name, cardObj.imagePath);
-                document.getElementById('deckCount').innerText = virtualDeck.length;
-                document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-                updateTrashUI();
-                renderSearchList();
-            } else if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
-                let cardObj = trashCards.pop();
-                createGameCardToHand(cardObj.name, cardObj.imagePath);
-                updateTrashUI();
-            } else if (dataText) {
-                let a = document.getElementById(dataText);
-                if (a) document.getElementById('handArea').appendChild(a);
-            }
-        }
+    // 山札からのドラッグ＆ドロップを追加
+    if (dataText === 'deck-zone-drag' && virtualDeck && virtualDeck.length > 0) {
+        let topCard = virtualDeck.shift(); // 先頭1枚を取り出す
+        createGameCardToHand(topCard.name, topCard.imagePath);
+        updateDeckUI(); // 山札の枚数と背景画像を更新
+    }
+    else if (dataText === 'search-drag') {
+        let idx = parseInt(ev.dataTransfer.getData('search-index'));
+        let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
+        let cardObj = targetList.splice(idx, 1)[0];
+        createGameCardToHand(cardObj.name, cardObj.imagePath);
+        updateDeckUI();
+        updateVolNoiseUI();
+        updateTrashUI();
+        renderSearchList();
+    } else if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
+        let cardObj = trashCards.pop();
+        createGameCardToHand(cardObj.name, cardObj.imagePath);
+        updateTrashUI();
+    } else if (dataText) {
+        let a = document.getElementById(dataText);
+        if (a) document.getElementById('handArea').appendChild(a);
+    }
+}
 
         // トラッシュへドロップ
 function dropToTrash(ev) {
