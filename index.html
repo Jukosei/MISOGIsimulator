@@ -1328,8 +1328,8 @@ function confirmDeckReturn(position) {
                 createGameCardToHand(cardObj.name, cardObj.imagePath);
                 let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
                 if (genCard) { executeCardPlacement(genCard, ev.currentTarget, layerNum); }
-                document.getElementById('deckCount').innerText = virtualDeck.length;
-                document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+                updateDeckUI();
+                updateVolNoiseUI();
                 updateTrashUI();
                 renderSearchList();
                 return;
@@ -1452,7 +1452,7 @@ function dropToVolNoise(ev) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
 
-    // 配列の存在確認と枚数チェック（5枚以上なら即中断）
+    // 配列の存在確認と枚数チェック（5枚以上なら中断）
     if (!volNoiseCards) volNoiseCards = [];
     if (volNoiseCards.length >= 5) {
         alert('VOLノイズエリアは最大5枚までです。');
@@ -1464,18 +1464,10 @@ function dropToVolNoise(ev) {
     if (dataText === 'deck-zone-drag' && virtualDeck && virtualDeck.length > 0) {
         let topCard = virtualDeck.shift();
         volNoiseCards.push({ name: topCard.name, imagePath: topCard.imagePath });
-        
-        let deckCountEl = document.getElementById('deckCount');
-        let volCountEl = document.getElementById('volNoiseCount');
-        if (deckCountEl) deckCountEl.innerText = virtualDeck.length;
-        if (volCountEl) volCountEl.innerText = volNoiseCards.length;
     } 
     else if (dataText === 'trash-zone-drag' && trashCards && trashCards.length > 0) {
         let cardObj = trashCards.pop();
         volNoiseCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
-        
-        let volCountEl = document.getElementById('volNoiseCount');
-        if (volCountEl) volCountEl.innerText = volNoiseCards.length;
         updateTrashUI();
     } 
     else if (dataText && dataText !== 'deck-zone-drag') {
@@ -1485,11 +1477,13 @@ function dropToVolNoise(ev) {
                 name: a.getAttribute('data-cardname'), 
                 imagePath: a.getAttribute('data-imagepath') 
             });
-            let volCountEl = document.getElementById('volNoiseCount');
-            if (volCountEl) volCountEl.innerText = volNoiseCards.length;
             a.remove();
         }
     }
+
+    // ★ 個別の innerText 更新を削除し、ここで一括UI更新
+    updateDeckUI();
+    updateVolNoiseUI();
 }
         function dropToDeckZone(ev) {
             ev.preventDefault();
