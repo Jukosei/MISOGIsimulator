@@ -1547,8 +1547,8 @@ function dropToVolNoise(ev) {
                 cardEl.className = 'modal-card-item';
                 cardEl.style.cursor = 'pointer';
 
-                // 正しい裏面画像パス (card_back.png) を指定
-                const backImagePath = 'images/card_back.png';
+                // カレントディレクトリ明示 (./) を付与
+                const backImagePath = './images/card_back.png';
 
                 cardEl.innerHTML = `
                     <div style="width: 120px; height: 180px; background-color: #222; border: 1px solid #555; border-radius: 6px; overflow: hidden;">
@@ -1557,7 +1557,7 @@ function dropToVolNoise(ev) {
                     <div style="text-align:center; font-size:12px; margin-top:4px; color:#fff;">${index + 1}枚目</div>
                 `;
 
-                // クリックで手札へ送る
+                // クリックで手札へ移動
                 cardEl.onclick = function() {
                     drawVolNoiseToHand(index);
                 };
