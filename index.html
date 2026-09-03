@@ -1004,11 +1004,11 @@ function updateVolNoiseUI() {
             a.sort((t, e) => (o[t.suffix] || 99) - (o[e.suffix] || 99));
             virtualDeck = a;
 
-            document.getElementById('deckCount').innerText = virtualDeck.length;
+            updateDeckUI();
+            updateVolNoiseUI();
             trashCards = [];
             updateTrashUI();
             volNoiseCards = [];
-            document.getElementById('volNoiseCount').innerText = 0;
             document.getElementById('handArea').innerHTML = "";
             document.getElementById('menuScreen').style.display = 'none';
             document.getElementById('gameScreen').style.display = 'flex';
