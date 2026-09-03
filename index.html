@@ -1573,6 +1573,14 @@ function openVolNoiseModal() {
             cardWrapper.appendChild(label);
             container.appendChild(cardWrapper);
         });
+        // 例：モーダル生成ループ内の記述イメージ
+volNoiseCards.forEach((card, index) => {
+    // ...要素生成処理...
+    cardEl.onclick = function() {
+        drawVolNoiseToHand(index);
+    };
+    // ...モーダルへ追加...
+});
     }
 
     let modal = document.getElementById('volNoiseViewModal');
@@ -1584,6 +1592,27 @@ function closeVolNoiseModal() {
     let modal = document.getElementById('volNoiseViewModal');
     if (modal) modal.style.display = 'none';
 }
+            // VOLノイズモーダルのカードをクリックして手札へ移動する関数
+function drawVolNoiseToHand(index) {
+    if (!volNoiseCards || volNoiseCards.length <= index) return;
+
+    // クリックされた位置のカードを取り出す
+    let cardObj = volNoiseCards.splice(index, 1)[0];
+
+    // 手札へカードを生成
+    createGameCardToHand(cardObj.name, cardObj.imagePath);
+
+    // VOLノイズエリアのUIとモーダル表示を更新
+    updateVolNoiseUI();
+    
+    // モーダルがまだ残っていれば再描画、無くなったら閉じる
+    if (volNoiseCards.length > 0) {
+        openVolNoiseModal(); // モーダル再描画関数（環境の関数名に合わせてください）
+    } else {
+        closeVolNoiseModal(); // モーダルを閉じる処理
+    }
+}
+            
             // VOLノイズモーダル内のカードを描画・更新する処理
 function renderVolNoiseModal() {
     let modalListEl = document.getElementById('volNoiseModalList'); // モーダル内のカード一覧コンテナ
