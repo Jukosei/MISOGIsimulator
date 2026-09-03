@@ -1584,6 +1584,56 @@ function closeVolNoiseModal() {
     let modal = document.getElementById('volNoiseViewModal');
     if (modal) modal.style.display = 'none';
 }
+            // VOLノイズモーダル内のカードを描画・更新する処理
+function renderVolNoiseModal() {
+    let modalListEl = document.getElementById('volNoiseModalList'); // モーダル内のカード一覧コンテナ
+    if (!modalListEl) return;
+
+    modalListEl.innerHTML = ''; // リストを初期化
+
+    if (!volNoiseCards || volNoiseCards.length === 0) {
+        modalListEl.innerHTML = '<p style="color: #ccc; text-align: center;">VOLノイズはありません</p>';
+        return;
+    }
+
+    volNoiseCards.forEach((card, index) => {
+        let cardEl = document.createElement('div');
+        cardEl.className = 'modal-card-item';
+        cardEl.style.cursor = 'pointer';
+        
+        // カード画像または名前を表示
+        cardEl.innerHTML = `<img src="${card.imagePath}" alt="${card.name}" style="width: 100px; height: 150px; object-fit: cover; border-radius: 4px;">`;
+
+        // ★ クリック時に手札へ送る関数を呼び出す
+        cardEl.onclick = function() {
+            moveVolNoiseToHand(index);
+        };
+
+        modalListEl.appendChild(cardEl);
+    });
+}
+
+            // VOLノイズから手札へカードを移動する処理
+function moveVolNoiseToHand(index) {
+    if (!volNoiseCards || volNoiseCards.length <= index) return;
+
+    // 指定されたインデックスのカードを1枚取り出す
+    let cardObj = volNoiseCards.splice(index, 1)[0];
+
+    // 手札へカードを追加（既存の手札生成関数を使用）
+    createGameCardToHand(cardObj.name, cardObj.imagePath);
+
+    // VOLノイズのUI（枚数・背景画像）を更新
+    updateVolNoiseUI();
+
+    // モーダル内の表示を再描画（残りのカードを表示）
+    renderVolNoiseModal();
+
+    // もしVOLノイズが0枚になったらモーダルを自動閉じる場合（任意）
+    if (volNoiseCards.length === 0) {
+        closeVolNoiseModal(); // モーダルを閉じる関数名に合わせてください
+    }
+}
             
         function drawCard() {
             if (virtualDeck.length > 0) {
