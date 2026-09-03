@@ -1547,13 +1547,17 @@ function dropToVolNoise(ev) {
                 cardEl.className = 'modal-card-item';
                 cardEl.style.cursor = 'pointer';
 
+                // ★ img の src を card.imagePath ではなく、固定の裏面画像パスにする
+                // alt は識別用にカード名のままにしておくと便利です
                 cardEl.innerHTML = `
-                    <img src="${card.imagePath}" alt="${card.name}" style="width: 120px; height: 180px; object-fit: cover; border-radius: 6px;">
+                    <img src="images/back.png" alt="${card.name}" style="width: 120px; height: 180px; object-fit: cover; border-radius: 6px;">
                     <div style="text-align:center; font-size:12px; margin-top:4px; color:#fff;">${index + 1}枚目</div>
                 `;
 
                 // クリックで手札へ送る
                 cardEl.onclick = function() {
+                    // ここでモーダルを一度閉じるなどの処理を入れても良いでしょう
+                    // 今回はそのまま手札に加える関数を呼び出します
                     drawVolNoiseToHand(index);
                 };
 
@@ -1567,7 +1571,6 @@ function dropToVolNoise(ev) {
         modalEl.style.display = 'flex';
     }
 }
-
 // 手札へカードを動かす処理
 function drawVolNoiseToHand(index) {
     if (!volNoiseCards || volNoiseCards.length <= index) return;
