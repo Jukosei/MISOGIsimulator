@@ -1533,11 +1533,11 @@ function dropToVolNoise(ev) {
         }
 
             function openVolNoiseModal() {
-    let modalEl = document.getElementById('volNoiseViewModal');
-    let listContainer = document.getElementById('volNoiseCardContainer');
+    let modalEl = document.getElementById('volNoiseViewModal'); // HTML側の正しいIDに合わせる
+    let listContainer = document.getElementById('volNoiseCardContainer'); // HTML側の正しいIDに合わせる
 
     if (listContainer) {
-        listContainer.innerHTML = '';
+        listContainer.innerHTML = ''; // リストを初期化
 
         if (!volNoiseCards || volNoiseCards.length === 0) {
             listContainer.innerHTML = '<p style="color:#ccc; text-align:center; padding: 20px;">VOLノイズはありません</p>';
@@ -1547,8 +1547,8 @@ function dropToVolNoise(ev) {
                 cardEl.className = 'modal-card-item';
                 cardEl.style.cursor = 'pointer';
 
-                // ★ img の src を card.imagePath ではなく、固定の裏面画像パスにする
-                // alt は識別用にカード名のままにしておくと便利です
+                // ★ img の src を固定の裏面画像パスにする
+                // alt はカード名のままにして内部的に識別できるようにします
                 cardEl.innerHTML = `
                     <img src="images/back.png" alt="${card.name}" style="width: 120px; height: 180px; object-fit: cover; border-radius: 6px;">
                     <div style="text-align:center; font-size:12px; margin-top:4px; color:#fff;">${index + 1}枚目</div>
@@ -1556,8 +1556,6 @@ function dropToVolNoise(ev) {
 
                 // クリックで手札へ送る
                 cardEl.onclick = function() {
-                    // ここでモーダルを一度閉じるなどの処理を入れても良いでしょう
-                    // 今回はそのまま手札に加える関数を呼び出します
                     drawVolNoiseToHand(index);
                 };
 
@@ -1571,6 +1569,7 @@ function dropToVolNoise(ev) {
         modalEl.style.display = 'flex';
     }
 }
+            
 // 手札へカードを動かす処理
 function drawVolNoiseToHand(index) {
     if (!volNoiseCards || volNoiseCards.length <= index) return;
