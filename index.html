@@ -1701,8 +1701,8 @@ function closeVolNoiseModal() {
                     } else {
                         let cut = a.splice(n, 1)[0];
                         createGameCardToHand(cut.name, cut.imagePath);
-                        document.getElementById('deckCount').innerText = virtualDeck.length;
-                        document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+                        updateDeckUI();
+                        updateVolNoiseUI();
                         updateTrashUI();
                         renderSearchList();
                     }
