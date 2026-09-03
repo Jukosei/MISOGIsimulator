@@ -669,8 +669,8 @@
     <div class="game-screen" id="gameScreen">
         <div class="left-panel">
             <div class="zone-box" id="volNoiseZone" onclick="openVolNoiseModal()" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)" style="position: relative; overflow: hidden; cursor: pointer;">
-    <img id="volNoiseBackImg" src="images/card_back.png" alt="VOLノイズ裏面" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 0; pointer-events: none; display: none;">
-
+                <img id="volNoiseBackImg" src="./images/card_back.png" alt="VOLノイズ裏面" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 0; pointer-events: none; display: none;">
+                
     <div class="count-display" id="volNoiseCount" style="position: relative; z-index: 2;">0</div>
     <div class="zone-label" style="position: relative; z-index: 2;">VOLノイズ（確認はクリック）</div>
 </div>
@@ -752,7 +752,7 @@
 
             <div class="deck-zone" draggable="true" id="deckZone" onclick="drawCard()" ondragstart="dragStartDeck(event)" ondragend="dragEndDeck(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDeck(event)" style="position: relative; overflow: hidden;">
     <!-- opacityとz-indexを調整 -->
-    <img id="deckBackImg" src="images/card_back.png" alt="山札裏面" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 0; pointer-events: none; display: none;">
+                <img id="deckBackImg" src="./images/card_back.png" alt="山札裏面" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 0; pointer-events: none; display: none;">
     
     <div class="count-display" id="deckCount" style="position: relative; z-index: 2;">0</div>
     <div class="zone-label" style="position: relative; z-index: 2;">山札（クリックドロー/ドラッグ移動・戻し）</div>
