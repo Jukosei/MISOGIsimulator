@@ -1534,57 +1534,54 @@ function dropToVolNoise(ev) {
 
             // VOLノイズの裏面表示モーダルを開く
 function openVolNoiseModal() {
-    let container = document.getElementById('volNoiseCardContainer');
-    if (!container) return;
-    
-    // 中身をリセット
-    container.innerHTML = '';
+    let listContainer = document.getElementById('volNoiseModalList'); // コンテナ要素を取得
+    if (!listContainer) return;
+
+    listContainer.innerHTML = ''; // 一度リセット
 
     if (!volNoiseCards || volNoiseCards.length === 0) {
-        container.innerHTML = '<p style="color:#aaa; margin:20px;">カードはありません</p>';
+        listContainer.innerHTML = '<p style="color:#ccc; text-align:center;">VOLノイズはありません</p>';
     } else {
-        // 置かれた順（配列の先頭〜末尾）に左から順に生成
         volNoiseCards.forEach((card, index) => {
-            let cardWrapper = document.createElement('div');
-            cardWrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:6px;';
+            // 変数をちゃんと const や let で宣言する
+            const cardEl = document.createElement('div');
+            cardEl.className = 'modal-card-item';
+            cardEl.style.cursor = 'pointer';
 
-            // カード裏面画像要素
-            let cardImg = document.createElement('img');
-            // ★ images フォルダ内の裏面画像パスを指定（ファイル名に合わせて変更してください）
-            cardImg.src = 'images/card_back.png'; 
-            cardImg.alt = 'カード裏面';
-            cardImg.style.cssText = 'width:100px; height:140px; border-radius:8px; border:2px solid #555; object-fit:cover; box-shadow:0 4px 8px rgba(0,0,0,0.5); user-select:none;';
+            // カード画像を表示（未設定の場合は名前）
+            cardEl.innerHTML = `<img src="${card.imagePath}" alt="${card.name}" style="width: 120px; height: 180px; object-fit: cover; border-radius: 6px;">
+                                <div style="text-align:center; font-size:12px; margin-top:4px;">${index + 1}枚目</div>`;
 
-            // 画像読み込みエラー時の代替処理（画像がない場合はグレー枠表示）
-            cardImg.onerror = function() {
-                this.style.display = 'none';
-                let fallback = document.createElement('div');
-                fallback.style.cssText = 'width:100px; height:140px; background:#2c3e50; border:2px solid #ecf0f1; border-radius:8px; display:flex; justify-content:center; align-items:center; color:#bdc3c7; font-size:12px;';
-                fallback.innerText = '裏面';
-                cardWrapper.insertBefore(fallback, label);
+            // クリック時に手札へ移動する関数を呼び出し
+            cardEl.onclick = function() {
+                drawVolNoiseToHand(index);
             };
 
-            // 順序ラベル（1枚目、2枚目...）
-            let label = document.createElement('span');
-            label.style.cssText = 'color:#aaa; font-size:12px;';
-            label.innerText = `${index + 1}枚目`;
-
-            cardWrapper.appendChild(cardImg);
-            cardWrapper.appendChild(label);
-            container.appendChild(cardWrapper);
+            listContainer.appendChild(cardEl);
         });
-        // 例：モーダル生成ループ内の記述イメージ
-volNoiseCards.forEach((card, index) => {
-    // ...要素生成処理...
-    cardEl.onclick = function() {
-        drawVolNoiseToHand(index);
-    };
-    // ...モーダルへ追加...
-});
     }
 
-    let modal = document.getElementById('volNoiseViewModal');
-    if (modal) modal.style.display = 'flex';
+    // モーダル要素自体を表示する処理（必要に応じて既存のID名に合わせてください）
+    let modalEl = document.getElementById('volNoiseModal');
+    if (modalEl) modalEl.style.display = 'flex';
+}
+            // 手札に送る側の処理関数
+function drawVolNoiseToHand(index) {
+    if (!volNoiseCards || volNoiseCards.length <= index) return;
+
+    // 指定位置のカードを1枚抽出
+    let cardObj = volNoiseCards.splice(index, 1)[0];
+
+    // 手札へ生成＆UI更新
+    createGameCardToHand(cardObj.name, cardObj.imagePath);
+    updateVolNoiseUI();
+
+    // カードが残っていればモーダル再描画、無くなったら閉じる
+    if (volNoiseCards.length > 0) {
+        openVolNoiseModal();
+    } else {
+        closeVolNoiseModal();
+    }
 }
             
 // モーダルを閉じる
@@ -1592,27 +1589,7 @@ function closeVolNoiseModal() {
     let modal = document.getElementById('volNoiseViewModal');
     if (modal) modal.style.display = 'none';
 }
-            // VOLノイズモーダルのカードをクリックして手札へ移動する関数
-function drawVolNoiseToHand(index) {
-    if (!volNoiseCards || volNoiseCards.length <= index) return;
-
-    // クリックされた位置のカードを取り出す
-    let cardObj = volNoiseCards.splice(index, 1)[0];
-
-    // 手札へカードを生成
-    createGameCardToHand(cardObj.name, cardObj.imagePath);
-
-    // VOLノイズエリアのUIとモーダル表示を更新
-    updateVolNoiseUI();
-    
-    // モーダルがまだ残っていれば再描画、無くなったら閉じる
-    if (volNoiseCards.length > 0) {
-        openVolNoiseModal(); // モーダル再描画関数（環境の関数名に合わせてください）
-    } else {
-        closeVolNoiseModal(); // モーダルを閉じる処理
-    }
-}
-                     
+            
         function drawCard() {
             if (virtualDeck.length > 0) {
                 let t = virtualDeck.shift();
