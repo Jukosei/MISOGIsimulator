@@ -834,15 +834,16 @@
     </div>
 </div>
 
-    <!-- VOLノイズ確認用ポップアップモーダル -->
-<div id="volNoiseViewModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; flex-direction:column;">
-    <div style="background:#1e1e1e; border:2px solid #555; padding:20px; border-radius:12px; max-width:90%; max-height:80%; display:flex; flex-direction:column; align-items:center; gap:15px; box-shadow:0 0 20px rgba(0,0,0,0.8);">
+    <!-- VOLノイズ確認ポップアップモーダル -->
+<div id="volNoiseViewModal" style="...">
+    <!-- ダイアログ本体（ここをクリックしても閉じないようにイベント停止を入れる） -->
+    <div style="background:#1e1e1e; border:2px solid #555; padding:20px; ..." onclick="event.stopPropagation()">
         <h3 style="color:#fff; margin:0; font-size:18px;">VOLノイズ（置かれた順）</h3>
-        
-        <!-- カード裏面が横一列に並ぶコンテナ -->
+
+        <!-- カードが横一列に並ぶコンテナ -->
         <div id="volNoiseCardContainer" style="display:flex; gap:12px; overflow-x:auto; padding:10px; max-width:100%;"></div>
-        
-        <button onclick="closeVolNoiseModal()" style="padding:8px 24px; cursor:pointer; background:#444; color:#fff; border:1px solid #777; border-radius:6px; font-weight:bold;">閉じる</button>
+
+        <button onclick="closeVolNoiseModal()" style="...">閉じる</button>
     </div>
 </div>
     
@@ -1547,7 +1548,6 @@ function dropToVolNoise(ev) {
                 cardEl.className = 'modal-card-item';
                 cardEl.style.cursor = 'pointer';
 
-                // カレントディレクトリ明示 (./) を付与
                 const backImagePath = './images/card_back.png';
 
                 cardEl.innerHTML = `
@@ -1557,8 +1557,8 @@ function dropToVolNoise(ev) {
                     <div style="text-align:center; font-size:12px; margin-top:4px; color:#fff;">${index + 1}枚目</div>
                 `;
 
-                // クリックで手札へ移動
-                cardEl.onclick = function() {
+                cardEl.onclick = function(e) {
+                    e.stopPropagation(); // カード部分のクリックでモーダル閉じが発動しないよう防止
                     drawVolNoiseToHand(index);
                 };
 
@@ -1569,6 +1569,13 @@ function dropToVolNoise(ev) {
 
     if (modalEl) {
         modalEl.style.display = 'flex';
+
+        // ★ モーダル背景領域（画面外）がクリックされたら閉じる
+        modalEl.onclick = function(e) {
+            if (e.target === modalEl) {
+                closeVolNoiseModal();
+            }
+        };
     }
 }
             
