@@ -1533,11 +1533,11 @@ function dropToVolNoise(ev) {
         }
 
             function openVolNoiseModal() {
-    let modalEl = document.getElementById('volNoiseViewModal'); // HTML側の正しいIDに合わせる
-    let listContainer = document.getElementById('volNoiseCardContainer'); // HTML側の正しいIDに合わせる
+    let modalEl = document.getElementById('volNoiseViewModal');
+    let listContainer = document.getElementById('volNoiseCardContainer');
 
     if (listContainer) {
-        listContainer.innerHTML = ''; // リストを初期化
+        listContainer.innerHTML = '';
 
         if (!volNoiseCards || volNoiseCards.length === 0) {
             listContainer.innerHTML = '<p style="color:#ccc; text-align:center; padding: 20px;">VOLノイズはありません</p>';
@@ -1547,10 +1547,13 @@ function dropToVolNoise(ev) {
                 cardEl.className = 'modal-card-item';
                 cardEl.style.cursor = 'pointer';
 
-                // ★ img の src を固定の裏面画像パスにする
-                // alt はカード名のままにして内部的に識別できるようにします
+                // 正しい裏面画像パス (card_back.png) を指定
+                const backImagePath = 'images/card_back.png';
+
                 cardEl.innerHTML = `
-                    <img src="card_back.png" alt="${card.name}" style="width: 120px; height: 180px; object-fit: cover; border-radius: 6px;">
+                    <div style="width: 120px; height: 180px; background-color: #222; border: 1px solid #555; border-radius: 6px; overflow: hidden;">
+                        <img src="${backImagePath}" alt="裏面" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
                     <div style="text-align:center; font-size:12px; margin-top:4px; color:#fff;">${index + 1}枚目</div>
                 `;
 
@@ -1564,7 +1567,6 @@ function dropToVolNoise(ev) {
         }
     }
 
-    // モーダル全体を表示
     if (modalEl) {
         modalEl.style.display = 'flex';
     }
