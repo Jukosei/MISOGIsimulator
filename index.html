@@ -668,14 +668,10 @@
 
     <div class="game-screen" id="gameScreen">
         <div class="left-panel">
-            <div class="zone-box" id="volNoiseZone" onclick="openVolNoiseModal()" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)" style="position: relative; width: 100%; height: 100%; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-    <!-- 裏面画像 -->
-    <img id="volNoiseBackImg" src="images/card_back.png" alt="VOLノイズ裏面" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none; display: none;">
-
-    <!-- テキスト類 -->
-    <div class="count-display" id="volNoiseCount" style="position: relative; z-index: 2;">0</div>
-    <div class="zone-label" style="position: relative; z-index: 2;">VOLノイズ（確認はクリック）</div>
-</div>                
+            <div class="zone-box" id="volNoiseZone" onclick="openVolNoiseModal()" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)" style="cursor: pointer;">
+    <div class="count-display" id="volNoiseCount">0</div>
+    <div class="zone-label">VOLノイズ（確認はクリック）</div>
+</div>     
             
             <button class="temporary-btn-green" onclick="triggerAction('テンポラリー表示')">テンポラリー</button>
             <div class="zone-box" id="trashZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)">
@@ -753,14 +749,10 @@
             <button class="control-btn" onclick="triggerAction('山札の下から1枚ドロー')">山札の下から1枚ドロー</button>
             <button class="control-btn gray" style="margin-top:10px;" onclick="backToMenu()">メニュー戻る</button>
 
-           <div class="deck-zone" draggable="true" id="deckZone" onclick="drawCard()" ondragstart="dragStartDeck(event)" ondragend="dragEndDeck(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDeck(event)" style="position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-    <!-- 裏面画像：z-index: 1 で前面へ、pointer-events: none でドラッグを邪魔しない -->
-    <img id="deckBackImg" src="images/card_back.png" alt="山札裏面" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none; display: none;">
-    
-    <!-- テキスト類：z-index: 2 で画像の上に重ねる -->
-    <div class="count-display" id="deckCount" style="position: relative; z-index: 2;">0</div>
-    <div class="zone-label" style="position: relative; z-index: 2;">山札（クリックドロー/ドラッグ移動・戻し）</div>
-</div>    
+           <div class="deck-zone" draggable="true" id="deckZone" onclick="drawCard()" ondragstart="dragStartDeck(event)" ondragend="dragEndDeck(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDeck(event)">
+    <div class="count-display" id="deckCount">0</div>
+    <div class="zone-label">山札（クリックドロー/ドラッグ移動・戻し）</div>
+</div>
         </div>
 
         <div class="counter-panel">
@@ -957,30 +949,39 @@ function setupTrashAreaEvents() {
             document.getElementById('trashCount').innerText = trashCards.length;
         }
 
-            // 山札の表示（枚数カウントおよび裏面画像）を更新する共通関数
+           // 山札UI更新
 function updateDeckUI() {
     let count = virtualDeck ? virtualDeck.length : 0;
-    
-    // カウント表示の更新
     let deckCountEl = document.getElementById('deckCount');
     if (deckCountEl) deckCountEl.innerText = count;
 
-    // 枚数に応じた裏面画像の表示切り替え
-    let backImgEl = document.getElementById('deckBackImg');
-    if (backImgEl) {
-        backImgEl.style.display = (count > 0) ? 'block' : 'none';
+    let deckZoneEl = document.getElementById('deckZone');
+    if (deckZoneEl) {
+        if (count > 0) {
+            deckZoneEl.style.backgroundImage = "url('images/card_back.png')";
+            deckZoneEl.style.backgroundSize = "cover";
+            deckZoneEl.style.backgroundPosition = "center";
+        } else {
+            deckZoneEl.style.backgroundImage = "none";
+        }
     }
 }
 
-            // VOLノイズエリアの表示（枚数カウントおよび裏面画像）を更新する共通関数
+// VOLノイズUI更新
 function updateVolNoiseUI() {
     let count = volNoiseCards ? volNoiseCards.length : 0;
     let countEl = document.getElementById('volNoiseCount');
     if (countEl) countEl.innerText = count;
 
-    let backImgEl = document.getElementById('volNoiseBackImg');
-    if (backImgEl) {
-        backImgEl.style.display = (count > 0) ? 'block' : 'none';
+    let volZoneEl = document.getElementById('volNoiseZone');
+    if (volZoneEl) {
+        if (count > 0) {
+            volZoneEl.style.backgroundImage = "url('images/card_back.png')";
+            volZoneEl.style.backgroundSize = "cover";
+            volZoneEl.style.backgroundPosition = "center";
+        } else {
+            volZoneEl.style.backgroundImage = "none";
+        }
     }
 }
             
