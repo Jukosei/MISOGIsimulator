@@ -1529,14 +1529,7 @@ function dropToVolNoise(ev) {
             }
         }
 
-            function openVolNoiseModal() {
-    let modalEl = document.getElementById('volNoiseViewModal');
-    let listContainer = document.getElementById('volNoiseCardContainer');
-
-    if (listContainer) {
-        listContainer.innerHTML = '';
-
-function openVolNoiseModal() {
+    function openVolNoiseModal() {
     let modalEl = document.getElementById('volNoiseViewModal');
     let listContainer = document.getElementById('volNoiseCardContainer');
 
@@ -1551,7 +1544,6 @@ function openVolNoiseModal() {
                 cardEl.className = 'modal-card-item';
                 cardEl.style.cursor = 'pointer';
 
-                // 裏面画像 (card_back.png) で表示
                 cardEl.innerHTML = `
                     <div style="width: 120px; height: 180px; border-radius: 6px; overflow: hidden; border: 1px solid #555;">
                         <img src="images/card_back.png" alt="裏面" style="width: 100%; height: 100%; object-fit: cover;">
@@ -1559,7 +1551,6 @@ function openVolNoiseModal() {
                     <div style="text-align:center; font-size:12px; margin-top:4px; color:#fff;">${index + 1}枚目</div>
                 `;
 
-                // カードクリックで手札移動（イベント伝播防止）
                 cardEl.onclick = function(e) {
                     e.stopPropagation();
                     drawVolNoiseToHand(index);
@@ -1573,7 +1564,6 @@ function openVolNoiseModal() {
     if (modalEl) {
         modalEl.style.display = 'flex';
 
-        // 枠外（背景）クリックで閉じる
         modalEl.onclick = function(e) {
             if (e.target === modalEl) {
                 closeVolNoiseModal();
@@ -1582,7 +1572,6 @@ function openVolNoiseModal() {
     }
 }
 
-// VOLノイズから手札へ移動する処理
 function drawVolNoiseToHand(index) {
     if (!volNoiseCards || volNoiseCards.length <= index) return;
 
@@ -1598,7 +1587,6 @@ function drawVolNoiseToHand(index) {
     }
 }
 
-// モーダルを閉じる処理
 function closeVolNoiseModal() {
     let modalEl = document.getElementById('volNoiseViewModal');
     if (modalEl) {
