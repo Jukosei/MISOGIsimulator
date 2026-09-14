@@ -1495,6 +1495,16 @@ function confirmDeckReturn(position) {
     ev.currentTarget.classList.remove('drag-over');
     let dataText = ev.dataTransfer.getData('text/plain');
 
+    // レイヤー2（黄色ゾーン）なら回転付与、それ以外なら回転解除する補助関数
+    const updateCardRotation = (cardEl) => {
+        if (!cardEl) return;
+        if (layerNum === 2) {
+            cardEl.classList.add('card-rotate-horizontal'); // 黄色ゾーンに置かれたら最初から横向き
+        } else {
+            cardEl.classList.remove('card-rotate-horizontal'); // それ以外は縦向き
+        }
+    };
+
     if (dataText === 'search-drag') {
         let idx = parseInt(ev.dataTransfer.getData('search-index'));
         let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
@@ -1502,8 +1512,7 @@ function confirmDeckReturn(position) {
         createGameCardToHand(cardObj.name, cardObj.imagePath);
         let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
         if (genCard) {
-            // 黄色ゾーン(layerNum === 2) 以外へドロップされたら回転解除
-            if (layerNum !== 2) genCard.classList.remove('card-rotate-horizontal');
+            updateCardRotation(genCard);
             executeCardPlacement(genCard, ev.currentTarget, layerNum);
         }
         updateDeckUI();
@@ -1518,8 +1527,7 @@ function confirmDeckReturn(position) {
         createGameCardToHand(cardObj.name, cardObj.imagePath);
         let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
         if (genCard) {
-            // 黄色ゾーン(layerNum === 2) 以外へドロップされたら回転解除
-            if (layerNum !== 2) genCard.classList.remove('card-rotate-horizontal');
+            updateCardRotation(genCard);
             executeCardPlacement(genCard, ev.currentTarget, layerNum);
         }
         updateTrashUI();
@@ -1529,8 +1537,7 @@ function confirmDeckReturn(position) {
     if (dataText) {
         let r = document.getElementById(dataText);
         if (r) {
-            // 黄色ゾーン(layerNum === 2) 以外へドロップされたら回転解除
-            if (layerNum !== 2) r.classList.remove('card-rotate-horizontal');
+            updateCardRotation(r);
             executeCardPlacement(r, ev.currentTarget, layerNum);
         }
     }
