@@ -1176,37 +1176,60 @@ function onZoneClick(zoneElement) {
 }
             
         function createGameCardToHand(t, e) {
-            let a = document.getElementById('handArea');
-            let n = document.createElement('div');
-            n.className = 'game-card';
-            n.id = `card-id-${cardIdCounter++}`;
-            n.innerText = t;
-            n.style.backgroundImage = `url('${e}')`;
-            n.setAttribute('draggable', 'true');
-            n.setAttribute('data-cardname', t);
-            n.setAttribute('data-imagepath', e);
+    let a = document.getElementById('handArea');
+    let n = document.createElement('div');
+    n.className = 'game-card';
+    n.id = `card-id-${cardIdCounter++}`;
+    n.innerText = t;
+    n.style.backgroundImage = `url('${e}')`;
+    n.setAttribute('draggable', 'true');
+    n.setAttribute('data-cardname', t);
+    n.setAttribute('data-imagepath', e);
 
-            n.ondragstart = function(ev) {
-                ev.dataTransfer.setData('text/plain', ev.target.id);
-                if (isSearchOpen) document.getElementById('searchOverlay').classList.add('dragging-mode');
-            };
-
-            n.ondragend = function(ev) {
-                document.getElementById('searchOverlay').classList.remove('dragging-mode');
-            };
-
-            n.oncontextmenu = function(ev) {
-                if (isSearchOpen) {
-                    ev.preventDefault();
-                    returnCardFromHand(n);
-                }
-            };
-
-            n.addEventListener('touchstart', touchStartCard, { passive: false });
-            n.addEventListener('touchmove', touchMoveCard, { passive: false });
-            n.addEventListener('touchend', touchEndCard, { passive: false });
-            a.appendChild(n);
+    // ★ クリック時の90°回転処理（黄色ゾーン = layer-2 の時のみ）
+    n.onclick = function(ev) {
+        let parentZone = n.parentElement;
+        if (parentZone) {
+            let isLayer2 = parentZone.dataset.layer === "2" || parentZone.classList.contains('layer-2');
+            if (isLayer2) {
+                ev.stopPropagation();
+                n.classList.toggle('card-rotate-horizontal');
+            }
         }
+    };
+
+    n.ondragstart = function(ev) {
+        ev.dataTransfer.setData('text/plain', ev.target.id);
+        if (isSearchOpen) document.getElementById('searchOverlay').classList.add('dragging-mode');
+    };
+
+    n.ondragend = function(ev) {
+        document.getElementById('searchOverlay').classList.remove('dragging-mode');
+    };
+
+    n.oncontextmenu = function(ev) {
+        if (isSearchOpen) {
+            ev.preventDefault();
+            returnCardFromHand(n);
+        }
+    };
+
+    n.addEventListener('touchstart', touchStartCard, { passive: false });
+    n.addEventListener('touchmove', touchMoveCard, { passive: false });
+    n.addEventListener('touchend', touchEndCard, { passive: false });
+    
+    if (a) a.appendChild(n);
+            // ドロップ先の要素（引数で渡されているゾーン要素、または event.target など）を取得
+// 例: targetFrame にカードが移動された場合
+
+targetFrame.appendChild(movedCard);
+
+// ★ 追記: ドロップ先が layer-2（黄色ゾーン）以外なら回転を自動解除
+let layerVal = targetFrame.getAttribute('data-layer') || targetFrame.dataset.layer;
+if (layerVal !== "2") {
+    movedCard.classList.remove('card-rotate-horizontal');
+}
+}
 
         function touchStartCard(t) {
             t.preventDefault();
