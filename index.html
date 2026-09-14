@@ -653,6 +653,13 @@
             background-color: var(--btn-red);
             border-color: var(--btn-red);
         }
+
+        /* 90度回転（横向き）用クラス */
+.card-rotate-horizontal {
+    transform: rotate(90deg);
+    transition: transform 0.2s ease; /* スムーズに回転 */
+}
+        
     </style>
 </head>
 <body>
@@ -846,7 +853,11 @@
         <button onclick="closeVolNoiseModal()" style="padding:8px 24px; cursor:pointer; background:#444; color:#fff; border:1px solid #777; border-radius:6px; font-weight:bold;">閉じる</button>
     </div>
 </div>
-    
+    <!-- 例: 黄色ゾーンのHTML要素に "yellow-zone" クラスを追加 -->
+<div class="zone yellow-zone" onclick="moveCardToZone(this)">
+    <!-- ここに置かれたカードがクリックで回転します -->
+</div>
+
         <script>
         // --- 既存の変数群 ---
         let currentMode = 2;
@@ -1058,6 +1069,29 @@ function updateVolNoiseUI() {
 
     document.getElementById('menuScreen').style.display = 'none';
     document.getElementById('gameScreen').style.display = 'flex';
+}
+
+            // カードの要素を生成・セットアップする処理
+function attachCardEvents(cardEl) {
+    cardEl.addEventListener('click', function(e) {
+        let parentZone = cardEl.parentElement;
+
+        // 親要素が存在し、かつ黄色ゾーン（.yellow-zone）内にある場合
+        if (parentZone && parentZone.classList.contains('yellow-zone')) {
+            e.stopPropagation(); // ゾーンのクリックイベント発動を防止
+            
+            // 90度回転のON/OFFを切り替え（クリックごとに縦/横が変わる）
+            cardEl.classList.toggle('card-rotate-horizontal');
+            return;
+        }
+
+                    // カードが別のゾーンに移動した際、黄色ゾーン以外なら回転を戻す
+if (!targetZone.classList.contains('yellow-zone')) {
+    cardEl.classList.remove('card-rotate-horizontal');
+}
+
+        // --- 以下は既存のカード選択・移動ロジックなどを記述 ---
+    });
 }
 
             function placeCardToZone(cardElement, targetZoneElement) {
