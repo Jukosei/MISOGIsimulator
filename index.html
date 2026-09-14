@@ -999,30 +999,41 @@ function updateVolNoiseUI() {
 }
             
         function startGame() {
-    let t = document.getElementById('deckInput1').value;
-    let e = t.split(/[\r\n]+/).map(t => t.trim()).filter(t => t.length > 0);
-    if (e.length === 0) return alert('デッキコードが入力されていません！');
+    let inputEl = document.getElementById('deckInput1');
+    if (!inputEl || !inputEl.value.trim()) {
+        return alert('デッキコードを入力してください！');
+    }
+
+    let t = inputEl.value;
+    let e = t.split(/[\r\n]+/).map(str => str.trim()).filter(str => str.length > 0);
 
     let a = [];
     e.forEach(codeStr => {
         let p = codeStr.split('-');
-        if (p.length === 2) {
+        if (p.length >= 2) {
+            // ハイフン前の文字列を取得（例: "GA-13" -> "GA"）
             let prefix = p[0].toUpperCase();
-            let r = prefix.slice(-1);
+            // 末尾のアルファベット1文字を取得（"GA" -> "A"）
+            let r = prefix.charAt(prefix.length - 1);
             a.push({ name: codeStr, suffix: r, imagePath: `images/${codeStr}.png` });
         }
     });
 
-    let o = { A: 1, S: 2, M: 3, D: 4 };
-    a.sort((t, e) => (o[t.suffix] || 99) - (o[e.suffix] || 99));
+    if (a.length === 0) {
+        return alert('有効なカードコードが認識できませんでした。形式を確認してください（例: GA-13）。');
+    }
 
-    // シャッフルを実行
+    // ソート処理
+    let o = { A: 1, S: 2, M: 3, D: 4 };
+    a.sort((cardA, cardB) => (o[cardA.suffix] || 99) - (o[cardB.suffix] || 99));
+
+    // シャッフル (Fisher-Yates)
     for (let i = a.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [a[i], a[j]] = [a[j], a[i]];
     }
 
-    // 山札グローバル変数に代入
+    // グローバル山札にセット
     virtualDeck = a;
 
     // UI・状態の初期化
@@ -1031,7 +1042,7 @@ function updateVolNoiseUI() {
     let handArea = document.getElementById('handArea');
     if (handArea) handArea.innerHTML = "";
 
-    // 初期手札7枚ドロー（山札から減らしつつ手札へ追加）
+    // 手札へ7枚ドロー
     const drawCount = Math.min(7, virtualDeck.length);
     for (let i = 0; i < drawCount; i++) {
         let drawnCard = virtualDeck.pop();
@@ -1040,7 +1051,7 @@ function updateVolNoiseUI() {
         }
     }
 
-    // 全UIの更新と画面切り替え
+    // UI更新＆画面切り替え
     updateDeckUI();
     updateVolNoiseUI();
     updateTrashUI();
