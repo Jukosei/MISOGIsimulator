@@ -1007,33 +1007,37 @@ function updateVolNoiseUI() {
     e.forEach(codeStr => {
         let p = codeStr.split('-');
         if (p.length === 2) {
-            // ハイフン前の文字（アルファベット）からソートキー（末尾の1文字）を取得
             let prefix = p[0].toUpperCase();
-            let r = prefix.slice(-1); // "GA" なら "A" が取得される
+            let r = prefix.slice(-1);
             a.push({ name: codeStr, suffix: r, imagePath: `images/${codeStr}.png` });
         }
     });
 
     let o = { A: 1, S: 2, M: 3, D: 4 };
     a.sort((t, e) => (o[t.suffix] || 99) - (o[e.suffix] || 99));
-    virtualDeck = a;
 
-    // 対戦開始時にデッキをランダムにシャッフル (Fisher-Yates)
-    for (let i = virtualDeck.length - 1; i > 0; i--) {
+    // シャッフルを実行
+    for (let i = a.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [virtualDeck[i], virtualDeck[j]] = [virtualDeck[j], virtualDeck[i]];
+        [a[i], a[j]] = [a[j], a[i]];
     }
+
+    // 山札グローバル変数に代入
+    virtualDeck = a;
 
     // UI・状態の初期化
     trashCards = [];
     volNoiseCards = [];
-    document.getElementById('handArea').innerHTML = "";
+    let handArea = document.getElementById('handArea');
+    if (handArea) handArea.innerHTML = "";
 
-    // シャッフル済みの山札から手札へ7枚ドロー
+    // 初期手札7枚ドロー（山札から減らしつつ手札へ追加）
     const drawCount = Math.min(7, virtualDeck.length);
     for (let i = 0; i < drawCount; i++) {
         let drawnCard = virtualDeck.pop();
-        createGameCardToHand(drawnCard.name, drawnCard.imagePath);
+        if (drawnCard) {
+            createGameCardToHand(drawnCard.name, drawnCard.imagePath);
+        }
     }
 
     // 全UIの更新と画面切り替え
