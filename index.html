@@ -1219,16 +1219,6 @@ function onZoneClick(zoneElement) {
     n.addEventListener('touchend', touchEndCard, { passive: false });
     
     if (a) a.appendChild(n);
-            // ドロップ先の要素（引数で渡されているゾーン要素、または event.target など）を取得
-// 例: targetFrame にカードが移動された場合
-
-targetFrame.appendChild(movedCard);
-
-// ★ 追記: ドロップ先が layer-2（黄色ゾーン）以外なら回転を自動解除
-let layerVal = targetFrame.getAttribute('data-layer') || targetFrame.dataset.layer;
-if (layerVal !== "2") {
-    movedCard.classList.remove('card-rotate-horizontal');
-}
 }
 
         function touchStartCard(t) {
@@ -1500,40 +1490,51 @@ function confirmDeckReturn(position) {
     closeDeckReturnModal();
 }
         function dropToSpecificFrame(ev, colIndex, layerNum) {
-            ev.preventDefault();
-            ev.stopPropagation();
-            ev.currentTarget.classList.remove('drag-over');
-            let dataText = ev.dataTransfer.getData('text/plain');
+    ev.preventDefault();
+    ev.stopPropagation();
+    ev.currentTarget.classList.remove('drag-over');
+    let dataText = ev.dataTransfer.getData('text/plain');
 
-            if (dataText === 'search-drag') {
-                let idx = parseInt(ev.dataTransfer.getData('search-index'));
-                let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
-                let cardObj = targetList.splice(idx, 1)[0];
-                createGameCardToHand(cardObj.name, cardObj.imagePath);
-                let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-                if (genCard) { executeCardPlacement(genCard, ev.currentTarget, layerNum); }
-                updateDeckUI();
-                updateVolNoiseUI();
-                updateTrashUI();
-                renderSearchList();
-                return;
-            }
-
-            if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
-                let cardObj = trashCards.pop();
-                createGameCardToHand(cardObj.name, cardObj.imagePath);
-                let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-                if (genCard) { executeCardPlacement(genCard, ev.currentTarget, layerNum); }
-                updateTrashUI();
-                return;
-            }
-
-            if (dataText) {
-                let r = document.getElementById(dataText);
-                if (r) executeCardPlacement(r, ev.currentTarget, layerNum);
-            }
+    if (dataText === 'search-drag') {
+        let idx = parseInt(ev.dataTransfer.getData('search-index'));
+        let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
+        let cardObj = targetList.splice(idx, 1)[0];
+        createGameCardToHand(cardObj.name, cardObj.imagePath);
+        let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
+        if (genCard) {
+            // 黄色ゾーン(layerNum === 2) 以外へドロップされたら回転解除
+            if (layerNum !== 2) genCard.classList.remove('card-rotate-horizontal');
+            executeCardPlacement(genCard, ev.currentTarget, layerNum);
         }
+        updateDeckUI();
+        updateVolNoiseUI();
+        updateTrashUI();
+        renderSearchList();
+        return;
+    }
 
+    if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
+        let cardObj = trashCards.pop();
+        createGameCardToHand(cardObj.name, cardObj.imagePath);
+        let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
+        if (genCard) {
+            // 黄色ゾーン(layerNum === 2) 以外へドロップされたら回転解除
+            if (layerNum !== 2) genCard.classList.remove('card-rotate-horizontal');
+            executeCardPlacement(genCard, ev.currentTarget, layerNum);
+        }
+        updateTrashUI();
+        return;
+    }
+
+    if (dataText) {
+        let r = document.getElementById(dataText);
+        if (r) {
+            // 黄色ゾーン(layerNum === 2) 以外へドロップされたら回転解除
+            if (layerNum !== 2) r.classList.remove('card-rotate-horizontal');
+            executeCardPlacement(r, ev.currentTarget, layerNum);
+        }
+    }
+}
         function executeCardPlacement(t, e, a) {
             let n = e.children.length;
             if (a === 3) {
