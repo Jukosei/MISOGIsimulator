@@ -1059,6 +1059,23 @@ function updateVolNoiseUI() {
     document.getElementById('menuScreen').style.display = 'none';
     document.getElementById('gameScreen').style.display = 'flex';
 }
+
+            function placeCardToZone(cardElement, targetZoneElement) {
+    // ゾーンのIDやクラス名、dataset等で黄色ゾーンかを判定
+    // (例: targetZoneElement.classList.contains('yellow-zone') や dataset.color === 'yellow')
+    const isYellowZone = targetZoneElement.id.includes('yellow') || targetZoneElement.classList.contains('yellow-zone');
+
+    if (isYellowZone) {
+        // 黄色ゾーンの場合は横向きクラスを付与
+        cardElement.classList.add('card-rotate-horizontal');
+    } else {
+        // 黄色ゾーン以外へ移動した場合は縦向きに戻す
+        cardElement.classList.remove('card-rotate-horizontal');
+    }
+
+    // ゾーンへカードを追加する既存処理
+    targetZoneElement.appendChild(cardElement);
+}
             
         function createGameCardToHand(t, e) {
             let a = document.getElementById('handArea');
