@@ -834,13 +834,12 @@
     </div>
 </div>
 
-    <!-- VOLノイズ確認ポップアップモーダル -->
-<div id="volNoiseViewModal" style="...">
-    <!-- ダイアログ枠に event.stopPropagation() を記述 -->
-    <div style="background:#1e1e1e; border:2px solid #555; ..." onclick="event.stopPropagation()">
-        <h3>VOLノイズ（置かれた順）</h3>
-        <div id="volNoiseCardContainer" style="..."></div>
-        <button onclick="closeVolNoiseModal()">閉じる</button>
+   <div id="volNoiseViewModal" style="...">
+    <!-- この div に onclick="event.stopPropagation()" を追加 -->
+    <div style="background:#1e1e1e; border:2px solid #555; padding:20px; border-radius:12px; max-width:90%; max-height:80%; display:flex; flex-direction:column; align-items:center; gap:15px;" onclick="event.stopPropagation()">
+        <h3 style="color:#fff; margin:0; font-size:18px;">VOLノイズ（置かれた順）</h3>
+        <div id="volNoiseCardContainer" style="display:flex; gap:12px; overflow-x:auto; padding:10px; max-width:100%;"></div>
+        <button onclick="closeVolNoiseModal()" style="padding:8px 24px; cursor:pointer;">閉じる</button>
     </div>
 </div>
     
