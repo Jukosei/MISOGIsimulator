@@ -658,6 +658,12 @@
     transform: rotate(90deg) !important;
     transition: transform 0.2s ease;
 }
+
+        /* ディレクションエリアでタップ（薄暗く）状態にするスタイル */
+.card-dimmed {
+    filter: brightness(0.5) !important;
+    transition: filter 0.2s ease;
+}
         
     </style>
 </head>
@@ -1186,14 +1192,26 @@ function onZoneClick(zoneElement) {
     n.setAttribute('data-cardname', t);
     n.setAttribute('data-imagepath', e);
 
-    // ★ クリック時の90°回転処理（黄色ゾーン = layer-2 の時のみ）
+    // ★ クリック時の処理
     n.onclick = function(ev) {
         let parentZone = n.parentElement;
         if (parentZone) {
-            let isLayer2 = parentZone.dataset.layer === "2" || parentZone.classList.contains('layer-2');
-            if (isLayer2) {
+            let pClass = parentZone.className || '';
+            let pId = parentZone.id || '';
+            let layerVal = parentZone.dataset.layer || parentZone.getAttribute('data-layer');
+
+            // 黄色ゾーン（layer-2）の場合は90°回転
+            if (layerVal === "2" || pClass.includes('layer-2')) {
                 ev.stopPropagation();
                 n.classList.toggle('card-rotate-horizontal');
+                return;
+            }
+
+            // ディレクションエリア（class="direction-placeholder" または id="dir-slot-X"）の場合は薄暗さをトグル切替
+            if (pClass.includes('direction-placeholder') || pId.includes('dir-slot')) {
+                ev.stopPropagation();
+                n.classList.toggle('card-dimmed');
+                return;
             }
         }
     };
@@ -1623,6 +1641,14 @@ function confirmDeckReturn(position) {
             a.classList.remove('card-rotate-horizontal'); // 手札に戻したら回転解除
             document.getElementById('handArea').appendChild(a);
         }
+        else if (dataText) {
+        let a = document.getElementById(dataText);
+        if (a) {
+            a.classList.remove('card-rotate-horizontal'); // 回転解除
+            a.classList.remove('card-dimmed');            // 薄暗さ解除
+            document.getElementById('handArea').appendChild(a);
+        }
+    }
     }
 }
 
