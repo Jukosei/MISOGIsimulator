@@ -1007,8 +1007,9 @@ function updateVolNoiseUI() {
     e.forEach(codeStr => {
         let p = codeStr.split('-');
         if (p.length === 2) {
-            let letters = codeStr.toUpperCase();
-            let r = letters.slice(-1);
+            // ハイフン前の文字（アルファベット）からソートキー（末尾の1文字）を取得
+            let prefix = p[0].toUpperCase();
+            let r = prefix.slice(-1); // "GA" なら "A" が取得される
             a.push({ name: codeStr, suffix: r, imagePath: `images/${codeStr}.png` });
         }
     });
@@ -1017,7 +1018,7 @@ function updateVolNoiseUI() {
     a.sort((t, e) => (o[t.suffix] || 99) - (o[e.suffix] || 99));
     virtualDeck = a;
 
-    // ★ 1. 対戦開始時にデッキをランダムにシャッフル (Fisher-Yates)
+    // 対戦開始時にデッキをランダムにシャッフル (Fisher-Yates)
     for (let i = virtualDeck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [virtualDeck[i], virtualDeck[j]] = [virtualDeck[j], virtualDeck[i]];
@@ -1028,7 +1029,7 @@ function updateVolNoiseUI() {
     volNoiseCards = [];
     document.getElementById('handArea').innerHTML = "";
 
-    // ★ 2. シャッフル済みの山札から手札へ7枚ドロー
+    // シャッフル済みの山札から手札へ7枚ドロー
     const drawCount = Math.min(7, virtualDeck.length);
     for (let i = 0; i < drawCount; i++) {
         let drawnCard = virtualDeck.pop();
@@ -1043,7 +1044,7 @@ function updateVolNoiseUI() {
     document.getElementById('menuScreen').style.display = 'none';
     document.getElementById('gameScreen').style.display = 'flex';
 }
-
+            
         function createGameCardToHand(t, e) {
             let a = document.getElementById('handArea');
             let n = document.createElement('div');
