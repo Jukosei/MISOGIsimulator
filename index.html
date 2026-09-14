@@ -1611,13 +1611,18 @@ function confirmDeckReturn(position) {
         updateVolNoiseUI();
         updateTrashUI();
         renderSearchList();
-    } else if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
+    }
+    else if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
         let cardObj = trashCards.pop();
         createGameCardToHand(cardObj.name, cardObj.imagePath);
         updateTrashUI();
-    } else if (dataText) {
+    }
+    else if (dataText) {
         let a = document.getElementById(dataText);
-        if (a) document.getElementById('handArea').appendChild(a);
+        if (a) {
+            a.classList.remove('card-rotate-horizontal'); // 手札に戻したら回転解除
+            document.getElementById('handArea').appendChild(a);
+        }
     }
 }
 
