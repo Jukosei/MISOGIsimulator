@@ -1005,15 +1005,15 @@ function updateVolNoiseUI() {
     }
 
     let t = inputEl.value;
-    let e = t.split(/[\r\n]+/).map(str => str.trim()).filter(str => str.length > 0);
+    
+    // ★ 改行(\n, \r) だけでなく スラッシュ(/) でも分割できるように修正
+    let e = t.split(/[\r\n/]+/).map(str => str.trim()).filter(str => str.length > 0);
 
     let a = [];
     e.forEach(codeStr => {
         let p = codeStr.split('-');
         if (p.length >= 2) {
-            // ハイフン前の文字列を取得（例: "GA-13" -> "GA"）
             let prefix = p[0].toUpperCase();
-            // 末尾のアルファベット1文字を取得（"GA" -> "A"）
             let r = prefix.charAt(prefix.length - 1);
             a.push({ name: codeStr, suffix: r, imagePath: `images/${codeStr}.png` });
         }
