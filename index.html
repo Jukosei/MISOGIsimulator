@@ -1537,6 +1537,13 @@ function dropToVolNoise(ev) {
     if (listContainer) {
         listContainer.innerHTML = '';
 
+function openVolNoiseModal() {
+    let modalEl = document.getElementById('volNoiseViewModal');
+    let listContainer = document.getElementById('volNoiseCardContainer');
+
+    if (listContainer) {
+        listContainer.innerHTML = '';
+
         if (!volNoiseCards || volNoiseCards.length === 0) {
             listContainer.innerHTML = '<p style="color:#ccc; text-align:center; padding: 20px;">VOLノイズはありません</p>';
         } else {
@@ -1545,13 +1552,15 @@ function dropToVolNoise(ev) {
                 cardEl.className = 'modal-card-item';
                 cardEl.style.cursor = 'pointer';
 
-                // 表示は以前の記述（card.imagePath）のまま変更なし
+                // 画像を固定で裏面画像(card_back.png)にする
                 cardEl.innerHTML = `
-                    <img src="${card.imagePath}" alt="${card.name}" style="width: 120px; height: 180px; object-fit: cover; border-radius: 6px;">
+                    <div style="width: 120px; height: 180px; border-radius: 6px; overflow: hidden; border: 1px solid #555;">
+                        <img src="images/card_back.png" alt="裏面" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
                     <div style="text-align:center; font-size:12px; margin-top:4px; color:#fff;">${index + 1}枚目</div>
                 `;
 
-                // カードクリック時のクリックイベントバブリング（伝播）を止めて手札移動
+                // カードクリック時の伝播防止と手札移動
                 cardEl.onclick = function(e) {
                     e.stopPropagation();
                     drawVolNoiseToHand(index);
@@ -1565,7 +1574,7 @@ function dropToVolNoise(ev) {
     if (modalEl) {
         modalEl.style.display = 'flex';
 
-        // ★ 枠外（モーダル背景エリア）をクリックしたときに閉じる処理を追加
+        // 画面外（背景）クリックで閉じる処理
         modalEl.onclick = function(e) {
             if (e.target === modalEl) {
                 closeVolNoiseModal();
@@ -1573,25 +1582,6 @@ function dropToVolNoise(ev) {
         };
     }
 }
-            
-// 手札へカードを動かす処理
-function drawVolNoiseToHand(index) {
-    if (!volNoiseCards || volNoiseCards.length <= index) return;
-
-    let cardObj = volNoiseCards.splice(index, 1)[0];
-
-    // 手札追加とUI更新
-    createGameCardToHand(cardObj.name, cardObj.imagePath);
-    updateVolNoiseUI();
-
-    // モーダル再描画・自動閉じる判定
-    if (volNoiseCards.length > 0) {
-        openVolNoiseModal();
-    } else {
-        closeVolNoiseModal();
-    }
-}
-
 // モーダルを閉じる処理
 function closeVolNoiseModal() {
     let modalEl = document.getElementById('volNoiseViewModal');
