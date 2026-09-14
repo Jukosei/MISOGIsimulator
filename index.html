@@ -878,6 +878,7 @@
             selectMode(parseInt(localStorage.getItem('misogi_mode')) || 2);
             setupTrashAreaEvents();
         };
+            
             function dragStartDeck(ev) {
     if (!virtualDeck || virtualDeck.length === 0) {
         ev.preventDefault();
@@ -998,33 +999,50 @@ function updateVolNoiseUI() {
 }
             
         function startGame() {
-            let t = document.getElementById('deckInput1').value;
-            let e = t.split(/[\/\s\n,]+/).map(t => t.trim()).filter(t => t.length > 0);
-            if (e.length === 0) return alert('デッキコードが入力されていません！');
+    let t = document.getElementById('deckInput1').value;
+    let e = t.split(/[\r\n]+/).map(t => t.trim()).filter(t => t.length > 0);
+    if (e.length === 0) return alert('デッキコードが入力されていません！');
 
-            let a = [];
-            e.forEach(codeStr => {
-                let p = codeStr.split('-');
-                if (p.length === 2) {
-                    let letters = codeStr.toUpperCase();
-                    let r = letters.slice(-1);
-                    a.push({ name: codeStr, suffix: r, imagePath: `images/${codeStr}.png` });
-                }
-            });
-
-            let o = { A: 1, S: 2, M: 3, D: 4 };
-            a.sort((t, e) => (o[t.suffix] || 99) - (o[e.suffix] || 99));
-            virtualDeck = a;
-
-            updateDeckUI();
-            updateVolNoiseUI();
-            trashCards = [];
-            updateTrashUI();
-            volNoiseCards = [];
-            document.getElementById('handArea').innerHTML = "";
-            document.getElementById('menuScreen').style.display = 'none';
-            document.getElementById('gameScreen').style.display = 'flex';
+    let a = [];
+    e.forEach(codeStr => {
+        let p = codeStr.split('-');
+        if (p.length === 2) {
+            let letters = codeStr.toUpperCase();
+            let r = letters.slice(-1);
+            a.push({ name: codeStr, suffix: r, imagePath: `images/${codeStr}.png` });
         }
+    });
+
+    let o = { A: 1, S: 2, M: 3, D: 4 };
+    a.sort((t, e) => (o[t.suffix] || 99) - (o[e.suffix] || 99));
+    virtualDeck = a;
+
+    // ★ 1. 対戦開始時にデッキをランダムにシャッフル (Fisher-Yates)
+    for (let i = virtualDeck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [virtualDeck[i], virtualDeck[j]] = [virtualDeck[j], virtualDeck[i]];
+    }
+
+    // UI・状態の初期化
+    trashCards = [];
+    volNoiseCards = [];
+    document.getElementById('handArea').innerHTML = "";
+
+    // ★ 2. シャッフル済みの山札から手札へ7枚ドロー
+    const drawCount = Math.min(7, virtualDeck.length);
+    for (let i = 0; i < drawCount; i++) {
+        let drawnCard = virtualDeck.pop();
+        createGameCardToHand(drawnCard.name, drawnCard.imagePath);
+    }
+
+    // 全UIの更新と画面切り替え
+    updateDeckUI();
+    updateVolNoiseUI();
+    updateTrashUI();
+
+    document.getElementById('menuScreen').style.display = 'none';
+    document.getElementById('gameScreen').style.display = 'flex';
+}
 
         function createGameCardToHand(t, e) {
             let a = document.getElementById('handArea');
