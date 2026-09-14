@@ -1192,7 +1192,7 @@ function onZoneClick(zoneElement) {
     n.setAttribute('data-cardname', t);
     n.setAttribute('data-imagepath', e);
 
-    // ★ クリック時の処理
+    // ★ クリック時の処理（黄色ゾーンは90°回転、ディレクションエリアは暗転）
     n.onclick = function(ev) {
         let parentZone = n.parentElement;
         if (parentZone) {
@@ -1207,7 +1207,7 @@ function onZoneClick(zoneElement) {
                 return;
             }
 
-            // ディレクションエリア（class="direction-placeholder" または id="dir-slot-X"）の場合は薄暗さをトグル切替
+            // ディレクションエリア（class="direction-placeholder" または id="dir-slot-X"）の場合は薄暗く切替
             if (pClass.includes('direction-placeholder') || pId.includes('dir-slot')) {
                 ev.stopPropagation();
                 n.classList.toggle('card-dimmed');
@@ -1572,42 +1572,51 @@ function confirmDeckReturn(position) {
         }
 
         function dropToDirection(ev, slotIdx) {
-            ev.preventDefault();
-            ev.currentTarget.classList.remove('drag-over');
-            let dataText = ev.dataTransfer.getData('text/plain');
+    ev.preventDefault();
+    ev.currentTarget.classList.remove('drag-over');
+    let dataText = ev.dataTransfer.getData('text/plain');
 
-            if (dataText === 'search-drag') {
-                let idx = parseInt(ev.dataTransfer.getData('search-index'));
-                let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
-                if (ev.currentTarget.children.length === 0) {
-                    let cardObj = targetList.splice(idx, 1)[0];
-                    createGameCardToHand(cardObj.name, cardObj.imagePath);
-                    let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-                    if (genCard) { ev.currentTarget.appendChild(genCard); }
-                    document.getElementById('deckCount').innerText = virtualDeck.length;
-                    document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-                    updateTrashUI();
-                    renderSearchList();
-                }
-                return;
+    if (dataText === 'search-drag') {
+        let idx = parseInt(ev.dataTransfer.getData('search-index'));
+        let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
+        if (ev.currentTarget.children.length === 0) {
+            let cardObj = targetList.splice(idx, 1)[0];
+            createGameCardToHand(cardObj.name, cardObj.imagePath);
+            let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
+            if (genCard) {
+                genCard.classList.remove('card-rotate-horizontal'); // 回転解除
+                ev.currentTarget.appendChild(genCard);
             }
-
-            if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
-                if (ev.currentTarget.children.length === 0) {
-                    let cardObj = trashCards.pop();
-                    createGameCardToHand(cardObj.name, cardObj.imagePath);
-                    let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-                    if (genCard) { ev.currentTarget.appendChild(genCard); }
-                    updateTrashUI();
-                }
-                return;
-            }
-
-            if (dataText) {
-                let n = document.getElementById(dataText);
-                if (n && ev.currentTarget.children.length === 0) ev.currentTarget.appendChild(n);
-            }
+            document.getElementById('deckCount').innerText = virtualDeck.length;
+            document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+            updateTrashUI();
+            renderSearchList();
         }
+        return;
+    }
+
+    if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
+        if (ev.currentTarget.children.length === 0) {
+            let cardObj = trashCards.pop();
+            createGameCardToHand(cardObj.name, cardObj.imagePath);
+            let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
+            if (genCard) {
+                genCard.classList.remove('card-rotate-horizontal'); // 回転解除
+                ev.currentTarget.appendChild(genCard);
+            }
+            updateTrashUI();
+        }
+        return;
+    }
+
+    if (dataText) {
+        let n = document.getElementById(dataText);
+        if (n && ev.currentTarget.children.length === 0) {
+            n.classList.remove('card-rotate-horizontal'); // 回転解除
+            ev.currentTarget.appendChild(n);
+        }
+    }
+}
 
         function dropToHand(ev) {
     ev.preventDefault();
@@ -1638,17 +1647,10 @@ function confirmDeckReturn(position) {
     else if (dataText) {
         let a = document.getElementById(dataText);
         if (a) {
-            a.classList.remove('card-rotate-horizontal'); // 手札に戻したら回転解除
-            document.getElementById('handArea').appendChild(a);
-        }
-        else if (dataText) {
-        let a = document.getElementById(dataText);
-        if (a) {
             a.classList.remove('card-rotate-horizontal'); // 回転解除
             a.classList.remove('card-dimmed');            // 薄暗さ解除
             document.getElementById('handArea').appendChild(a);
         }
-    }
     }
 }
 
