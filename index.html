@@ -1637,12 +1637,12 @@ function confirmDeckReturn(position) {
             // トラッシュ（または現在開いているモーダルのリスト）からカードを1枚抽出
             let cardObj = targetList.splice(idx, 1)[0];
 
-            // ドロップ先の枠（黄色エリア）にカード要素を作成して配置
-            let targetZone = ev.currentTarget;
-            targetZone.innerHTML = ''; // 既にカードがあれば削除または上書き
-            
-            let cardElem = createGameCardElement(cardObj.name, cardObj.imagePath);
-            cardZone.appendChild(cardElem);
+           // ドロップ先の枠（黄色エリア）にカード要素を作成して配置
+        let targetZone = ev.currentTarget;
+        targetZone.innerHTML = ''; // 既にカードがあれば削除または上書き
+
+        let cardElem = createGameCardElement(cardObj.name, cardObj.imagePath);
+        targetZone.appendChild(cardElem); // ← cardZone を targetZone に修正
 
             // UIとモーダル内リストの再描画
             updateDeckUI();
