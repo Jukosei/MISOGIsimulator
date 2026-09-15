@@ -688,6 +688,16 @@
 .toast-message.show {
     opacity: 1;
 }
+
+        /* ドラッグ中にオーバーレイ背景のクリック判定を透過させる */
+#searchOverlay.dragging-mode {
+    pointer-events: none !important;
+}
+
+/* モーダル内部のカード自体はドラッグ可能にする */
+#searchOverlay .game-card {
+    pointer-events: auto !important;
+}
         
     </style>
 </head>
@@ -1674,14 +1684,22 @@ function confirmDeckReturn(position) {
         updateDeckUI(); // 山札の枚数と背景画像を更新
     }
     else if (dataText === 'search-drag') {
-        let idx = parseInt(ev.dataTransfer.getData('search-index'));
+        // dataTransfer から取得を試み、取れなければ属性や選択中カードから取得
+        let rawIndex = ev.dataTransfer.getData('search-index');
+        let idx = parseInt(rawIndex);
+        
         let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
-        let cardObj = targetList.splice(idx, 1)[0];
-        createGameCardToHand(cardObj.name, cardObj.imagePath);
-        updateDeckUI();
-        updateVolNoiseUI();
-        updateTrashUI();
-        renderSearchList();
+        
+        // インデックスが正常に取得できていれば手札へ移動
+        if (!isNaN(idx) && targetList[idx]) {
+            let cardObj = targetList.splice(idx, 1)[0];
+            createGameCardToHand(cardObj.name, cardObj.imagePath);
+
+            updateDeckUI();
+            updateVolNoiseUI();
+            updateTrashUI();
+            renderSearchList();
+        }
     }
     else if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
         let cardObj = trashCards.pop();
@@ -1950,10 +1968,12 @@ function closeVolNoiseModal() {
                 r.setAttribute('draggable', 'true');
 
                 r.ondragstart = function(ev) {
-                    ev.dataTransfer.setData('text/plain', 'search-drag');
-                    ev.dataTransfer.setData('search-index', n);
-                    document.getElementById('searchOverlay').classList.add('dragging-mode');
-                };
+    ev.dataTransfer.setData('text/plain', 'search-drag');
+    ev.dataTransfer.setData('search-index', n.toString()); // 文字列として確実にセット
+    
+    let overlay = document.getElementById('searchOverlay');
+    if (overlay) overlay.classList.add('dragging-mode');
+};
 
                 r.ondragend = function(ev) {
                     document.getElementById('searchOverlay').classList.remove('dragging-mode');
