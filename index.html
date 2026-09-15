@@ -1628,36 +1628,42 @@ function confirmDeckReturn(position) {
         function dropToDirection(ev, slotIdx) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
+    
     let dataText = ev.dataTransfer.getData('text/plain');
 
+    // サーチ・トラッシュモーダルからのドラッグ
     if (dataText === 'search-drag') {
-        let idx = parseInt(ev.dataTransfer.getData('search-index'));
-        let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
+        let rawIdx = ev.dataTransfer.getData('search-index');
+        let idx = parseInt(rawIdx);
         
-        // 子要素の上にドロップした場合でも、一番近い .layer-2 (ゾーン枠) を確実に取得
+        let targetList = (currentSearchType === 'deck') 
+            ? virtualDeck 
+            : ((currentSearchType === 'noise') ? volNoiseCards : trashCards);
+
         let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
-        
-        // 既にカード（.game-card）が設置されている枠には配置させない
         let existingCard = targetZone.querySelector('.game-card');
+
         if (!existingCard && !isNaN(idx) && targetList[idx]) {
             let cardObj = targetList.splice(idx, 1)[0];
             createGameCardToHand(cardObj.name, cardObj.imagePath);
+            
             let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
             if (genCard) {
-                genCard.classList.remove('card-rotate-horizontal'); // 回転解除
-                targetZone.appendChild(genCard); // targetZone へ追加
+                genCard.classList.remove('card-rotate-horizontal');
+                targetZone.appendChild(genCard);
             }
-            
-            let deckCountElem = document.getElementById('deckCount');
-            if (deckCountElem) deckCountElem.innerText = virtualDeck.length;
-            let volNoiseCountElem = document.getElementById('volNoiseCount');
-            if (volNoiseCountElem) volNoiseCountElem.innerText = volNoiseCards.length;
+
+            // カウントと表示の更新
+            if (document.getElementById('deckCount')) document.getElementById('deckCount').innerText = virtualDeck.length;
+            if (document.getElementById('volNoiseCount')) document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
             
             updateTrashUI();
             renderSearchList();
         }
         return;
     }
+
+    // （以下、trash-zone-drag や通常カード移動の処理）
 
     if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
     let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
@@ -1981,16 +1987,19 @@ function closeVolNoiseModal() {
                 r.setAttribute('draggable', 'true');
 
                 r.ondragstart = function(ev) {
+    // 文字列 'search-drag' を確実にセット
     ev.dataTransfer.setData('text/plain', 'search-drag');
     ev.dataTransfer.setData('search-index', n.toString());
-    
+
+    // ドラッグ中にモーダルの背景がマウス判定を奪わないように設定
     let overlay = document.getElementById('searchOverlay');
     if (overlay) overlay.classList.add('dragging-mode');
 };
 
-                r.ondragend = function(ev) {
-                    document.getElementById('searchOverlay').classList.remove('dragging-mode');
-                };
+r.ondragend = function(ev) {
+    let overlay = document.getElementById('searchOverlay');
+    if (overlay) overlay.classList.remove('dragging-mode');
+};
 
                 r.addEventListener('touchstart', function(ev) {
                     ev.preventDefault();
