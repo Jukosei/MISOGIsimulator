@@ -2209,13 +2209,15 @@ r.ondragend = function(ev) {
     }
 }
 
-            document.querySelectorAll('.layer-2').forEach(zone => {
-    zone.ondragover = function(ev) {
-        ev.preventDefault();
-    };
-    zone.ondrop = function(ev) {
-        dropToDirection(ev);
-    };
+            document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.layer-2').forEach(zone => {
+        zone.ondragover = function(ev) {
+            ev.preventDefault();
+        };
+        zone.ondrop = function(ev) {
+            dropToDirection(ev);
+        };
+    });
 });
             
     </script>
