@@ -1625,6 +1625,34 @@ function confirmDeckReturn(position) {
             }
         }
 
+            function dropToStageZone(ev) {
+    ev.preventDefault();
+    let dataText = ev.dataTransfer.getData('text/plain');
+
+    if (dataText === 'search-drag') {
+        let idx = parseInt(ev.dataTransfer.getData('search-index'));
+        let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
+
+        if (!isNaN(idx) && targetList[idx]) {
+            // トラッシュ（または現在開いているモーダルのリスト）からカードを1枚抽出
+            let cardObj = targetList.splice(idx, 1)[0];
+
+            // ドロップ先の枠（黄色エリア）にカード要素を作成して配置
+            let targetZone = ev.currentTarget;
+            targetZone.innerHTML = ''; // 既にカードがあれば削除または上書き
+            
+            let cardElem = createGameCardElement(cardObj.name, cardObj.imagePath);
+            cardZone.appendChild(cardElem);
+
+            // UIとモーダル内リストの再描画
+            updateDeckUI();
+            updateVolNoiseUI();
+            updateTrashUI();
+            renderSearchList();
+        }
+    }
+}
+
         function dropToDirection(ev, slotIdx) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
@@ -1969,7 +1997,7 @@ function closeVolNoiseModal() {
 
                 r.ondragstart = function(ev) {
     ev.dataTransfer.setData('text/plain', 'search-drag');
-    ev.dataTransfer.setData('search-index', n.toString()); // 文字列として確実にセット
+    ev.dataTransfer.setData('search-index', n.toString());
     
     let overlay = document.getElementById('searchOverlay');
     if (overlay) overlay.classList.add('dragging-mode');
