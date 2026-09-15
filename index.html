@@ -2038,18 +2038,18 @@ function closeVolNoiseModal() {
         }
 
         function closeSearchModal() {
-            let t = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
-            if (t.length > 0 && currentSearchType !== 'trash') {
-                for (let e = t.length - 1; e > 0; e--) {
-                    let a = Math.floor(Math.random() * (e + 1));
-                    [t[e], t[a]] = [t[a], t[e]];
-                }
-                if (currentSearchType === 'deck') alert('サーチを終了したため、山札を自動シャッフルしました。');
-                else alert('サーチを終了したため、VOLノイズエリアを自動シャッフルしました。');
-            }
-            isSearchOpen = false;
-            document.getElementById('searchOverlay').style.display = 'none';
+    let t = (currentSearchType === 'deck') ? virtualDeck : ((currentSearchType === 'noise') ? volNoiseCards : trashCards);
+    if (t.length > 0 && currentSearchType !== 'trash') {
+        for (let e = t.length - 1; e > 0; e--) {
+            let a = Math.floor(Math.random() * (e + 1));
+            [t[e], t[a]] = [t[a], t[e]];
         }
+        // ★ alert() を取り払い、トースト表示に置き換え
+        showToast('SHUFFLE');
+    }
+    isSearchOpen = false;
+    document.getElementById('searchOverlay').style.display = 'none';
+}
 
         function dropReturnToSearch(t) {
             t.preventDefault();
