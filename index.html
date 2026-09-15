@@ -664,6 +664,30 @@
     filter: brightness(0.5) !important;
     transition: filter 0.2s ease;
 }
+
+        /* 自動消滅トースト通知のスタイル */
+.toast-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.85);
+    color: #ffffff;
+    padding: 16px 32px;
+    border-radius: 8px;
+    font-size: 24px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    pointer-events: none; /* ゲーム操作を邪魔しない */
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 9999;
+}
+
+.toast-message.show {
+    opacity: 1;
+}
         
     </style>
 </head>
@@ -862,6 +886,8 @@
 <div class="zone yellow-zone" onclick="moveCardToZone(this)">
     <!-- ここに置かれたカードがクリックで回転します -->
 </div>
+
+    <div id="toastMessage" class="toast-message"></div>
 
         <script>
         // --- 既存の変数群 ---
@@ -1826,14 +1852,32 @@ function closeVolNoiseModal() {
             }
         }
 
+            // 自動消滅トースト表示関数
+function showToast(text) {
+    let toast = document.getElementById('toastMessage');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toastMessage';
+        toast.className = 'toast-message';
+        document.body.appendChild(toast);
+    }
+    toast.innerText = text;
+    toast.classList.add('show');
+
+    // 1秒後に自動消去
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 1000);
+}
+
         function shuffleDeckBtn() {
-            if (virtualDeck.length === 0) return alert('山札が空のためシャッフルできません。');
-            for (let t = virtualDeck.length - 1; t > 0; t--) {
-                let e = Math.floor(Math.random() * (t + 1));
-                [virtualDeck[t], virtualDeck[e]] = [virtualDeck[e], virtualDeck[t]];
-            }
-            alert('山札をシャッフルしました！');
-        }
+    if (virtualDeck.length === 0) return showToast('山札が空です');
+    for (let t = virtualDeck.length - 1; t > 0; t--) {
+        let e = Math.floor(Math.random() * (t + 1));
+        [virtualDeck[t], virtualDeck[e]] = [virtualDeck[e], virtualDeck[t]];
+    }
+    showToast('SHUFFLE');
+}
 
         function trashAllHandBtn() {
             let t = document.getElementById('handArea');
