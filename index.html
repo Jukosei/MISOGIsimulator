@@ -920,6 +920,86 @@
             selectMode(parseInt(localStorage.getItem('misogi_mode')) || 2);
             setupTrashAreaEvents();
         };
+
+            // 自動消滅トースト表示関数
+function showToast(text) {
+    let toast = document.getElementById('toastMessage');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toastMessage';
+        toast.className = 'toast-message';
+        document.body.appendChild(toast);
+    }
+    toast.innerText = text;
+    toast.classList.add('show');
+
+    // 1秒後に自動消去
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 1000);
+}
+
+            function startGame() {
+    let inputEl = document.getElementById('deckInput1');
+    if (!inputEl || !inputEl.value.trim()) {
+        return alert('デッキコードを入力してください！');
+    }
+
+    let t = inputEl.value;
+    
+    // ★ 改行(\n, \r) だけでなく スラッシュ(/) でも分割できるように修正
+    let e = t.split(/[\r\n/]+/).map(str => str.trim()).filter(str => str.length > 0);
+
+    let a = [];
+    e.forEach(codeStr => {
+        let p = codeStr.split('-');
+        if (p.length >= 2) {
+            let prefix = p[0].toUpperCase();
+            let r = prefix.charAt(prefix.length - 1);
+            a.push({ name: codeStr, suffix: r, imagePath: `images/${codeStr}.png` });
+        }
+    });
+
+    if (a.length === 0) {
+        return alert('有効なカードコードが認識できませんでした。形式を確認してください（例: GA-13）。');
+    }
+
+    // ソート処理
+    let o = { A: 1, S: 2, M: 3, D: 4 };
+    a.sort((cardA, cardB) => (o[cardA.suffix] || 99) - (o[cardB.suffix] || 99));
+
+    // シャッフル (Fisher-Yates)
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+
+    // グローバル山札にセット
+    virtualDeck = a;
+
+    // UI・状態の初期化
+    trashCards = [];
+    volNoiseCards = [];
+    let handArea = document.getElementById('handArea');
+    if (handArea) handArea.innerHTML = "";
+
+    // 手札へ7枚ドロー
+    const drawCount = Math.min(7, virtualDeck.length);
+    for (let i = 0; i < drawCount; i++) {
+        let drawnCard = virtualDeck.pop();
+        if (drawnCard) {
+            createGameCardToHand(drawnCard.name, drawnCard.imagePath);
+        }
+    }
+
+    // UI更新＆画面切り替え
+    updateDeckUI();
+    updateVolNoiseUI();
+    updateTrashUI();
+
+    document.getElementById('menuScreen').style.display = 'none';
+    document.getElementById('gameScreen').style.display = 'flex';
+}
             
             function dragStartDeck(ev) {
     if (!virtualDeck || virtualDeck.length === 0) {
@@ -1040,68 +1120,6 @@ function updateVolNoiseUI() {
     }
 }
             
-        function startGame() {
-    let inputEl = document.getElementById('deckInput1');
-    if (!inputEl || !inputEl.value.trim()) {
-        return alert('デッキコードを入力してください！');
-    }
-
-    let t = inputEl.value;
-    
-    // ★ 改行(\n, \r) だけでなく スラッシュ(/) でも分割できるように修正
-    let e = t.split(/[\r\n/]+/).map(str => str.trim()).filter(str => str.length > 0);
-
-    let a = [];
-    e.forEach(codeStr => {
-        let p = codeStr.split('-');
-        if (p.length >= 2) {
-            let prefix = p[0].toUpperCase();
-            let r = prefix.charAt(prefix.length - 1);
-            a.push({ name: codeStr, suffix: r, imagePath: `images/${codeStr}.png` });
-        }
-    });
-
-    if (a.length === 0) {
-        return alert('有効なカードコードが認識できませんでした。形式を確認してください（例: GA-13）。');
-    }
-
-    // ソート処理
-    let o = { A: 1, S: 2, M: 3, D: 4 };
-    a.sort((cardA, cardB) => (o[cardA.suffix] || 99) - (o[cardB.suffix] || 99));
-
-    // シャッフル (Fisher-Yates)
-    for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-    }
-
-    // グローバル山札にセット
-    virtualDeck = a;
-
-    // UI・状態の初期化
-    trashCards = [];
-    volNoiseCards = [];
-    let handArea = document.getElementById('handArea');
-    if (handArea) handArea.innerHTML = "";
-
-    // 手札へ7枚ドロー
-    const drawCount = Math.min(7, virtualDeck.length);
-    for (let i = 0; i < drawCount; i++) {
-        let drawnCard = virtualDeck.pop();
-        if (drawnCard) {
-            createGameCardToHand(drawnCard.name, drawnCard.imagePath);
-        }
-    }
-
-    // UI更新＆画面切り替え
-    updateDeckUI();
-    updateVolNoiseUI();
-    updateTrashUI();
-
-    document.getElementById('menuScreen').style.display = 'none';
-    document.getElementById('gameScreen').style.display = 'flex';
-}
-
             // カードの要素を生成・セットアップする処理
 function createGameCardToHand(t, e) {
     let a = document.getElementById('handArea');
@@ -1852,24 +1870,6 @@ function closeVolNoiseModal() {
             }
         }
 
-            // 自動消滅トースト表示関数
-function showToast(text) {
-    let toast = document.getElementById('toastMessage');
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'toastMessage';
-        toast.className = 'toast-message';
-        document.body.appendChild(toast);
-    }
-    toast.innerText = text;
-    toast.classList.add('show');
-
-    // 1秒後に自動消去
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 1000);
-}
-
         function shuffleDeckBtn() {
     if (virtualDeck.length === 0) return showToast('山札が空です');
     for (let t = virtualDeck.length - 1; t > 0; t--) {
@@ -1996,6 +1996,7 @@ function showToast(text) {
                     showToast('SHUFFLE');
                 }
 
+                // renderSearchList 関数の末尾部分
                 updateDeckUI();
                 updateVolNoiseUI();
                 updateTrashUI();
@@ -2005,7 +2006,7 @@ function showToast(text) {
 
         e.appendChild(r);
     });
-} // ← renderSearchList 関数の閉じ括弧
+} // ← この閉じ括弧が抜けていると以降の関数（startGameなど）が壊れます
 
         function handleTrashChoice(value) {
             if (!pendingActionData) return;
