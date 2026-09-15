@@ -1634,15 +1634,18 @@ function confirmDeckReturn(position) {
         let idx = parseInt(ev.dataTransfer.getData('search-index'));
         let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
         
-        // 既にカード（.game-card）が設置されている枠には配置させない判定に変更
-        let existingCard = ev.currentTarget.querySelector('.game-card');
+        // 子要素の上にドロップした場合でも、一番近い .layer-2 (ゾーン枠) を確実に取得
+        let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
+        
+        // 既にカード（.game-card）が設置されている枠には配置させない
+        let existingCard = targetZone.querySelector('.game-card');
         if (!existingCard && !isNaN(idx) && targetList[idx]) {
             let cardObj = targetList.splice(idx, 1)[0];
             createGameCardToHand(cardObj.name, cardObj.imagePath);
             let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
             if (genCard) {
                 genCard.classList.remove('card-rotate-horizontal'); // 回転解除
-                ev.currentTarget.appendChild(genCard);
+                targetZone.appendChild(genCard); // targetZone へ追加
             }
             
             let deckCountElem = document.getElementById('deckCount');
@@ -1657,18 +1660,21 @@ function confirmDeckReturn(position) {
     }
 
     if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
-        if (ev.currentTarget.children.length === 0) {
-            let cardObj = trashCards.pop();
-            createGameCardToHand(cardObj.name, cardObj.imagePath);
-            let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-            if (genCard) {
-                genCard.classList.remove('card-rotate-horizontal'); // 回転解除
-                ev.currentTarget.appendChild(genCard);
-            }
-            updateTrashUI();
+    let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
+    let existingCard = targetZone.querySelector('.game-card');
+
+    if (!existingCard) {
+        let cardObj = trashCards.pop();
+        createGameCardToHand(cardObj.name, cardObj.imagePath);
+        let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
+        if (genCard) {
+            genCard.classList.remove('card-rotate-horizontal'); // 回転解除
+            targetZone.appendChild(genCard);
         }
-        return;
+        updateTrashUI();
     }
+    return;
+}
 
     if (dataText) {
         let n = document.getElementById(dataText);
