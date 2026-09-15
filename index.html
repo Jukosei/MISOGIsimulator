@@ -1975,12 +1975,12 @@ function showToast(text) {
                     if (isSearchOpen) document.getElementById('searchOverlay').classList.add('dragging-mode');
                 }, { passive: false });
 
-               r.onclick = function(ev) {
+              r.onclick = function(ev) {
             ev.stopPropagation();
             if (currentSearchType === 'trash') {
                 pendingActionData = { name: cardData.name, imagePath: cardData.imagePath, index: n, list: a };
                 openActionMenu(`トラッシュ: ${cardData.name}`, [
-                    { label: "手札分加える", value: "hand" },
+                    { label: "手札に加える", value: "hand" },
                     { label: "山札の一番上に戻す", value: "top" },
                     { label: "山札の一番下に戻す", value: "bottom" }
                 ], handleTrashChoice);
@@ -1988,7 +1988,6 @@ function showToast(text) {
                 let cut = a.splice(n, 1)[0];
                 createGameCardToHand(cut.name, cut.imagePath);
 
-                // 山札（deck）から取得した場合は自動シャッフルを実施
                 if (currentSearchType === 'deck') {
                     for (let t = virtualDeck.length - 1; t > 0; t--) {
                         let e = Math.floor(Math.random() * (t + 1));
@@ -2003,6 +2002,10 @@ function showToast(text) {
                 renderSearchList();
             }
         };
+
+        e.appendChild(r);
+    });
+} // ← renderSearchList 関数の閉じ括弧
 
         function handleTrashChoice(value) {
             if (!pendingActionData) return;
