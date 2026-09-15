@@ -2039,18 +2039,36 @@ function closeVolNoiseModal() {
 
         function closeSearchModal() {
     let t = (currentSearchType === 'deck') ? virtualDeck : ((currentSearchType === 'noise') ? volNoiseCards : trashCards);
-    if (t.length > 0 && currentSearchType !== 'trash') {
+    
+    // 山札（deck）からサーチしていた場合のみ自動シャッフルを実施
+    if (t.length > 0 && currentSearchType === 'deck') {
         for (let e = t.length - 1; e > 0; e--) {
             let a = Math.floor(Math.random() * (e + 1));
             [t[e], t[a]] = [t[a], t[e]];
         }
-        // ★ alert() を取り払い、トースト表示に置き換え
         showToast('SHUFFLE');
     }
+    
     isSearchOpen = false;
     document.getElementById('searchOverlay').style.display = 'none';
 }
+            
+            else if (dataText === 'search-drag') {
+        let idx = parseInt(ev.dataTransfer.getData('search-index'));
+        let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
+        
+        if (!isNaN(idx) && targetList[idx]) {
+            let cardObj = targetList.splice(idx, 1)[0];
+            createGameCardToHand(cardObj.name, cardObj.imagePath);
 
+            // ドラッグ＆ドロップ時はシャッフルせず、UIとリスト表示のみ更新（モーダルは閉じない）
+            updateDeckUI();
+            updateVolNoiseUI();
+            updateTrashUI();
+            renderSearchList();
+        }
+    }
+            
         function dropReturnToSearch(t) {
             t.preventDefault();
             document.getElementById('searchOverlay').classList.remove('dragging-mode');
