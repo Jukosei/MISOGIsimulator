@@ -2194,16 +2194,13 @@ function closeVolNoiseModal() {
     }
 }
 
-            // 画面の読み込み完了時に自動実行
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.layer-2').forEach(zone => {
-        zone.ondragover = function(ev) {
-            ev.preventDefault();
-        };
-        zone.ondrop = function(ev) {
-            dropToStageZone(ev);
-        };
-    });
+            document.querySelectorAll('.layer-2').forEach(zone => {
+    zone.ondragover = function(ev) {
+        ev.preventDefault();
+    };
+    zone.ondrop = function(ev) {
+        dropToDirection(ev);
+    };
 });
             
     </script>
