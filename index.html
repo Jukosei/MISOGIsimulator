@@ -1625,35 +1625,6 @@ function confirmDeckReturn(position) {
             }
         }
 
-            function dropToStageZone(ev) {
-    ev.preventDefault();
-    let dataText = ev.dataTransfer.getData('text/plain');
-
-    if (dataText === 'search-drag') {
-        let idx = parseInt(ev.dataTransfer.getData('search-index'));
-        let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
-
-        if (!isNaN(idx) && targetList[idx]) {
-            // ドロップ先のエリア（枠本体）を確実に対象とする
-            let targetZone = ev.currentTarget;
-            
-            // すでにカードが置かれている場合は重複配置を防ぐ（必要に応じて解除）
-            if (targetZone.children.length > 0) {
-                return;
-            }
-
-            let cardObj = targetList.splice(idx, 1)[0];
-            let cardElem = createGameCardElement(cardObj.name, cardObj.imagePath);
-            targetZone.appendChild(cardElem);
-
-            updateDeckUI();
-            updateVolNoiseUI();
-            updateTrashUI();
-            renderSearchList();
-        }
-    }
-}
-
         function dropToDirection(ev, slotIdx) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
@@ -1662,7 +1633,10 @@ function confirmDeckReturn(position) {
     if (dataText === 'search-drag') {
         let idx = parseInt(ev.dataTransfer.getData('search-index'));
         let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
-        if (ev.currentTarget.children.length === 0) {
+        
+        // 既にカード（.game-card）が設置されている枠には配置させない判定に変更
+        let existingCard = ev.currentTarget.querySelector('.game-card');
+        if (!existingCard && !isNaN(idx) && targetList[idx]) {
             let cardObj = targetList.splice(idx, 1)[0];
             createGameCardToHand(cardObj.name, cardObj.imagePath);
             let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
@@ -1670,8 +1644,12 @@ function confirmDeckReturn(position) {
                 genCard.classList.remove('card-rotate-horizontal'); // 回転解除
                 ev.currentTarget.appendChild(genCard);
             }
-            document.getElementById('deckCount').innerText = virtualDeck.length;
-            document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+            
+            let deckCountElem = document.getElementById('deckCount');
+            if (deckCountElem) deckCountElem.innerText = virtualDeck.length;
+            let volNoiseCountElem = document.getElementById('volNoiseCount');
+            if (volNoiseCountElem) volNoiseCountElem.innerText = volNoiseCards.length;
+            
             updateTrashUI();
             renderSearchList();
         }
