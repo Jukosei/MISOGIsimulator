@@ -1634,17 +1634,18 @@ function confirmDeckReturn(position) {
         let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
 
         if (!isNaN(idx) && targetList[idx]) {
-            // トラッシュ（または現在開いているモーダルのリスト）からカードを1枚抽出
+            // ドロップ先のエリア（枠本体）を確実に対象とする
+            let targetZone = ev.currentTarget;
+            
+            // すでにカードが置かれている場合は重複配置を防ぐ（必要に応じて解除）
+            if (targetZone.children.length > 0) {
+                return;
+            }
+
             let cardObj = targetList.splice(idx, 1)[0];
+            let cardElem = createGameCardElement(cardObj.name, cardObj.imagePath);
+            targetZone.appendChild(cardElem);
 
-           // ドロップ先の枠（黄色エリア）にカード要素を作成して配置
-        let targetZone = ev.currentTarget;
-        targetZone.innerHTML = ''; // 既にカードがあれば削除または上書き
-
-        let cardElem = createGameCardElement(cardObj.name, cardObj.imagePath);
-        targetZone.appendChild(cardElem); // ← cardZone を targetZone に修正
-
-            // UIとモーダル内リストの再描画
             updateDeckUI();
             updateVolNoiseUI();
             updateTrashUI();
@@ -2214,6 +2215,19 @@ function closeVolNoiseModal() {
                 overlay.classList.remove('dragging-mode');
     }
 }
+
+            // 画面の読み込み完了時に自動実行
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.layer-2').forEach(zone => {
+        zone.ondragover = function(ev) {
+            ev.preventDefault();
+        };
+        zone.ondrop = function(ev) {
+            dropToStageZone(ev);
+        };
+    });
+});
+            
     </script>
 </body>
 </html>
