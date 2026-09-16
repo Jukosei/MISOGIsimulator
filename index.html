@@ -2243,6 +2243,20 @@ r.ondragend = function(ev) {
         zone.ondragover = function(ev) {
             ev.preventDefault();
         };
+
+        // ★ドラッグ中に黄色枠上へ入った時に白く光らせる
+        zone.ondragenter = function(ev) {
+            ev.preventDefault();
+            let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
+            targetZone.classList.add('drag-over');
+        };
+
+        // ★ドラッグ中のマウスが外れたら光る演出を消す
+        zone.ondragleave = function(ev) {
+            let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
+            targetZone.classList.remove('drag-over');
+        };
+
         zone.ondrop = function(ev) {
             dropToDirection(ev);
         };
