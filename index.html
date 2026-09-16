@@ -698,6 +698,12 @@
 #searchOverlay .game-card {
     pointer-events: auto !important;
 }
+
+        /* ドラッグ中のみモーダル全体のマウス判定をオフにする */
+#searchOverlay.dragging-mode,
+.modal.dragging-mode {
+    pointer-events: none !important;
+}
         
     </style>
 </head>
@@ -2036,19 +2042,25 @@ function closeVolNoiseModal() {
                 r.setAttribute('draggable', 'true');
 
                 r.ondragstart = function(ev) {
-    // 文字列 'search-drag' を確実にセット
-    ev.dataTransfer.setData('text/plain', 'search-drag');
-    ev.dataTransfer.setData('search-index', n.toString());
+            // 文字列 'search-drag' をセット
+            ev.dataTransfer.setData('text/plain', 'search-drag');
+            ev.dataTransfer.setData('search-index', n.toString());
 
-    // ドラッグ中にモーダルの背景がマウス判定を奪わないように設定
-    let overlay = document.getElementById('searchOverlay');
-    if (overlay) overlay.classList.add('dragging-mode');
-};
+            // ドラッグ中にモーダルの背景がマウス判定を奪わないように設定
+            let overlay = document.getElementById('searchOverlay');
+            if (overlay) {
+                overlay.classList.add('dragging-mode');
+                overlay.style.pointerEvents = 'none'; // ★直接スタイルを追記して確実に判定を消す
+            }
+        };
 
-r.ondragend = function(ev) {
-    let overlay = document.getElementById('searchOverlay');
-    if (overlay) overlay.classList.remove('dragging-mode');
-};
+        r.ondragend = function(ev) {
+            let overlay = document.getElementById('searchOverlay');
+            if (overlay) {
+                overlay.classList.remove('dragging-mode');
+                overlay.style.pointerEvents = 'auto'; // ★元に戻す
+            }
+        };
 
                 r.addEventListener('touchstart', function(ev) {
                     ev.preventDefault();
