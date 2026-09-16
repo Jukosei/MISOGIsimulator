@@ -1647,10 +1647,15 @@ function confirmDeckReturn(position) {
             let cardObj = targetList.splice(idx, 1)[0];
             createGameCardToHand(cardObj.name, cardObj.imagePath);
             
-            let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-            if (genCard) {
-                genCard.classList.remove('card-rotate-horizontal');
-                targetZone.appendChild(genCard);
+            let isLayer2 = targetZone.classList.contains('layer-2');
+
+if (genCard) {
+    if (isLayer2) {
+        // 黄色エリアに置いた時は横向きにする
+        genCard.classList.add('card-rotate-horizontal');
+    }
+    targetZone.appendChild(genCard);
+}
             }
 
             // カウントと表示の更新
@@ -1666,31 +1671,35 @@ function confirmDeckReturn(position) {
     // （以下、trash-zone-drag や通常カード移動の処理）
 
     if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
-    let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
-    let existingCard = targetZone.querySelector('.game-card');
+        let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
+        let existingCard = targetZone.querySelector('.game-card');
 
-    if (!existingCard) {
-        let cardObj = trashCards.pop();
-        createGameCardToHand(cardObj.name, cardObj.imagePath);
-        let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-        if (genCard) {
-            genCard.classList.remove('card-rotate-horizontal'); // 回転解除
-            targetZone.appendChild(genCard);
+        if (!existingCard) {
+            let cardObj = trashCards.pop();
+            createGameCardToHand(cardObj.name, cardObj.imagePath);
+            let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
+            if (genCard) {
+                // ★ layer-2へ置くので横向き（回転クラス追加）にする
+                genCard.classList.add('card-rotate-horizontal'); 
+                targetZone.appendChild(genCard);
+            }
+            updateTrashUI();
         }
-        updateTrashUI();
+        return;
     }
-    return;
-}
 
     if (dataText) {
         let n = document.getElementById(dataText);
-        if (n && ev.currentTarget.children.length === 0) {
-            n.classList.remove('card-rotate-horizontal'); // 回転解除
-            ev.currentTarget.appendChild(n);
+        let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
+        let existingCard = targetZone.querySelector('.game-card');
+
+        if (n && !existingCard) {
+            // ★ 手札などから layer-2 へ置く時も横向きにする
+            n.classList.add('card-rotate-horizontal'); 
+            targetZone.appendChild(n);
         }
     }
-}
-
+            
         function dropToHand(ev) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
