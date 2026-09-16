@@ -1643,19 +1643,23 @@ function confirmDeckReturn(position) {
         let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
         let existingCard = targetZone.querySelector('.game-card');
 
-        if (!existingCard && !isNaN(idx) && targetList[idx]) {
+       if (!existingCard && !isNaN(idx) && targetList[idx]) {
             let cardObj = targetList.splice(idx, 1)[0];
             createGameCardToHand(cardObj.name, cardObj.imagePath);
-            
+
+            // ★ 宣言が抜けていたため追加
+            let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
+
             let isLayer2 = targetZone.classList.contains('layer-2');
 
-if (genCard) {
-    if (isLayer2) {
-        // 黄色エリアに置いた時は横向きにする
-        genCard.classList.add('card-rotate-horizontal');
-    }
-    targetZone.appendChild(genCard);
-}
+            if (genCard) {
+                if (isLayer2) {
+                    // 黄色エリアに置いた時は横向きにする
+                    genCard.classList.add('card-rotate-horizontal');
+                }
+                targetZone.appendChild(genCard);
+            }
+        }
             }
 
             // カウントと表示の更新
