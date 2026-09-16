@@ -1856,6 +1856,26 @@ function dropToVolNoise(ev) {
             }
         }
 
+            function onModalCardDragStart(ev, index) {
+    // 1. ドラッグするカードのインデックスや識別データをセット
+    ev.dataTransfer.setData('text/plain', 'search-drag');
+    ev.dataTransfer.setData('search-index', index);
+
+    // 2. ドラッグ中だけモーダルの遮断判定をオフにする（背後の枠へドロップ可能にする）
+    let modal = document.getElementById('trashModal') || document.getElementById('searchModal') || document.querySelector('.modal');
+    if (modal) {
+        modal.style.pointerEvents = 'none';
+    }
+}
+
+function onModalCardDragEnd(ev) {
+    // 3. ドラッグが終わったら（ドロップ後・キャンセル後）、モーダルの操作を元に戻す
+    let modal = document.getElementById('trashModal') || document.getElementById('searchModal') || document.querySelector('.modal');
+    if (modal) {
+        modal.style.pointerEvents = 'auto';
+    }
+}
+
     function openVolNoiseModal() {
     let modalEl = document.getElementById('volNoiseViewModal');
     let listContainer = document.getElementById('volNoiseCardContainer');
