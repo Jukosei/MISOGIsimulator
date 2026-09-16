@@ -1646,52 +1646,45 @@ function confirmDeckReturn(position) {
         function dropToDirection(ev, slotIdx) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
-    
+
     let dataText = ev.dataTransfer.getData('text/plain');
 
-    // サーチ・トラッシュモーダルからのドラッグ
+    // 1. サーチ・トラッシュモーダルからのドラッグ処理
     if (dataText === 'search-drag') {
         let rawIdx = ev.dataTransfer.getData('search-index');
         let idx = parseInt(rawIdx);
-        
-        let targetList = (currentSearchType === 'deck') 
-            ? virtualDeck 
+
+        let targetList = (currentSearchType === 'deck')
+            ? virtualDeck
             : ((currentSearchType === 'noise') ? volNoiseCards : trashCards);
 
         let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
         let existingCard = targetZone.querySelector('.game-card');
 
-       if (!existingCard && !isNaN(idx) && targetList[idx]) {
+        if (!existingCard && !isNaN(idx) && targetList[idx]) {
             let cardObj = targetList.splice(idx, 1)[0];
             createGameCardToHand(cardObj.name, cardObj.imagePath);
 
-            // ★ 宣言が抜けていたため追加
             let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-
             let isLayer2 = targetZone.classList.contains('layer-2');
 
             if (genCard) {
                 if (isLayer2) {
-                    // 黄色エリアに置いた時は横向きにする
-                    genCard.classList.add('card-rotate-horizontal');
+                    genCard.classList.add('card-rotate-horizontal'); // 黄色エリアなら横向き
                 }
                 targetZone.appendChild(genCard);
             }
-        }
-            }
 
-            // カウントと表示の更新
             if (document.getElementById('deckCount')) document.getElementById('deckCount').innerText = virtualDeck.length;
             if (document.getElementById('volNoiseCount')) document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-            
+
             updateTrashUI();
             renderSearchList();
         }
         return;
     }
 
-    // （以下、trash-zone-drag や通常カード移動の処理）
-
+    // 2. トラッシュゾーン（アイコン）からのドラッグ処理
     if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
         let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
         let existingCard = targetZone.querySelector('.game-card');
@@ -1700,9 +1693,11 @@ function confirmDeckReturn(position) {
             let cardObj = trashCards.pop();
             createGameCardToHand(cardObj.name, cardObj.imagePath);
             let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
+
             if (genCard) {
-                // ★ layer-2へ置くので横向き（回転クラス追加）にする
-                genCard.classList.add('card-rotate-horizontal'); 
+                if (targetZone.classList.contains('layer-2')) {
+                    genCard.classList.add('card-rotate-horizontal'); // 黄色エリアなら横向き
+                }
                 targetZone.appendChild(genCard);
             }
             updateTrashUI();
@@ -1710,17 +1705,20 @@ function confirmDeckReturn(position) {
         return;
     }
 
+    // 3. 通常のカード移動（手札や他エリアから）
     if (dataText) {
         let n = document.getElementById(dataText);
         let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
         let existingCard = targetZone.querySelector('.game-card');
 
         if (n && !existingCard) {
-            // ★ 手札などから layer-2 へ置く時も横向きにする
-            n.classList.add('card-rotate-horizontal'); 
+            if (targetZone.classList.contains('layer-2')) {
+                n.classList.add('card-rotate-horizontal'); // 黄色エリアなら横向き
+            }
             targetZone.appendChild(n);
         }
     }
+}
             
         function dropToHand(ev) {
     ev.preventDefault();
