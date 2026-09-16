@@ -924,6 +924,24 @@
         let deckDragStartX = 0;
         let deckDragStartY = 0;
 
+            // --- モード選択関数 ---
+function selectMode(mode) {
+    localStorage.setItem('misogi_mode', mode);
+    const btn1 = document.getElementById('btn1Deck');
+    const btn2 = document.getElementById('btn2Deck');
+    const areaPlayer2 = document.getElementById('areaPlayer2');
+
+    if (mode === 1) {
+        if (btn1) btn1.classList.add('active');
+        if (btn2) btn2.classList.remove('active');
+        if (areaPlayer2) areaPlayer2.style.display = 'none';
+    } else {
+        if (btn1) btn1.classList.remove('active');
+        if (btn2) btn2.classList.add('active');
+        if (areaPlayer2) areaPlayer2.style.display = 'block';
+    }
+}
+
         window.onload = function() {
             document.getElementById('deckInput1').value = localStorage.getItem('misogi_deck1') || "GA-13/GA-13/DA-34/DA-34/DA-34/HA-11/HA-1/HA-1/HA-2/HA-2/HA-2/JS-40/PS-39/HS-1/HS-1/HS-1/JS-27/JS-27/JS-27/JS-27/AS-4/AS-4/DS-38/DS-38/GS-40/GS-40/GS-38/GS-40/GS-40/GS-";
             document.getElementById('deckInput2').value = localStorage.getItem('misogi_deck2') || "GA-13/GA-13/DA-34/DA-34";
