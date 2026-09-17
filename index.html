@@ -1045,8 +1045,6 @@ window.selectMode = selectMode;
 window.startGame = startGame;
 
 window.onload = function() {
-            document.getElementById('deckInput1').value = localStorage.getItem('misogi_deck1') || "GA-13/GA-13/DA-34/DA-34/DA-34/HA-11/HA-1/HA-1/HA-2/HA-2/HA-2/JS-40/PS-39/HS-1/HS-1/HS-1/JS-27/JS-27/JS-27/JS-27/AS-4/AS-4/DS-38/DS-38/GS-40/GS-40/GS-38/GS-40/GS-40/GS-";
-            document.getElementById('deckInput2').value = localStorage.getItem('misogi_deck2') || "GA-13/GA-13/DA-34/DA-34";
             selectMode(parseInt(localStorage.getItem('misogi_mode')) || 2);
             setupTrashAreaEvents();
         };
@@ -2063,19 +2061,20 @@ function closeVolNoiseModal() {
     }
 }
         function resetGameBtn() {
-            if (confirm('ゲーム状態を完全にリセットして山札を再構築しますか？')) {
-                startGame();
-            }
-            mulliganCount = 0;
-const countEl = document.getElementById('mulliganCount');
-if (countEl) countEl.innerText = 0;
-            // リセット処理内に追加
-            isTurnEnded = false;
-const btn = document.getElementById('turnBtn');
-if (btn) {
-    btn.innerText = 'ターンエンド';
-    btn.style.backgroundColor = '#ffa500';
-}
+        if (confirm('ゲーム状態を完全にリセットして山札を再構築しますか？')) {
+            startGame();
+        }
+        mulliganCount = 0;
+        const countEl = document.getElementById('mulliganCount');
+        if (countEl) countEl.innerText = 0;
+
+        isTurnEnded = false;
+        const btn = document.getElementById('turnBtn');
+        if (btn) {
+            btn.innerText = 'ターンエンド';
+            btn.style.backgroundColor = '#ffa500';
+        }
+    } // ★ ここに閉じカッコを追記して関数を正常終了させます
 
         function openSearchModal(t) {
             currentSearchType = t;
