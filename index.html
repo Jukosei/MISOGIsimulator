@@ -806,10 +806,6 @@
             <button class="control-btn" onclick="openSearchModal('noise')">VOLノイズからサーチ</button>
             <button class="control-btn" onclick="trashAllHandBtn()">手札を全てトラッシュ</button>
             <button class="control-btn" onclick="mulliganBtn()">マリガン</button>
-            <!-- マリガン回数表示エリア -->
-<div class="mulligan-counter-box" style="margin: 5px 0; text-align: center; color: #fff; font-weight: bold;">
-    マリガン回数: <span id="mulliganCount">0</span>
-</div>
             <button class="control-btn" onclick="resetGameBtn()">リセット</button>
             <button class="control-btn orange" onclick="nextTurn()">ターンエンド</button>
             <button class="control-btn" onclick="rollDice()">ダイスを振る</button>
@@ -855,6 +851,17 @@
                     <button class="counter-btn" onclick="changeCounter('omega',1)">+</button>
                 </div>
             </div>
+            <!-- 右側のカウンター列の中に追加 -->
+<div class="counter-item" style="display: flex; flex-direction: column; align-items: center; margin-bottom: 10px;">
+    <!-- 丸枠アイコン -->
+    <div style="width: 36px; height: 36px; border-radius: 50%; background-color: #4a5568; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px;">
+        M
+    </div>
+    <!-- カウンター表示と操作 -->
+    <div style="display: flex; align-items: center; gap: 4px; margin-top: 4px;">
+        <span id="mulliganCount" style="color: #fff; font-weight: bold; font-size: 16px;">0</span>
+    </div>
+</div>
             <div class="turn-display">TURN<span id="turnCount">1</span></div>
         </div>
     </div>
