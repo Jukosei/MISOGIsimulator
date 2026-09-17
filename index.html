@@ -1041,6 +1041,15 @@ function showToast(text) {
 const countEl = document.getElementById('mulliganCount');
 if (countEl) countEl.innerText = 0;
 
+                // リセット処理内に追加
+isTurnEnded = false;
+const btn = document.getElementById('turnBtn');
+if (btn) {
+    btn.innerText = 'ターンエンド';
+    btn.classList.remove('btn-success');
+    btn.classList.add('btn-warning');
+}
+
     // UI更新＆画面切り替え
     updateDeckUI();
     updateVolNoiseUI();
@@ -2050,6 +2059,14 @@ function closeVolNoiseModal() {
             mulliganCount = 0;
 const countEl = document.getElementById('mulliganCount');
 if (countEl) countEl.innerText = 0;
+            // リセット処理内に追加
+isTurnEnded = false;
+const btn = document.getElementById('turnBtn');
+if (btn) {
+    btn.innerText = 'ターンエンド';
+    btn.classList.remove('btn-success');
+    btn.classList.add('btn-warning');
+}
         }
 
         function openSearchModal(t) {
@@ -2291,9 +2308,137 @@ if (countEl) countEl.innerText = 0;
         }
 
         function nextTurn() {
-            turn++;
-            document.getElementById('turnCount').innerText = turn;
+    // 1. ターン数の加算
+    turn++;
+    const turnCountEl = document.getElementById('turnCount');
+    if (turnCountEl) {
+        turnCountEl.innerText = turn;
+    }
+
+    // 2. 横向きになっているカードを縦向きに戻す（.card-rotate-horizontal を解除）
+    document.querySelectorAll('.game-card.card-rotate-horizontal').forEach(card => {
+        card.classList.remove('card-rotate-horizontal');
+    });
+
+    // 3. 暗くなっているディレクションカード（または各カード）を明るく戻す
+    // ※ 暗くするクラス名（.tapped, .exhausted, .disabled など）に合わせて調整してください
+    document.querySelectorAll('.game-card.tapped, .game-card.exhausted, .direction-card.disabled').forEach(card => {
+        card.classList.remove('tapped', 'exhausted', 'disabled');
+        card.style.filter = ''; // スタイルで直接暗くしている場合のリセット
+        card.style.opacity = '';
+    });
+
+    // 4. 紫色エリア（.layer-3）のカードをトラッシュに送る
+    document.querySelectorAll('.layer-3').forEach(zone => {
+        const cardsInLayer3 = Array.from(zone.querySelectorAll('.game-card'));
+        cardsInLayer3.forEach(card => {
+            const cardName = card.getAttribute('data-cardname') || card.getAttribute('data-name');
+            const imagePath = card.getAttribute('data-imagepath') || card.getAttribute('data-image-path');
+
+            // トラッシュ配列（trashCards）へ追加
+            if (cardName) {
+                trashCards.push({ name: cardName, imagePath: imagePath });
+            }
+
+            // 画面（DOM）から削除
+            card.remove();
+        });
+    });
+
+    // 5. トラッシュUIの更新
+    if (typeof updateTrashUI === 'function') {
+        updateTrashUI();
+    }
+
+    // 通知表示（任意）
+    if (typeof showToast === 'function') {
+        showToast(`ターン ${turn} が開始しました`);
+    }
+            // ターン管理用の状態フラグ（グローバル変数等に追加）
+let isTurnEnded = false;
+
+// ターンボタンのメインハンドラ
+function handleTurnBtnClick() {
+    const btn = document.getElementById('turnBtn');
+
+    if (!isTurnEnded) {
+        // --- 1. ターンエンドの処理 ---
+        isTurnEnded = true;
+
+        // ボタンの表記・見た目を「ターンスタート」に切り替え
+        if (btn) {
+            btn.innerText = 'ターンスタート';
+            btn.classList.remove('btn-warning');
+            btn.classList.add('btn-success'); // 緑色などの目立つ色に変更（CSSに合わせて調整してください）
         }
+
+        // 横向きカードを縦向きに戻す
+        document.querySelectorAll('.game-card.card-rotate-horizontal').forEach(card => {
+            card.classList.remove('card-rotate-horizontal');
+        });
+
+        // 暗くなっているカード（ディレクション等）を明るく戻す
+        document.querySelectorAll('.game-card.tapped, .game-card.exhausted, .direction-card.disabled').forEach(card => {
+            card.classList.remove('tapped', 'exhausted', 'disabled');
+            card.style.filter = '';
+            card.style.opacity = '';
+        });
+
+        // 紫色エリア（.layer-3）のカードをトラッシュに送る
+        document.querySelectorAll('.layer-3').forEach(zone => {
+            const cardsInLayer3 = Array.from(zone.querySelectorAll('.game-card'));
+            cardsInLayer3.forEach(card => {
+                const cardName = card.getAttribute('data-cardname') || card.getAttribute('data-name');
+                const imagePath = card.getAttribute('data-imagepath') || card.getAttribute('data-image-path');
+
+                if (cardName) {
+                    trashCards.push({ name: cardName, imagePath: imagePath });
+                }
+                card.remove();
+            });
+        });
+
+        // トラッシュUI更新
+        if (typeof updateTrashUI === 'function') {
+            updateTrashUI();
+        }
+
+    } else {
+        // --- 2. ターンスタートの処理 ---
+        isTurnEnded = false;
+
+        // ボタンの表記を「ターンエンド」に戻す
+        if (btn) {
+            btn.innerText = 'ターンエンド';
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-warning');
+        }
+
+        // ① ターン数の加算
+        turn++;
+        const turnCountEl = document.getElementById('turnCount');
+        if (turnCountEl) {
+            turnCountEl.innerText = turn;
+        }
+
+        // ② 山札から1枚カードを引く
+        if (virtualDeck.length > 0) {
+            const drawnCard = virtualDeck.shift();
+            createGameCardToHand(drawnCard.name, drawnCard.imagePath);
+
+            // 山札枚数UI更新
+            const deckCountEl = document.getElementById('deckCount');
+            if (deckCountEl) {
+                deckCountEl.innerText = virtualDeck.length;
+            }
+        } else {
+            if (typeof showToast === 'function') {
+                showToast('山札がありません！');
+            }
+        }
+    }
+}
+}
 
         function rollDice() {
             alert(`ダイスの出目: ${Math.floor(Math.random() * 6) + 1}`);
