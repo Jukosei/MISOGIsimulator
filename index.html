@@ -967,7 +967,7 @@ function selectMode(mode) {
 window.selectMode = selectMode;
 
             // <script> 直下のトップレベルに配置します
-function startGame() {
+            window.startGame = function() {
     let inputEl = document.getElementById('deckInput1');
     if (!inputEl || !inputEl.value.trim()) {
         return alert('デッキコードを入力してください！');
