@@ -807,11 +807,7 @@
             <button class="control-btn" onclick="trashAllHandBtn()">手札を全てトラッシュ</button>
             <button class="control-btn" onclick="mulliganBtn()">マリガン</button>
             <button class="control-btn" onclick="resetGameBtn()">リセット</button>
-            <button class="control-btn orange" onclick="nextTurn()">ターンエンド</button>
-            <!-- ターンエンド / ターンスタート兼用ボタン -->
-<button id="turnBtn" onclick="handleTurnBtnClick()" class="btn btn-warning">
-    ターンエンド
-</button>
+            <button id="turnBtn" class="control-btn orange" onclick="handleTurnBtnClick()">ターンエンド</button>
             <button class="control-btn" onclick="rollDice()">ダイスを振る</button>
             <button class="control-btn" onclick="triggerAction('山札の下から1枚ドロー')">山札の下から1枚ドロー</button>
             <button class="control-btn gray" style="margin-top:10px;" onclick="backToMenu()">メニュー戻る</button>
