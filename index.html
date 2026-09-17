@@ -1046,12 +1046,11 @@ const countEl = document.getElementById('mulliganCount');
 if (countEl) countEl.innerText = 0;
 
                 // リセット処理内に追加
-isTurnEnded = false;
+                isTurnEnded = false;
 const btn = document.getElementById('turnBtn');
 if (btn) {
     btn.innerText = 'ターンエンド';
-    btn.classList.remove('btn-success');
-    btn.classList.add('btn-warning');
+    btn.style.backgroundColor = '#ffa500';
 }
 
     // UI更新＆画面切り替え
@@ -2064,14 +2063,12 @@ function closeVolNoiseModal() {
 const countEl = document.getElementById('mulliganCount');
 if (countEl) countEl.innerText = 0;
             // リセット処理内に追加
-isTurnEnded = false;
+            isTurnEnded = false;
 const btn = document.getElementById('turnBtn');
 if (btn) {
     btn.innerText = 'ターンエンド';
-    btn.classList.remove('btn-success');
-    btn.classList.add('btn-warning');
+    btn.style.backgroundColor = '#ffa500';
 }
-        }
 
         function openSearchModal(t) {
             currentSearchType = t;
@@ -2361,19 +2358,17 @@ if (btn) {
             // ターン管理用の状態フラグ（グローバル変数等に追加）
 let isTurnEnded = false;
 
-// ターンボタンのメインハンドラ
 function handleTurnBtnClick() {
+    // 既存のボタンを取得（要素を増やさず、このテキストを書き換えます）
     const btn = document.getElementById('turnBtn');
 
     if (!isTurnEnded) {
-        // --- 1. ターンエンドの処理 ---
+        // --- 1. ターンエンド処理 ---
         isTurnEnded = true;
 
-        // ボタンの表記・見た目を「ターンスタート」に切り替え
         if (btn) {
             btn.innerText = 'ターンスタート';
-            btn.classList.remove('btn-warning');
-            btn.classList.add('btn-success'); // 緑色などの目立つ色に変更（CSSに合わせて調整してください）
+            btn.style.backgroundColor = '#28a745'; // 緑色に変更
         }
 
         // 横向きカードを縦向きに戻す
@@ -2388,7 +2383,7 @@ function handleTurnBtnClick() {
             card.style.opacity = '';
         });
 
-        // 紫色エリア（.layer-3）のカードをトラッシュに送る
+        // 紫色エリア（.layer-3）のカードをトラッシュへ送る
         document.querySelectorAll('.layer-3').forEach(zone => {
             const cardsInLayer3 = Array.from(zone.querySelectorAll('.game-card'));
             cardsInLayer3.forEach(card => {
@@ -2402,48 +2397,38 @@ function handleTurnBtnClick() {
             });
         });
 
-        // トラッシュUI更新
         if (typeof updateTrashUI === 'function') {
             updateTrashUI();
         }
 
     } else {
-        // --- 2. ターンスタートの処理 ---
+        // --- 2. ターンスタート処理 ---
         isTurnEnded = false;
 
-        // ボタンの表記を「ターンエンド」に戻す
         if (btn) {
             btn.innerText = 'ターンエンド';
-            btn.classList.remove('btn-success');
-            btn.classList.add('btn-warning');
+            btn.style.backgroundColor = '#ffa500'; // オレンジ色に戻す
         }
 
-        // ① ターン数の加算
+        // ① ターン数加算
         turn++;
         const turnCountEl = document.getElementById('turnCount');
         if (turnCountEl) {
             turnCountEl.innerText = turn;
         }
 
-        // ② 山札から1枚カードを引く
+        // ② 山札から1枚ドロー
         if (virtualDeck.length > 0) {
             const drawnCard = virtualDeck.shift();
             createGameCardToHand(drawnCard.name, drawnCard.imagePath);
 
-            // 山札枚数UI更新
             const deckCountEl = document.getElementById('deckCount');
             if (deckCountEl) {
                 deckCountEl.innerText = virtualDeck.length;
             }
-        } else {
-            if (typeof showToast === 'function') {
-                showToast('山札がありません！');
-            }
         }
     }
 }
-}
-
         function rollDice() {
             alert(`ダイスの出目: ${Math.floor(Math.random() * 6) + 1}`);
         }
