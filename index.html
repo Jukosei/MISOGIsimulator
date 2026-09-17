@@ -806,6 +806,10 @@
             <button class="control-btn" onclick="openSearchModal('noise')">VOLノイズからサーチ</button>
             <button class="control-btn" onclick="trashAllHandBtn()">手札を全てトラッシュ</button>
             <button class="control-btn" onclick="mulliganBtn()">マリガン</button>
+            <!-- マリガン回数表示エリア -->
+<div class="mulligan-counter-box" style="margin: 5px 0; text-align: center; color: #fff; font-weight: bold;">
+    マリガン回数: <span id="mulliganCount">0</span>
+</div>
             <button class="control-btn" onclick="resetGameBtn()">リセット</button>
             <button class="control-btn orange" onclick="nextTurn()">ターンエンド</button>
             <button class="control-btn" onclick="rollDice()">ダイスを振る</button>
@@ -929,6 +933,7 @@
         let isDeckDragging = false;
         let deckDragStartX = 0;
         let deckDragStartY = 0;
+        let mulliganCount = 0; // マリガン回数を保持する変数
 
             // --- モード選択関数 ---
 function selectMode(mode) {
@@ -1025,6 +1030,9 @@ function showToast(text) {
             createGameCardToHand(drawnCard.name, drawnCard.imagePath);
         }
     }
+                mulliganCount = 0;
+const countEl = document.getElementById('mulliganCount');
+if (countEl) countEl.innerText = 0;
 
     // UI更新＆画面切り替え
     updateDeckUI();
@@ -1988,7 +1996,7 @@ function closeVolNoiseModal() {
 
     let list = Array.from(t.children);
 
-    // 1. 手札のカードをトラッシュではなく山札（virtualDeck）に戻す
+    // 1. 手札のカードを山札（virtualDeck）に戻す
     list.forEach(a => {
         let cardName = a.getAttribute('data-cardname');
         let imagePath = a.getAttribute('data-imagepath');
@@ -2005,27 +2013,36 @@ function closeVolNoiseModal() {
         [virtualDeck[a], virtualDeck[n]] = [virtualDeck[n], virtualDeck[a]];
     }
 
-    // 3. 山札から固定で7枚ドロー（山札が7枚未満の場合は残りの全枚数）
+    // 3. 山札から固定で7枚ドロー
     let r = Math.min(7, virtualDeck.length);
     for (let c = 0; c < r; c++) {
         let o = virtualDeck.shift();
         createGameCardToHand(o.name, o.imagePath);
     }
 
-    // 4. UIの更新（alertダイアログは削除）
+    // 4. UIの更新
     if (document.getElementById('deckCount')) {
         document.getElementById('deckCount').innerText = virtualDeck.length;
     }
     
-    // トラッシュUIの表示を更新（手札を戻したため）
     if (typeof updateTrashUI === 'function') {
         updateTrashUI();
+    }
+
+    // ★ 5. マリガン回数を加算して表示を更新
+    mulliganCount++;
+    const countEl = document.getElementById('mulliganCount');
+    if (countEl) {
+        countEl.innerText = mulliganCount;
     }
 }
         function resetGameBtn() {
             if (confirm('ゲーム状態を完全にリセットして山札を再構築しますか？')) {
                 startGame();
             }
+            mulliganCount = 0;
+const countEl = document.getElementById('mulliganCount');
+if (countEl) countEl.innerText = 0;
         }
 
         function openSearchModal(t) {
