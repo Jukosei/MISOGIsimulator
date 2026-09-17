@@ -963,6 +963,9 @@ function selectMode(mode) {
         if (areaPlayer2) areaPlayer2.style.display = 'block';
     }
 }
+            // selectMode 関数の定義が終わる直後に追加
+window.selectMode = selectMode;
+
             // <script> 直下のトップレベルに配置します
 function startGame() {
     let inputEl = document.getElementById('deckInput1');
