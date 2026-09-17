@@ -921,31 +921,42 @@
     <div id="toastMessage" class="toast-message"></div>
 
         <script>
-        // --- 既存の変数群 ---
-        let currentMode = 2;
-        let turn = 1;
-        let counters = { vol: 0, alpha: 0, beta: 0, omega: 0 };
-        let selectedColumnIndex = null;
-        let cardIdCounter = 0;
-        let virtualDeck = [];
-        let dragTarget = null;
-        let startX = 0;
-        let startY = 0;
-        let volNoiseCards = [];
-        let trashCards = [];
-        let currentSearchType = "";
-        let isSearchOpen = false;
-        let pendingActionData = null;
-        let isTrashDragging = false;
-        let trashDragStartX = 0;
-        let trashDragStartY = 0;
+        <script>
+    // --- クリアボタン用関数 (追加) ---
+    function clearInput(num) {
+        let el = document.getElementById('deckInput' + num);
+        if (el) el.value = '';
+    }
 
-        // --- 山札のドラッグ＆ドロップ用追加変数 ---
-        let isDeckDragging = false;
-        let deckDragStartX = 0;
-        let deckDragStartY = 0;
-        let mulliganCount = 0; // マリガン回数を保持する変数
+    // --- 既存の変数群 ---
+    let currentMode = 2;
+    let turn = 1;
+    let counters = { vol: 0, alpha: 0, beta: 0, omega: 0 };
+    let selectedColumnIndex = null;
+    let cardIdCounter = 0;
+    let virtualDeck = [];
+    let dragTarget = null;
+    let startX = 0;
+    let startY = 0;
+    let volNoiseCards = [];
+    let trashCards = [];
+    let currentSearchType = "";
+    let isSearchOpen = false;
+    let pendingActionData = null;
+    let isTrashDragging = false;
+    let trashDragStartX = 0;
+    let trashDragStartY = 0;
 
+    // --- 山札のドラッグ＆ドロップ用追加変数 ---
+    let isDeckDragging = false;
+    let deckDragStartX = 0;
+    let deckDragStartY = 0;
+    let mulliganCount = 0; // マリガン回数を保持する変数
+    let isTurnEnded = false;
+
+    // --- グローバル登録 (onclick保証) ---
+    window.clearInput = clearInput;
+            
             // --- モード選択関数 ---
 function selectMode(mode) {
     localStorage.setItem('misogi_mode', mode);
