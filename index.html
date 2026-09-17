@@ -963,6 +963,69 @@ function selectMode(mode) {
         if (areaPlayer2) areaPlayer2.style.display = 'block';
     }
 }
+            // <script> 直下のトップレベルに配置します
+function startGame() {
+    let inputEl = document.getElementById('deckInput1');
+    if (!inputEl || !inputEl.value.trim()) {
+        return alert('デッキコードを入力してください！');
+    }
+
+    let t = inputEl.value;
+    let e = t.split(/[\r\n/]+/).map(str => str.trim()).filter(str => str.length > 0);
+
+    let a = [];
+    e.forEach(codeStr => {
+        let p = codeStr.split('-');
+        if (p.length >= 2) {
+            let prefix = p[0].toUpperCase();
+            let r = prefix.charAt(prefix.length - 1);
+            a.push({ name: codeStr, suffix: r, imagePath: `images/${codeStr}.png` });
+        }
+    });
+
+    if (a.length === 0) {
+        return alert('有効なカードコードが認識できませんでした。');
+    }
+
+    // シャッフル
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+
+    virtualDeck = a;
+    trashCards = [];
+    volNoiseCards = [];
+
+    let handArea = document.getElementById('handArea');
+    if (handArea) handArea.innerHTML = "";
+
+    // 初期ドロー（7枚）
+    const drawCount = Math.min(7, virtualDeck.length);
+    for (let i = 0; i < drawCount; i++) {
+        let drawnCard = virtualDeck.shift();
+        if (drawnCard) {
+            createGameCardToHand(drawnCard.name, drawnCard.imagePath);
+        }
+    }
+
+    mulliganCount = 0;
+    const countEl = document.getElementById('mulliganCount');
+    if (countEl) countEl.innerText = 0;
+
+    isTurnEnded = false;
+    const btn = document.getElementById('turnBtn');
+    if (btn) {
+        btn.innerText = 'ターンエンド';
+        btn.style.backgroundColor = '#ffa500';
+    }
+
+    if (typeof updateDeckUI === 'function') updateDeckUI();
+    if (typeof updateTrashUI === 'function') updateTrashUI();
+
+    document.getElementById('menuScreen').style.display = 'none';
+    document.getElementById('gameScreen').style.display = 'flex';
+}
 
         window.onload = function() {
             document.getElementById('deckInput1').value = localStorage.getItem('misogi_deck1') || "GA-13/GA-13/DA-34/DA-34/DA-34/HA-11/HA-1/HA-1/HA-2/HA-2/HA-2/JS-40/PS-39/HS-1/HS-1/HS-1/JS-27/JS-27/JS-27/JS-27/AS-4/AS-4/DS-38/DS-38/GS-40/GS-40/GS-38/GS-40/GS-40/GS-";
@@ -988,82 +1051,6 @@ function showToast(text) {
         toast.classList.remove('show');
     }, 1000);
 }
-
-            function startGame() {
-    let inputEl = document.getElementById('deckInput1');
-    if (!inputEl || !inputEl.value.trim()) {
-        return alert('デッキコードを入力してください！');
-    }
-
-    let t = inputEl.value;
-    
-    // ★ 改行(\n, \r) だけでなく スラッシュ(/) でも分割できるように修正
-    let e = t.split(/[\r\n/]+/).map(str => str.trim()).filter(str => str.length > 0);
-
-    let a = [];
-    e.forEach(codeStr => {
-        let p = codeStr.split('-');
-        if (p.length >= 2) {
-            let prefix = p[0].toUpperCase();
-            let r = prefix.charAt(prefix.length - 1);
-            a.push({ name: codeStr, suffix: r, imagePath: `images/${codeStr}.png` });
-        }
-    });
-
-    if (a.length === 0) {
-        return alert('有効なカードコードが認識できませんでした。形式を確認してください（例: GA-13）。');
-    }
-
-    // ソート処理
-    let o = { A: 1, S: 2, M: 3, D: 4 };
-    a.sort((cardA, cardB) => (o[cardA.suffix] || 99) - (o[cardB.suffix] || 99));
-
-    // シャッフル (Fisher-Yates)
-    for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-    }
-
-    // グローバル山札にセット
-    virtualDeck = a;
-
-    // UI・状態の初期化
-    trashCards = [];
-    volNoiseCards = [];
-    let handArea = document.getElementById('handArea');
-    if (handArea) handArea.innerHTML = "";
-
-    // 手札へ7枚ドロー
-    const drawCount = Math.min(7, virtualDeck.length);
-    for (let i = 0; i < drawCount; i++) {
-        let drawnCard = virtualDeck.pop();
-        if (drawnCard) {
-            createGameCardToHand(drawnCard.name, drawnCard.imagePath);
-        }
-    }
-                mulliganCount = 0;
-const countEl = document.getElementById('mulliganCount');
-if (countEl) countEl.innerText = 0;
-
-                // リセット処理内に追加
-                isTurnEnded = false;
-const btn = document.getElementById('turnBtn');
-if (btn) {
-    btn.innerText = 'ターンエンド';
-    btn.style.backgroundColor = '#ffa500';
-}
-
-    // UI更新＆画面切り替え
-    updateDeckUI();
-    updateVolNoiseUI();
-    updateTrashUI();
-
-    document.getElementById('menuScreen').style.display = 'none';
-    document.getElementById('gameScreen').style.display = 'flex';
-} // ★ 1063行目：startGame 関数の閉じカッコ
-
-// ▼ ここから下を追加（スクリプト全体の構造を正常に戻します）
-});
             
             function dragStartDeck(ev) {
     if (!virtualDeck || virtualDeck.length === 0) {
