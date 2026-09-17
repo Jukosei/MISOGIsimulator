@@ -2439,32 +2439,24 @@ function handleTurnBtnClick() {
         }
     } // ★ 2436行目にあった余分な「}」を削除しました
 
+    // --- ドラッグアンドドロップ設定 ---
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.layer-2').forEach(zone => {
-            zone.ondragover = function(ev) {
-                ev.preventDefault();
-            };
-
-            // ★ドラッグ中に黄色枠上へ入った時に白く光らせる
+            zone.ondragover = function(ev) { ev.preventDefault(); };
             zone.ondragenter = function(ev) {
                 ev.preventDefault();
                 let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
                 targetZone.classList.add('drag-over');
             };
-
-            // ★ドラッグ中のマウスが外れたら光る演出を消す
             zone.ondragleave = function(ev) {
                 let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
                 targetZone.classList.remove('drag-over');
             };
-
-            zone.ondrop = function(ev) {
-                dropToDirection(ev);
-            };
+            zone.ondrop = function(ev) { dropToDirection(ev); };
         });
     });
 
-    // --- HTMLのonclick等から呼び出せるように明示登録 ---
+    // --- 関数のグローバル公開（onclick対応） ---
     window.selectMode = selectMode;
     window.startGame = startGame;
     window.handleTurnBtnClick = handleTurnBtnClick;
