@@ -2425,41 +2425,47 @@ function handleTurnBtnClick() {
         }
 
         function triggerAction(t) {
-            alert(`「${t}」が実行されました`);
-        }
-        // --- 山札ドラッグ終了時のエラー回避処理 ---
-        function dragEndDeck(ev) {
-            let overlay = document.getElementById('searchOverlay');
-            if (overlay) {
-                overlay.classList.remove('dragging-mode');
+        alert(`${t} が実行されました`);
     }
-}
 
-            document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.layer-2').forEach(zone => {
-        zone.ondragover = function(ev) {
-            ev.preventDefault();
-        };
+    // --- 山札ドラッグ終了時のエラー回避処理 ---
+    function dragEndDeck(ev) {
+        let overlay = document.getElementById('searchOverlay');
+        if (overlay) {
+            overlay.classList.remove('dragging-mode');
+        }
+    } // ★ 2436行目にあった余分な「}」を削除しました
 
-        // ★ドラッグ中に黄色枠上へ入った時に白く光らせる
-        zone.ondragenter = function(ev) {
-            ev.preventDefault();
-            let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
-            targetZone.classList.add('drag-over');
-        };
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.layer-2').forEach(zone => {
+            zone.ondragover = function(ev) {
+                ev.preventDefault();
+            };
 
-        // ★ドラッグ中のマウスが外れたら光る演出を消す
-        zone.ondragleave = function(ev) {
-            let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
-            targetZone.classList.remove('drag-over');
-        };
+            // ★ドラッグ中に黄色枠上へ入った時に白く光らせる
+            zone.ondragenter = function(ev) {
+                ev.preventDefault();
+                let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
+                targetZone.classList.add('drag-over');
+            };
 
-        zone.ondrop = function(ev) {
-            dropToDirection(ev);
-        };
+            // ★ドラッグ中のマウスが外れたら光る演出を消す
+            zone.ondragleave = function(ev) {
+                let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
+                targetZone.classList.remove('drag-over');
+            };
+
+            zone.ondrop = function(ev) {
+                dropToDirection(ev);
+            };
+        });
     });
-});
-            
-    </script>
+
+    // --- HTMLのonclick等から呼び出せるように明示登録 ---
+    window.selectMode = selectMode;
+    window.startGame = startGame;
+    window.handleTurnBtnClick = handleTurnBtnClick;
+    window.mulliganBtn = mulliganBtn;
+</script>
 </body>
 </html>
