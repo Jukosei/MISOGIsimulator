@@ -1983,29 +1983,45 @@ function closeVolNoiseModal() {
         }
 
         function mulliganBtn() {
-            let t = document.getElementById('handArea');
-            let e = t.children.length;
-            let list = Array.from(t.children);
-            list.forEach(a => {
-                trashCards.push({ name: a.getAttribute('data-cardname'), imagePath: a.getAttribute('data-imagepath') });
-                a.remove();
-            });
-            updateTrashUI();
+    let t = document.getElementById('handArea');
+    if (!t) return;
 
-            for (let a = virtualDeck.length - 1; a > 0; a--) {
-                let n = Math.floor(Math.random() * (a + 1));
-                [virtualDeck[a], virtualDeck[n]] = [virtualDeck[n], virtualDeck[a]];
-            }
+    let list = Array.from(t.children);
 
-            let r = Math.min(e, virtualDeck.length);
-            for (let c = 0; c < r; c++) {
-                let o = virtualDeck.shift();
-                createGameCardToHand(o.name, o.imagePath);
-            }
-            document.getElementById('deckCount').innerText = virtualDeck.length;
-            alert(`手札を引き直しました！（${r}枚ドロー）`);
+    // 1. 手札のカードをトラッシュではなく山札（virtualDeck）に戻す
+    list.forEach(a => {
+        let cardName = a.getAttribute('data-cardname');
+        let imagePath = a.getAttribute('data-imagepath');
+        
+        if (cardName) {
+            virtualDeck.push({ name: cardName, imagePath: imagePath });
         }
+        a.remove();
+    });
 
+    // 2. 山札をシャッフル
+    for (let a = virtualDeck.length - 1; a > 0; a--) {
+        let n = Math.floor(Math.random() * (a + 1));
+        [virtualDeck[a], virtualDeck[n]] = [virtualDeck[n], virtualDeck[a]];
+    }
+
+    // 3. 山札から固定で7枚ドロー（山札が7枚未満の場合は残りの全枚数）
+    let r = Math.min(7, virtualDeck.length);
+    for (let c = 0; c < r; c++) {
+        let o = virtualDeck.shift();
+        createGameCardToHand(o.name, o.imagePath);
+    }
+
+    // 4. UIの更新（alertダイアログは削除）
+    if (document.getElementById('deckCount')) {
+        document.getElementById('deckCount').innerText = virtualDeck.length;
+    }
+    
+    // トラッシュUIの表示を更新（手札を戻したため）
+    if (typeof updateTrashUI === 'function') {
+        updateTrashUI();
+    }
+}
         function resetGameBtn() {
             if (confirm('ゲーム状態を完全にリセットして山札を再構築しますか？')) {
                 startGame();
