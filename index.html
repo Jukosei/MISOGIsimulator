@@ -978,7 +978,7 @@ function selectMode(mode) {
 window.selectMode = selectMode;
 
             // <script> 直下のトップレベルに配置します
-            window.startGame = function() {
+            function startGame() {
     let inputEl = document.getElementById('deckInput1');
     if (!inputEl || !inputEl.value.trim()) {
         return alert('デッキコードを入力してください！');
@@ -1001,7 +1001,7 @@ window.selectMode = selectMode;
         return alert('有効なカードコードが認識できませんでした。');
     }
 
-    // シャッフル
+    // シャッフル処理
     for (let i = a.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [a[i], a[j]] = [a[j], a[i]];
@@ -1014,7 +1014,6 @@ window.selectMode = selectMode;
     let handArea = document.getElementById('handArea');
     if (handArea) handArea.innerHTML = "";
 
-    // 初期ドロー（7枚）
     const drawCount = Math.min(7, virtualDeck.length);
     for (let i = 0; i < drawCount; i++) {
         let drawnCard = virtualDeck.shift();
@@ -1023,6 +1022,7 @@ window.selectMode = selectMode;
         }
     }
 
+    // カウンターおよびUIのリセット
     mulliganCount = 0;
     const countEl = document.getElementById('mulliganCount');
     if (countEl) countEl.innerText = 0;
@@ -1041,7 +1041,7 @@ window.selectMode = selectMode;
     document.getElementById('gameScreen').style.display = 'flex';
 }
 
-// ★ ここに1行追加します
+// HTMLのonclick属性から呼び出せるように明示登録
 window.startGame = startGame;
 
 window.onload = function() {
@@ -2060,21 +2060,25 @@ function closeVolNoiseModal() {
         countEl.innerText = mulliganCount;
     }
 }
+            
         function resetGameBtn() {
-        if (confirm('ゲーム状態を完全にリセットして山札を再構築しますか？')) {
-            startGame();
-        }
-        mulliganCount = 0;
-        const countEl = document.getElementById('mulliganCount');
-        if (countEl) countEl.innerText = 0;
+    if (confirm('ゲーム状態を完全にリセットして山札を再構築しますか？')) {
+        startGame();
+    }
+    mulliganCount = 0;
+    const countEl = document.getElementById('mulliganCount');
+    if (countEl) countEl.innerText = 0;
 
-        isTurnEnded = false;
-        const btn = document.getElementById('turnBtn');
-        if (btn) {
-            btn.innerText = 'ターンエンド';
-            btn.style.backgroundColor = '#ffa500';
-        }
-    } // ★ ここに閉じカッコを追記して関数を正常終了させます
+    isTurnEnded = false;
+    const btn = document.getElementById('turnBtn');
+    if (btn) {
+        btn.innerText = 'ターンエンド';
+        btn.style.backgroundColor = '#ffa500';
+    }
+}
+
+// HTMLのonclick属性から呼び出せるように明示登録
+window.resetGameBtn = resetGameBtn;
 
         function openSearchModal(t) {
             currentSearchType = t;
