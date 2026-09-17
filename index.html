@@ -1060,7 +1060,10 @@ if (btn) {
 
     document.getElementById('menuScreen').style.display = 'none';
     document.getElementById('gameScreen').style.display = 'flex';
-}
+} // ★ 1063行目：startGame 関数の閉じカッコ
+
+// ▼ ここから下を追加（スクリプト全体の構造を正常に戻します）
+});
             
             function dragStartDeck(ev) {
     if (!virtualDeck || virtualDeck.length === 0) {
