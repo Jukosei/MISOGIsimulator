@@ -2455,9 +2455,13 @@ function handleTurnBtnClick() {
                 let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
                 targetZone.classList.remove('drag-over');
             };
-            zone.ondrop = function(ev) { dropToDirection(ev); };
+            zone.ondrop = function(ev) {
+                dropToDirection(ev);
+            };
         });
     });
+} // ← 万が一関数が開いたままの場合の保護
+}); // ← イベントリスナー等の保護
 
     // --- 関数のグローバル公開（onclick対応） ---
     window.selectMode = selectMode;
