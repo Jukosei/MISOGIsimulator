@@ -974,7 +974,29 @@ window.selectMode = selectMode;
 
             // --- デッキコードの保存と読み込み機能 ---
 
-// 1. ページ読み込み時に保存されたデッキコードを復元
+// 1. 入力されるたびに自動保存する関数
+function saveDeckInputs() {
+    const input1 = document.getElementById('deckInput1');
+    const input2 = document.getElementById('deckInput2');
+
+    if (input1) localStorage.setItem('misogi_deck1', input1.value);
+    if (input2) localStorage.setItem('misogi_deck2', input2.value);
+}
+
+// 2. クリアボタン実行時にも保存データを削除
+function clearInput(num) {
+    let el = document.getElementById('deckInput' + num);
+    if (el) {
+        el.value = '';
+        localStorage.removeItem('misogi_deck' + num); // アンダースコアを追加
+    }
+}
+
+// 3. グローバル登録（HTMLのonclick/oninput用）
+window.clearInput = clearInput;
+window.saveDeckInputs = saveDeckInputs;
+
+// 4. ページ読み込み完了時に保存データを復元
 document.addEventListener('DOMContentLoaded', () => {
     const savedDeck1 = localStorage.getItem('misogi_deck1');
     const savedDeck2 = localStorage.getItem('misogi_deck2');
@@ -985,28 +1007,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (savedDeck1 && input1) input1.value = savedDeck1;
     if (savedDeck2 && input2) input2.value = savedDeck2;
 });
-
-// 2. 入力されるたびに自動保存する関数
-function saveDeckInputs() {
-    const input1 = document.getElementById('deckInput1');
-    const input2 = document.getElementById('deckInput2');
-
-    if (input1) localStorage.setItem('misogi_deck1', input1.value);
-    if (input2) localStorage.setItem('misogi_deck2', input2.value);
-}
-
-// 3. クリアボタン実行時にも保存データを削除
-function clearInput(num) {
-    let el = document.getElementById('deckInput' + num);
-    if (el) {
-        el.value = '';
-        localStorage.removeItem('misogi_deck' + num);
-    }
-}
-
-// グローバル登録
-window.clearInput = clearInput;
-window.saveDeckInputs = saveDeckInputs;
 
             // <script> 直下のトップレベルに配置します
             function startGame() {
