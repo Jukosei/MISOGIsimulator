@@ -2551,35 +2551,46 @@ function handleTurnBtnClick() {
     }
 }
 
-            // ダイスを振る処理（画面上ポップ演出・最大5個保持・2秒消滅）
+            // サイコロの目のSVGデータを定義
+const diceSvgDots = {
+    1: '<circle cx="25" cy="25" r="5" fill="#000"/>',
+    2: '<circle cx="15" cy="15" r="4" fill="#000"/><circle cx="35" cy="35" r="4" fill="#000"/>',
+    3: '<circle cx="12" cy="12" r="4" fill="#000"/><circle cx="25" cy="25" r="4" fill="#000"/><circle cx="38" cy="38" r="4" fill="#000"/>',
+    4: '<circle cx="15" cy="15" r="4" fill="#000"/><circle cx="35" cy="15" r="4" fill="#000"/><circle cx="15" cy="35" r="4" fill="#000"/><circle cx="35" cy="35" r="4" fill="#000"/>',
+    5: '<circle cx="13" cy="13" r="4" fill="#000"/><circle cx="37" cy="13" r="4" fill="#000"/><circle cx="25" cy="25" r="4" fill="#000"/><circle cx="13" cy="37" r="4" fill="#000"/><circle cx="37" cy="37" r="4" fill="#000"/>',
+    6: '<circle cx="15" cy="12" r="4" fill="#000"/><circle cx="35" cy="12" r="4" fill="#000"/><circle cx="15" cy="25" r="4" fill="#000"/><circle cx="35" cy="25" r="4" fill="#000"/><circle cx="15" cy="38" r="4" fill="#000"/><circle cx="35" cy="38" r="4" fill="#000"/>'
+};
+
 function rollDice() {
     const rollResult = Math.floor(Math.random() * 6) + 1;
     const container = document.getElementById('diceDisplayArea');
     if (!container) return;
 
-    // 1. 一度に表示できるダイスは最大5個まで（古いものを削除）
+    // 1. 最大5個を超えたら古いダイスを削除
     while (container.children.length >= 5) {
         container.removeChild(container.firstChild);
     }
 
-    // 2. ダイスバッジ要素の作成
+    // 2. 2枚目画像風の白いサイコロ要素を作成
     const diceEl = document.createElement('div');
-    diceEl.innerText = `🎲 ${rollResult}`;
     diceEl.style.cssText = `
-        background: rgba(255, 165, 0, 0.9);
-        color: #fff;
-        font-weight: bold;
-        font-size: 20px;
-        padding: 10px 16px;
-        border-radius: 8px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        border: 2px solid #fff;
-        animation: fadeIn 0.2s ease-in-out;
+        width: 60px;
+        height: 60px;
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 2px solid #ccc;
     `;
+
+    // SVGでサイコロの目をセット
+    diceEl.innerHTML = `<svg width="50" height="50" viewBox="0 0 50 50">${diceSvgDots[rollResult]}</svg>`;
 
     container.appendChild(diceEl);
 
-    // 3. 2秒後に自動消去
+    // 3. 2秒後に自動消滅
     setTimeout(() => {
         if (diceEl.parentElement) {
             diceEl.parentElement.removeChild(diceEl);
