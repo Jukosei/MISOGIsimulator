@@ -927,8 +927,8 @@
     </div>
 </div>
 
-    <!-- ダイス結果表示コンテナ（画面中央上部に浮遊表示） -->
-<div id="diceDisplayArea" style="position: fixed; top: 20%; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 10000; pointer-events: none;"></div>
+    <!-- ダイス結果表示コンテナ（画面中央に完全固定表示） -->
+<div id="diceDisplayArea" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 15px; z-index: 10000; pointer-events: none;"></div>
 
         <script>
     // --- クリアボタン用関数 (追加) ---
@@ -2561,36 +2561,40 @@ const diceSvgDots = {
     6: '<circle cx="15" cy="12" r="4" fill="#000"/><circle cx="35" cy="12" r="4" fill="#000"/><circle cx="15" cy="25" r="4" fill="#000"/><circle cx="35" cy="25" r="4" fill="#000"/><circle cx="15" cy="38" r="4" fill="#000"/><circle cx="35" cy="38" r="4" fill="#000"/>'
 };
 
+// （前略：diceSvgDots定義はそのまま）
+
 function rollDice() {
     const rollResult = Math.floor(Math.random() * 6) + 1;
     const container = document.getElementById('diceDisplayArea');
     if (!container) return;
 
-    // 1. 最大5個を超えたら古いダイスを削除
+    // 一度に表示できるダイスは最大5個まで（古いものを削除）
     while (container.children.length >= 5) {
         container.removeChild(container.firstChild);
     }
 
-    // 2. 2枚目画像風の白いサイコロ要素を作成
+    // ★ 1. ダイス自体のサイズを拡大 (60px -> 100px)
     const diceEl = document.createElement('div');
     diceEl.style.cssText = `
-        width: 60px;
-        height: 60px;
+        width: 100px;
+        height: 100px;
         background: #ffffff;
-        border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+        border-radius: 16px;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.7);
         display: flex;
         justify-content: center;
         align-items: center;
-        border: 2px solid #ccc;
+        border: 3px solid #ccc;
+        opacity: 0;
+        animation: dicePopIn 0.3s ease-out forwards;
     `;
 
-    // SVGでサイコロの目をセット
-    diceEl.innerHTML = `<svg width="50" height="50" viewBox="0 0 50 50">${diceSvgDots[rollResult]}</svg>`;
+    // ★ 2. SVG描画サイズも拡大 (50px -> 90px、ビューボックスはそのまま)
+    diceEl.innerHTML = `<svg width="90" height="90" viewBox="0 0 50 50">${diceSvgDots[rollResult]}</svg>`;
 
     container.appendChild(diceEl);
 
-    // 3. 2秒後に自動消滅
+    // 2秒後に自動消滅
     setTimeout(() => {
         if (diceEl.parentElement) {
             diceEl.parentElement.removeChild(diceEl);
