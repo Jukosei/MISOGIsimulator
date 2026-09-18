@@ -2150,12 +2150,25 @@ function closeResetModal() {
 function executeResetGame() {
     closeResetModal();
 
-    // ★ 0. 場のカード（ステージ・ディレクションエリア等）を直接全クリア
-    const stageZones = document.querySelectorAll('.stage-zone, .direction-zone, .zone, .card-slot, .stage-slot, .direction-slot');
-    stageZones.forEach(zone => {
-        // カード要素（.game-card または img/div）をすべて削除
-        const cards = zone.querySelectorAll('.game-card, img, .card');
-        cards.forEach(card => card.remove());
+    // ★ 0. ステージ・ディレクション・チェンジ・ゾーン等の場のカードをすべてクリア
+    // ドロップ対象となり得るエリアのカード要素、または配置されているimg/カード要素をすべて取得して削除
+    const allCardsOnBoard = document.querySelectorAll('.stage-zone *, .direction-zone *, [class*="stage"] *, [class*="direction"] *, [class*="change"] *, [class*="slot"] *');
+    allCardsOnBoard.forEach(el => {
+        if (el.classList.contains('card') || el.classList.contains('game-card') || el.tagName === 'IMG' || el.getAttribute('draggable') === 'true') {
+            el.remove();
+        }
+    });
+
+    // ゾーン要素自体の中に直接入っている子要素（カード）も一括で空にする
+    const boardContainers = document.querySelectorAll('[class*="zone"], [class*="slot"], [class*="stage"], [class*="direction"]');
+    boardContainers.forEach(container => {
+        // 山札（deck）や手札（hand）、トラッシュ（trash）などは除外して、場のスロットのみクリア
+        const idOrClass = (container.id + ' ' + container.className).toLowerCase();
+        if (!idOrClass.includes('deck') && !idOrClass.includes('hand') && !idOrClass.includes('trash') && !idOrClass.includes('vol') && !idOrClass.includes('temp')) {
+            // 内側のカード要素をクリア
+            const cards = container.querySelectorAll('.card, .game-card, img');
+            cards.forEach(c => c.remove());
+        }
     });
 
     // 1. 山札・手札・場の再構築（startGameの呼び出し）
