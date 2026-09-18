@@ -2120,19 +2120,38 @@ function closeResetModal() {
 }
 
 // ★ 3. モーダルの「リセットする」ボタンから呼び出される実行処理
+// ★ モーダルの「リセットする」ボタンから呼び出される実行処理
 function executeResetGame() {
     closeResetModal();
 
-    // ゲーム状態の再構築
+    // 1. ゲーム状態・デッキの再構築
     if (typeof startGame === 'function') {
         startGame();
     }
 
-    // カウンターおよびUIのリセット
-    mulliganCount = 0;
-    const countEl = document.getElementById('mulliganCount');
-    if (countEl) countEl.innerText = 0;
+    // 2. ターン数のリセット（1に戻す）
+    turn = 1;
+    const turnEl = document.getElementById('turnCount') || document.getElementById('turnDisplay') || document.querySelector('.turn-count');
+    if (turnEl) turnEl.innerText = 1;
 
+    // 3. マリガン回数のリセット
+    mulliganCount = 0;
+    const mulliganEl = document.getElementById('mulliganCount');
+    if (mulliganEl) mulliganEl.innerText = 0;
+
+    // 4. 各種魔力カウンターのリセット（全要素を0にクリア）
+    const counterIds = ['vol', 'alpha', 'beta', 'omega', 'val-vol', 'val-alpha', 'val-beta', 'val-omega'];
+    counterIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = 0;
+    });
+
+    // カウンター変数が個別に定義されている場合の初期化処理（存在する場合）
+    if (typeof counters === 'object' && counters !== null) {
+        Object.keys(counters).forEach(key => counters[key] = 0);
+    }
+
+    // 5. ターンエンドボタン状態のリセット
     isTurnEnded = false;
     const btn = document.getElementById('turnBtn');
     if (btn) {
