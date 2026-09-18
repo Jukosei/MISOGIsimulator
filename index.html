@@ -2150,8 +2150,15 @@ function closeResetModal() {
 function executeResetGame() {
     closeResetModal();
 
-    // ★ 0. ステージ・ディレクション・チェンジ・ゾーン等の場のカードをすべてクリア
-    // ドロップ対象となり得るエリアのカード要素、または配置されているimg/カード要素をすべて取得して削除
+    // ★ 0. VOLノイズ・ステージ・ディレクション等の場のカードをすべてクリア
+    // ① VOLノイズエリア内のカードを強制クリア
+    const volNoiseZones = document.querySelectorAll('#volNoise, .vol-noise, [id*="vol"], [class*="vol-noise"], [class*="volnoise"]');
+    volNoiseZones.forEach(zone => {
+        const cards = zone.querySelectorAll('.card, .game-card, img');
+        cards.forEach(c => c.remove());
+    });
+
+    // ② ステージ・ディレクション・チェンジ・スロット等のカードをすべて削除
     const allCardsOnBoard = document.querySelectorAll('.stage-zone *, .direction-zone *, [class*="stage"] *, [class*="direction"] *, [class*="change"] *, [class*="slot"] *');
     allCardsOnBoard.forEach(el => {
         if (el.classList.contains('card') || el.classList.contains('game-card') || el.tagName === 'IMG' || el.getAttribute('draggable') === 'true') {
@@ -2159,13 +2166,11 @@ function executeResetGame() {
         }
     });
 
-    // ゾーン要素自体の中に直接入っている子要素（カード）も一括で空にする
-    const boardContainers = document.querySelectorAll('[class*="zone"], [class*="slot"], [class*="stage"], [class*="direction"]');
+    // ③ 場のコンテナ要素（山札・手札・トラッシュ以外）の直下にあるカードを直接クリア
+    const boardContainers = document.querySelectorAll('[class*="zone"], [class*="slot"], [class*="stage"], [class*="direction"], [id*="stage"], [id*="direction"]');
     boardContainers.forEach(container => {
-        // 山札（deck）や手札（hand）、トラッシュ（trash）などは除外して、場のスロットのみクリア
         const idOrClass = (container.id + ' ' + container.className).toLowerCase();
-        if (!idOrClass.includes('deck') && !idOrClass.includes('hand') && !idOrClass.includes('trash') && !idOrClass.includes('vol') && !idOrClass.includes('temp')) {
-            // 内側のカード要素をクリア
+        if (!idOrClass.includes('deck') && !idOrClass.includes('hand') && !idOrClass.includes('trash')) {
             const cards = container.querySelectorAll('.card, .game-card, img');
             cards.forEach(c => c.remove());
         }
