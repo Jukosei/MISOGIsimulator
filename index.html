@@ -862,6 +862,11 @@
         0
     </span>
 </div>
+            <!-- ダイス結果表示エリア -->
+<div class="counter-item" style="display: flex; flex-direction: column; align-items: center; margin-bottom: 12px;">
+    <span style="color: #ccc; font-size: 11px; font-weight: bold; margin-bottom: 2px;">ダイス</span>
+    <span id="lastDiceResult" style="color: #ffffff; font-weight: bold; font-size: 18px;">-</span>
+</div>
             <div class="turn-display">TURN<span id="turnCount">1</span></div>
         </div>
     </div>
@@ -2165,6 +2170,10 @@ function executeResetGame() {
     }
 }
 
+            // ダイス記録のリセット
+    const lastDiceEl = document.getElementById('lastDiceResult');
+    if (lastDiceEl) lastDiceEl.innerText = '-';
+
 // HTMLのonclick属性用グローバル登録
 window.resetGameBtn = resetGameBtn;
 window.closeResetModal = closeResetModal;
@@ -2563,9 +2572,15 @@ const diceSvgDots = {
 
 function rollDice() {
     const rollResult = Math.floor(Math.random() * 6) + 1;
-    let container = document.getElementById('diceDisplayArea');
 
-    // 万が一コンテナが存在しない場合は自動生成
+    // ★ 1. 右側カウンターの表示を更新
+    const lastDiceEl = document.getElementById('lastDiceResult');
+    if (lastDiceEl) {
+        lastDiceEl.innerText = rollResult;
+    }
+
+    // ★ 2. 画面中央へのダイス表示ポップアップ処理
+    let container = document.getElementById('diceDisplayArea');
     if (!container) {
         container = document.createElement('div');
         container.id = 'diceDisplayArea';
@@ -2573,12 +2588,10 @@ function rollDice() {
         document.body.appendChild(container);
     }
 
-    // 1. 一度に表示できるダイスは最大5個まで（古いものを削除）
     while (container.children.length >= 5) {
         container.removeChild(container.firstChild);
     }
 
-    // 2. ダイス要素の作成（100px × 100px）
     const diceEl = document.createElement('div');
     diceEl.style.cssText = `
         width: 100px;
@@ -2593,22 +2606,15 @@ function rollDice() {
         opacity: 1;
     `;
 
-    // 3. SVGで大きいダイスの目を描画
     diceEl.innerHTML = `<svg width="85" height="85" viewBox="0 0 50 50">${diceSvgDots[rollResult]}</svg>`;
-
     container.appendChild(diceEl);
 
-    // 4. 2秒後に自動消滅
     setTimeout(() => {
         if (diceEl.parentElement) {
             diceEl.parentElement.removeChild(diceEl);
         }
     }, 2000);
 }
-
-// グローバル登録
-window.rollDice = rollDice;
-
         function triggerAction(t) {
         alert(`${t} が実行されました`);
     }
