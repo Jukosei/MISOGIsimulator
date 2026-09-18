@@ -1097,14 +1097,15 @@ function startGame() {
         turnBtn.style.backgroundColor = '#ffa500';
     }
 
-    // ★ 10. デッキコードの取得と山札の生成
+    // ★ 10. デッキコードの取得と山札の生成（改行・スラッシュの両区切りに対応）
     let inputEl = document.getElementById('deckInput1');
     if (!inputEl || !inputEl.value.trim()) {
         return alert('デッキコードを入力してください！');
     }
 
     let t = inputEl.value;
-    let e = t.split(/[\r\n]+/).map(str => str.trim()).filter(str => str.length > 0);
+    // 改行 または スラッシュ(/) で分割
+    let e = t.split(/[\r\n/]+/).map(str => str.trim()).filter(str => str.length > 0);
 
     let a = [];
     e.forEach(codeStr => {
@@ -1119,7 +1120,7 @@ function startGame() {
     if (a.length === 0) {
         return alert('有効なカードコードが認識できませんでした。');
     }
-
+    
     // シャッフル処理
     for (let i = a.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
