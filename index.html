@@ -927,6 +927,9 @@
     </div>
 </div>
 
+    <!-- ダイス結果表示コンテナ（画面中央上部に浮遊表示） -->
+<div id="diceDisplayArea" style="position: fixed; top: 20%; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 10000; pointer-events: none;"></div>
+
         <script>
     // --- クリアボタン用関数 (追加) ---
     function clearInput(num) {
@@ -2547,9 +2550,45 @@ function handleTurnBtnClick() {
         }
     }
 }
-        function rollDice() {
-            alert(`ダイスの出目: ${Math.floor(Math.random() * 6) + 1}`);
+
+            // ダイスを振る処理（画面上ポップ演出・最大5個保持・2秒消滅）
+function rollDice() {
+    const rollResult = Math.floor(Math.random() * 6) + 1;
+    const container = document.getElementById('diceDisplayArea');
+    if (!container) return;
+
+    // 1. 一度に表示できるダイスは最大5個まで（古いものを削除）
+    while (container.children.length >= 5) {
+        container.removeChild(container.firstChild);
+    }
+
+    // 2. ダイスバッジ要素の作成
+    const diceEl = document.createElement('div');
+    diceEl.innerText = `🎲 ${rollResult}`;
+    diceEl.style.cssText = `
+        background: rgba(255, 165, 0, 0.9);
+        color: #fff;
+        font-weight: bold;
+        font-size: 20px;
+        padding: 10px 16px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        border: 2px solid #fff;
+        animation: fadeIn 0.2s ease-in-out;
+    `;
+
+    container.appendChild(diceEl);
+
+    // 3. 2秒後に自動消去
+    setTimeout(() => {
+        if (diceEl.parentElement) {
+            diceEl.parentElement.removeChild(diceEl);
         }
+    }, 2000);
+}
+
+// グローバル登録
+window.rollDice = rollDice;
 
         function triggerAction(t) {
         alert(`${t} が実行されました`);
