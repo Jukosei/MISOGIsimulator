@@ -2401,10 +2401,18 @@ window.executeResetGame = executeResetGame;
         }
 
         function changeCounter(t, e) {
-            counters[t] = Math.max(0, counters[t] + e);
-            document.getElementById(`val-${t}`).innerText = counters[t];
-        }
+    // タイプごとの最大値を定義（volは10、その他は5）
+    const maxLimits = { vol: 10, alpha: 5, beta: 5, omega: 5 };
+    const max = maxLimits[t] !== undefined ? maxLimits[t] : 99;
 
+    // 現在値の更新（0以上、最大値以下に制限）
+    const current = counters[t] || 0;
+    counters[t] = Math.min(max, Math.max(0, current + e));
+
+    // 画面表示への反映
+    const el = document.getElementById(`val-${t}`);
+    if (el) el.innerText = counters[t];
+}
         function nextTurn() {
     // 1. ターン数の加算
     turn++;
