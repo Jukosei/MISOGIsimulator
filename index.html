@@ -1027,13 +1027,57 @@ document.addEventListener('DOMContentLoaded', () => {
     if (savedDeck2 && input2) input2.value = savedDeck2;
 });
 
-            // <script> 直下のトップレベルに配置します
-            function startGame() {
-const resetVolNoise = document.querySelectorAll('#volNoise, .vol-noise, [id*="volNoise"], [class*="vol-noise"], [class*="volnoise"]');
-resetVolNoise.forEach(zone => {
-    zone.querySelectorAll('.card, .game-card, img').forEach(c => c.remove());
-    zone.style.backgroundImage = 'none';
-});
+            // ゲーム開始時・再スタート時の状態リセット処理
+function startGame() {
+    // 1. トラッシュ・VOLノイズ等の表示と配列のクリア
+    if (typeof trashCards !== 'undefined' && Array.isArray(trashCards)) trashCards.length = 0;
+    if (typeof volNoiseCards !== 'undefined' && Array.isArray(volNoiseCards)) volNoiseCards.length = 0;
+    if (typeof trash !== 'undefined' && Array.isArray(trash)) trash.length = 0;
+    if (typeof volNoise !== 'undefined' && Array.isArray(volNoise)) volNoise.length = 0;
+
+    // トラッシュ・VOLノイズの枚数表示を 0 にリセット
+    const countIds = ['trashCount', 'trash-count', 'val-trash', 'volNoiseCount', 'vol-noise-count', 'volnoiseCount', 'val-volnoise'];
+    countIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = '0';
+    });
+
+    // 2. ターン数のリセット
+    turn = 1;
+    const turnEl = document.getElementById('turnCount');
+    if (turnEl) turnEl.innerText = '1';
+
+    // 3. マリガン回数のリセット
+    mulliganCount = 0;
+    const mulliganEl = document.getElementById('mulliganCount');
+    if (mulliganEl) mulliganEl.innerText = '0';
+
+    // 4. ダイス結果のクリア
+    const lastDiceEl = document.getElementById('lastDiceResult');
+    if (lastDiceEl) lastDiceEl.innerText = '-';
+    const diceContainer = document.getElementById('diceDisplayArea');
+    if (diceContainer) diceContainer.innerHTML = '';
+
+    // 5. 各種魔力カウンター（VOL, alpha, beta, omega）のリセット
+    const counterTypes = ['vol', 'alpha', 'beta', 'omega'];
+    counterTypes.forEach(type => {
+        const el = document.getElementById('val-' + type);
+        if (el) el.innerText = '0';
+
+        if (typeof counters === 'object' && counters !== null && counters[type] !== undefined) {
+            counters[type] = 0;
+        }
+    });
+
+    // 6. ターンエンドボタンのリセット
+    isTurnEnded = false;
+    const turnBtn = document.getElementById('turnBtn');
+    if (turnBtn) {
+        turnBtn.innerText = 'ターンエンド';
+        turnBtn.style.backgroundColor = '#ffa500';
+    }
+
+    // （以下、既存の山札・手札配り等の処理へ続く...）
                 
     let inputEl = document.getElementById('deckInput1');
     if (!inputEl || !inputEl.value.trim()) {
@@ -1077,33 +1121,6 @@ resetVolNoise.forEach(zone => {
             createGameCardToHand(drawnCard.name, drawnCard.imagePath);
         }
     }
-
-    // カウンターおよびUIのリセット
-    mulliganCount = 0;
-    const countEl = document.getElementById('mulliganCount');
-    if (countEl) countEl.innerText = 0;
-
-    isTurnEnded = false;
-    const btn = document.getElementById('turnBtn');
-    if (btn) {
-        btn.innerText = 'ターンエンド';
-        btn.style.backgroundColor = '#ffa500';
-    }
-
-    if (typeof updateDeckUI === 'function') updateDeckUI();
-    if (typeof updateTrashUI === 'function') updateTrashUI();
-
-                // 右側のダイスカウンター表示をクリア（「-」に戻す）
-const lastDiceEl = document.getElementById('lastDiceResult');
-if (lastDiceEl) {
-    lastDiceEl.innerText = '-';
-}
-
-// 画面中央に浮遊しているダイス表示があれば即座に全削除
-const container = document.getElementById('diceDisplayArea');
-if (container) {
-    container.innerHTML = '';
-}
 
     document.getElementById('menuScreen').style.display = 'none';
     document.getElementById('gameScreen').style.display = 'flex';
