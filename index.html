@@ -916,6 +916,17 @@
 
     <div id="toastMessage" class="toast-message"></div>
 
+    <!-- リセット確認用カスタムモーダル -->
+<div id="resetConfirmModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="background: #222; border: 2px solid #555; padding: 24px; border-radius: 8px; text-align: center; max-width: 400px; color: #fff;">
+        <p style="font-size: 16px; margin-bottom: 20px;">ゲーム状態を完全にリセットして山札を再構築しますか？</p>
+        <div style="display: flex; justify-content: center; gap: 16px;">
+            <button onclick="executeResetGame()" style="padding: 8px 24px; background: #d9534f; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">リセットする</button>
+            <button onclick="closeResetModal()" style="padding: 8px 24px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">キャンセル</button>
+        </div>
+    </div>
+</div>
+
         <script>
     // --- クリアボタン用関数 (追加) ---
     function clearInput(num) {
@@ -2092,10 +2103,32 @@ function closeVolNoiseModal() {
     }
 }
             
-        function resetGameBtn() {
-    if (confirm('ゲーム状態を完全にリセットして山札を再構築しますか？')) {
+        // ★ 1. リセットボタン押下時にカスタムモーダルを表示
+function resetGameBtn() {
+    const modal = document.getElementById('resetConfirmModal');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+// ★ 2. モーダルを閉じる処理
+function closeResetModal() {
+    const modal = document.getElementById('resetConfirmModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// ★ 3. モーダルの「リセットする」ボタンから呼び出される実行処理
+function executeResetGame() {
+    closeResetModal();
+
+    // ゲーム状態の再構築
+    if (typeof startGame === 'function') {
         startGame();
     }
+
+    // カウンターおよびUIのリセット
     mulliganCount = 0;
     const countEl = document.getElementById('mulliganCount');
     if (countEl) countEl.innerText = 0;
@@ -2108,8 +2141,10 @@ function closeVolNoiseModal() {
     }
 }
 
-// HTMLのonclick属性から呼び出せるように明示登録
+// HTMLのonclick属性用グローバル登録
 window.resetGameBtn = resetGameBtn;
+window.closeResetModal = closeResetModal;
+window.executeResetGame = executeResetGame;
 
         function openSearchModal(t) {
             currentSearchType = t;
