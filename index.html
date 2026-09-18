@@ -2401,18 +2401,32 @@ window.executeResetGame = executeResetGame;
         }
 
         function changeCounter(t, e) {
-    // タイプごとの最大値を定義（volは10、その他は5）
+    // 1. タイプごとの最大値を定義
     const maxLimits = { vol: 10, alpha: 5, beta: 5, omega: 5 };
     const max = maxLimits[t] !== undefined ? maxLimits[t] : 99;
 
-    // 現在値の更新（0以上、最大値以下に制限）
-    const current = counters[t] || 0;
-    counters[t] = Math.min(max, Math.max(0, current + e));
-
-    // 画面表示への反映
+    // 2. DOM（画面の要素）から直接現在の数値を取得して計算
     const el = document.getElementById(`val-${t}`);
-    if (el) el.innerText = counters[t];
+    let current = 0;
+
+    if (el) {
+        current = parseInt(el.innerText, 10) || 0;
+    } else if (typeof counters === 'object' && counters !== null && counters[t] !== undefined) {
+        current = counters[t];
+    }
+
+    // 3. 0以上、最大値以下に制限
+    let newValue = Math.min(max, Math.max(0, current + e));
+
+    // 4. 内部変数と画面の両方を即時更新
+    if (typeof counters === 'object' && counters !== null) {
+        counters[t] = newValue;
+    }
+    if (el) {
+        el.innerText = newValue;
+    }
 }
+            
         function nextTurn() {
     // 1. ターン数の加算
     turn++;
