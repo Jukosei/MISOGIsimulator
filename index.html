@@ -2146,41 +2146,52 @@ function closeResetModal() {
     }
 }
 
-// ★ 3. モーダルの「リセットする」ボタンから呼び出される実行処理
+            // モーダルの「リセットする」ボタンから呼び出される実行処理
 function executeResetGame() {
     closeResetModal();
+
+    // ★ 0. 場のカード（ステージ・ディレクションエリア等）を直接全クリア
+    const stageZones = document.querySelectorAll('.stage-zone, .direction-zone, .zone, .card-slot, .stage-slot, .direction-slot');
+    stageZones.forEach(zone => {
+        // カード要素（.game-card または img/div）をすべて削除
+        const cards = zone.querySelectorAll('.game-card, img, .card');
+        cards.forEach(card => card.remove());
+    });
 
     // 1. 山札・手札・場の再構築（startGameの呼び出し）
     if (typeof startGame === 'function') {
         startGame();
     }
 
-    // 2. ターン数のリセット（1に戻す）
+    // 2. ターン数のリセット
     turn = 1;
     const turnEl = document.getElementById('turnCount');
     if (turnEl) turnEl.innerText = '1';
 
-    // 3. マリガン回数のリセット（0に戻す）
+    // 3. マリガン回数のリセット
     mulliganCount = 0;
     const mulliganEl = document.getElementById('mulliganCount');
     if (mulliganEl) mulliganEl.innerText = '0';
 
-    // 4. 各種魔力カウンター（VOL, alpha, beta, omega）のリセット
+    // 4. ダイス記録・ポップアップのクリア
+    const lastDiceEl = document.getElementById('lastDiceResult');
+    if (lastDiceEl) lastDiceEl.innerText = '-';
+
+    const diceContainer = document.getElementById('diceDisplayArea');
+    if (diceContainer) diceContainer.innerHTML = '';
+
+    // 5. 各種魔力カウンターのリセット
     const counterTypes = ['vol', 'alpha', 'beta', 'omega'];
     counterTypes.forEach(type => {
-        // UI（画面表示）を 0 にクリア
         const el = document.getElementById('val-' + type);
         if (el) el.innerText = '0';
 
-        // JavaScript内部変数のクリア（changeCounter等で使われている変数）
         if (typeof counters === 'object' && counters !== null && counters[type] !== undefined) {
             counters[type] = 0;
         }
-        if (window['val_' + type] !== undefined) window['val_' + type] = 0;
-        if (window[type + 'Count'] !== undefined) window[type + 'Count'] = 0;
     });
 
-    // 5. ターンエンドボタン状態のリセット
+    // 6. ターンエンドボタン状態のリセット
     isTurnEnded = false;
     const btn = document.getElementById('turnBtn');
     if (btn) {
@@ -2188,24 +2199,7 @@ function executeResetGame() {
         btn.style.backgroundColor = '#ffa500';
     }
 }
-
-           // 右側のダイスカウンター表示をクリア（「-」に戻す）
-const lastDiceEl = document.getElementById('lastDiceResult');
-if (lastDiceEl) {
-    lastDiceEl.innerText = '-';
-}
-
-// 画面中央に浮遊しているダイス表示があれば即座に全削除
-const container = document.getElementById('diceDisplayArea');
-if (container) {
-    container.innerHTML = '';
-}
-
-// HTMLのonclick属性用グローバル登録
-window.resetGameBtn = resetGameBtn;
-window.closeResetModal = closeResetModal;
-window.executeResetGame = executeResetGame;
-
+            
         function openSearchModal(t) {
             currentSearchType = t;
             isSearchOpen = true;
