@@ -1029,6 +1029,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // ゲーム開始時・再スタート時の状態リセット処理
 function startGame() {
+    // ★ 盤面（ステージ・ディレクション・チェンジ・スロット等）のカード要素をすべて削除
+    const boardCards = document.querySelectorAll('.stage-zone *, .direction-zone *, [class*="stage"] *, [class*="direction"] *, [class*="change"] *, [class*="slot"] *');
+    boardCards.forEach(el => {
+        if (el.classList.contains('card') || el.classList.contains('game-card') || el.tagName === 'IMG' || el.getAttribute('draggable') === 'true') {
+            el.remove();
+        }
+    });
+
+    // ドロップエリア（スロット/ゾーン）内に残っているカード要素をまとめて除去
+    const boardZones = document.querySelectorAll('[class*="zone"], [class*="slot"], [class*="stage"], [class*="direction"], [id*="stage"], [id*="direction"]');
+    boardZones.forEach(container => {
+        const idOrClass = (container.id + ' ' + container.className).toLowerCase();
+        // 手札(hand)や山札(deck)以外の盤面エリア内のカード画像を削除
+        if (!idOrClass.includes('hand') && !idOrClass.includes('deck')) {
+            const cards = container.querySelectorAll('.card, .game-card, img');
+            cards.forEach(c => c.remove());
+        }
+    });
+
     // 1. トラッシュ・VOLノイズ等の表示と配列のクリア
     if (typeof trashCards !== 'undefined' && Array.isArray(trashCards)) trashCards.length = 0;
     if (typeof volNoiseCards !== 'undefined' && Array.isArray(volNoiseCards)) volNoiseCards.length = 0;
@@ -1076,8 +1095,6 @@ function startGame() {
         turnBtn.innerText = 'ターンエンド';
         turnBtn.style.backgroundColor = '#ffa500';
     }
-
-    // （以下、既存の山札・手札配り等の処理へ続く...）
                 
     let inputEl = document.getElementById('deckInput1');
     if (!inputEl || !inputEl.value.trim()) {
