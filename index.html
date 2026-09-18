@@ -2150,29 +2150,41 @@ function closeResetModal() {
 function executeResetGame() {
     closeResetModal();
 
-    // ★ 0. VOLノイズ・ステージ・ディレクション等の場のカードをすべてクリア
-    // ① VOLノイズエリア内のカードを強制クリア
-    const volNoiseZones = document.querySelectorAll('#volNoise, .vol-noise, [id*="vol"], [class*="vol-noise"], [class*="volnoise"]');
+    // ★ 0-A. 配列（データ）側のVOLノイズ・トラッシュ等を空にする
+    if (typeof volNoiseCards !== 'undefined' && Array.isArray(volNoiseCards)) volNoiseCards.length = 0;
+    if (typeof trashCards !== 'undefined' && Array.isArray(trashCards)) trashCards.length = 0;
+    if (typeof volNoise === 'object' && Array.isArray(volNoise)) volNoise.length = 0;
+    if (typeof trash === 'object' && Array.isArray(trash)) trash.length = 0;
+
+    // ★ 0-B. 画面上の枚数カウント表示（VOLノイズ・トラッシュ等）を 0 にリセット
+    const countIds = [
+        'volNoiseCount', 'vol-noise-count', 'volnoiseCount', 'val-volnoise',
+        'trashCount', 'trash-count', 'val-trash'
+    ];
+    countIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = '0';
+    });
+
+    // 画面左側・全域のVOLノイズやトラッシュ数字表示要素を探索して 0 に上書き
+    document.querySelectorAll('[id*="vol"][id*="count"], [class*="vol"][class*="count"], [id*="trash"], [class*="trash"]').forEach(el => {
+        if (el.children.length === 0 && !isNaN(parseInt(el.innerText))) {
+            // 数字のみが入っている要素（枚数カウント表示）を0にする
+            el.innerText = '0';
+        }
+    });
+
+    // ★ 0-C. 場のカード要素（DOM）を直接削除
+    const volNoiseZones = document.querySelectorAll('#volNoise, .vol-noise, [id*="volNoise"], [class*="vol-noise"], [class*="volnoise"]');
     volNoiseZones.forEach(zone => {
         const cards = zone.querySelectorAll('.card, .game-card, img');
         cards.forEach(c => c.remove());
     });
 
-    // ② ステージ・ディレクション・チェンジ・スロット等のカードをすべて削除
     const allCardsOnBoard = document.querySelectorAll('.stage-zone *, .direction-zone *, [class*="stage"] *, [class*="direction"] *, [class*="change"] *, [class*="slot"] *');
     allCardsOnBoard.forEach(el => {
         if (el.classList.contains('card') || el.classList.contains('game-card') || el.tagName === 'IMG' || el.getAttribute('draggable') === 'true') {
             el.remove();
-        }
-    });
-
-    // ③ 場のコンテナ要素（山札・手札・トラッシュ以外）の直下にあるカードを直接クリア
-    const boardContainers = document.querySelectorAll('[class*="zone"], [class*="slot"], [class*="stage"], [class*="direction"], [id*="stage"], [id*="direction"]');
-    boardContainers.forEach(container => {
-        const idOrClass = (container.id + ' ' + container.className).toLowerCase();
-        if (!idOrClass.includes('deck') && !idOrClass.includes('hand') && !idOrClass.includes('trash')) {
-            const cards = container.querySelectorAll('.card, .game-card, img');
-            cards.forEach(c => c.remove());
         }
     });
 
