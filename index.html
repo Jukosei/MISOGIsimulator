@@ -3079,9 +3079,10 @@ function closeDeckView(actionType) {
     if (typeof updateDeckViewButtonUI === 'function') updateDeckViewButtonUI();
 }
 
-// グローバルスコープ登録
+// ★ 関数のグローバル公開
 window.openDeckViewModal = openDeckViewModal;
 window.hideDeckViewModal = hideDeckViewModal;
+window.drawBottomCard = drawBottomCard;
 window.peekDeckToModal = peekDeckToModal;
 window.closeDeckView = closeDeckView;
 
