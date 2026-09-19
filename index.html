@@ -2967,9 +2967,6 @@ function openDeckViewModal() {
 
     updateDeckViewButtonUI();
 
-    if (deckViewCards.length === 0 && typeof showToast === 'function') {
-        showToast('山札をクリックしてカードをめくってください');
-    }
 }
 
 // ★ 一時的に閉じる（×ボタン・背景クリック時）
@@ -3084,7 +3081,6 @@ function closeDeckView(actionType) {
     if (modal) modal.style.display = 'none';
 
     if (typeof updateDeckViewButtonUI === 'function') updateDeckViewButtonUI();
-    if (typeof showToast === 'function') showToast('確認完了処理を実行しました');
 }
 
 // グローバルスコープ登録
