@@ -2252,6 +2252,7 @@ function closeVolNoiseModal() {
         document.getElementById('deckCount').innerText = virtualDeck.length;
         createGameCardToHand(t.name, t.imagePath);
 }
+        }
 
         function shuffleDeckBtn() {
     if (virtualDeck.length === 0) return showToast('山札が空です');
@@ -2750,7 +2751,6 @@ function executeResetGame() {
     });
 
     // 3. 暗くなっているディレクションカード（または各カード）を明るく戻す
-    // ※ 暗くするクラス名（.tapped, .exhausted, .disabled など）に合わせて調整してください
     document.querySelectorAll('.game-card.tapped, .game-card.exhausted, .direction-card.disabled').forEach(card => {
         card.classList.remove('tapped', 'exhausted', 'disabled');
         card.style.filter = ''; // スタイルで直接暗くしている場合のリセット
@@ -2969,6 +2969,8 @@ function openDeckViewModal() {
         showToast('山札をクリックしてカードをめくってください');
     }
 }
+    }
+        }
 
 // ★ 一時的に閉じる（×ボタン・背景クリック時）
 function hideDeckViewModal() {
