@@ -1157,38 +1157,6 @@ function startGame() {
         }
     }
 
-    // ★ 12. 山札（デッキ）エリアの画像と枚数カウントのUI更新
-    const deckContainer = document.getElementById('deck') || document.querySelector('.deck-zone');
-    if (deckContainer) {
-        deckContainer.innerHTML = '';
-        deckContainer.style.position = 'relative';
-
-        // 1. 裏面カード画像を配置（最初から表示）
-        const backImg = document.createElement('img');
-        backImg.src = 'images/back.png';
-        backImg.style.width = '100%';
-        backImg.style.height = '100%';
-        backImg.style.objectFit = 'cover';
-        backImg.style.borderRadius = '6px';
-        backImg.style.display = 'block';
-        backImg.style.pointerEvents = 'none'; // 画像単体の標準ドラッグを無効化（画面ズレ防止）
-        backImg.onerror = function() { this.style.display = 'none'; }; // 画像パスエラー時の非表示処理
-        deckContainer.appendChild(backImg);
-
-        // 2. 枚数テキスト要素を配置
-        const countSpan = document.createElement('span');
-        countSpan.id = 'deckCount';
-        countSpan.innerText = virtualDeck.length;
-        countSpan.style.position = 'absolute';
-        countSpan.style.top = '50%';
-        countSpan.style.left = '50%';
-        countSpan.style.transform = 'translate(-50%, -50%)';
-        countSpan.style.zIndex = '2';
-        countSpan.style.fontWeight = 'bold';
-        countSpan.style.color = '#fff';
-        countSpan.style.pointerEvents = 'none';
-        deckContainer.appendChild(countSpan);
-
         // ★ 12. 山札（デッキ）エリアの画像と枚数カウントのUI更新
     const deckContainer = document.getElementById('deck') || document.querySelector('.deck-zone');
     if (deckContainer) {
