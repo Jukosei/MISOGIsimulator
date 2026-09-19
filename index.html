@@ -1164,10 +1164,6 @@ function startGame() {
             a.push({ name: codeStr, suffix: r, imagePath: `images/${codeStr}.png` });
         }
     });
-
-    if (a.length === 0) {
-        return alert('有効なカードコードが認識できませんでした。');
-    }
     
     // シャッフル処理
     for (let i = a.length - 1; i > 0; i--) {
@@ -1660,8 +1656,7 @@ function dropToDeck(ev) {
                     const deckCountEl = document.getElementById('deckCount');
                     if (deckCountEl) deckCountEl.innerText = virtualDeck.length;
                 }
-                
-                if (typeof showToast === 'function') showToast('カードを山札の一番上に戻しました');
+
                 return; // ★ 山札確認モーダルからのドラッグ時のみここで終了（下の選択モーダルを開かない）
             }
         }
@@ -1796,6 +1791,7 @@ function confirmDeckReturn(position) {
         }
     }
 }
+            
         function executeCardPlacement(t, e, a) {
             let n = e.children.length;
             if (a === 3) {
@@ -2255,9 +2251,6 @@ function closeVolNoiseModal() {
         let t = virtualDeck.shift();
         document.getElementById('deckCount').innerText = virtualDeck.length;
         createGameCardToHand(t.name, t.imagePath);
-    } else {
-        alert('山札がなくなりました！');
-    }
 }
 
         function shuffleDeckBtn() {
@@ -2310,7 +2303,6 @@ function shuffleVolNoise() {
 
         function trashAllHandBtn() {
             let t = document.getElementById('handArea');
-            if (t.children.length === 0) return alert('手札がありません。');
             let list = Array.from(t.children);
             list.forEach(a => {
                 trashCards.push({ name: a.getAttribute('data-cardname'), imagePath: a.getAttribute('data-imagepath') });
@@ -2926,9 +2918,6 @@ function rollDice() {
     if ((typeof isDeckViewOpen !== 'undefined' && isDeckViewOpen) || (typeof deckViewCards !== 'undefined' && deckViewCards.length > 0)) {
         if (typeof showToast === 'function') {
             showToast('山札の確認中はボトムドローできません');
-        } else {
-            alert('山札の確認中はボトムドローできません');
-        }
         return;
     }
 
@@ -2936,9 +2925,6 @@ function rollDice() {
     if (!virtualDeck || virtualDeck.length === 0) {
         if (typeof showToast === 'function') {
             showToast('山札にカードがありません');
-        } else {
-            alert('山札がなくなりました！');
-        }
         return;
     }
 
@@ -2957,10 +2943,6 @@ function rollDice() {
     }
     if (typeof updateDeckCount === 'function') {
         updateDeckCount();
-    }
-
-    if (typeof showToast === 'function') {
-        showToast('山札の一番下から1枚引きました');
     }
 }
             
