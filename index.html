@@ -1149,25 +1149,20 @@ function startGame() {
     // ★ 12. 山札（デッキ）エリアの画像と枚数カウントのUI更新
     const deckContainer = document.getElementById('deck') || document.querySelector('.deck-zone');
     if (deckContainer) {
+        // コンテナ内を初期化
         deckContainer.innerHTML = '';
         deckContainer.style.position = 'relative';
 
-        // 1. 裏面カード画像を配置
+        // 1. 裏面カード画像を配置（最初から表示・画像単体ドラッグによる画面ずれ防止）
         const backImg = document.createElement('img');
-        // パスが合っているか確認（プロジェクト内の裏面画像ファイル名に合わせて調整してください）
-        backImg.src = 'images/card_back.png';
+        backImg.src = 'images/back.png';
         backImg.style.width = '100%';
         backImg.style.height = '100%';
         backImg.style.objectFit = 'cover';
         backImg.style.borderRadius = '6px';
         backImg.style.display = 'block';
-        backImg.style.pointerEvents = 'none';
-
-        // ★ 画像読み込みエラー時のフォールバック処理（破損アイコンを表示させない）
-        backImg.onerror = function() {
-            this.style.display = 'none'; // 画像が見つからない場合は非表示にして枠のみにする
-        };
-
+        backImg.style.pointerEvents = 'none'; // 画像の標準ドラッグを無効化
+        backImg.onerror = function() { this.style.display = 'none'; }; // 画像がない場合のフォールバック
         deckContainer.appendChild(backImg);
 
         // 2. 枚数テキスト要素を配置
@@ -1184,13 +1179,27 @@ function startGame() {
         countSpan.style.pointerEvents = 'none';
         deckContainer.appendChild(countSpan);
 
-        // 3. 山札コンテナからのドラッグ操作を有効化（各ドロップエリアの受け取り形式に互換対応）
+        // 3. コンテナ全体に元のドラッグイベント（dragStartDeck / dragEndDeck）を正しくセット
         deckContainer.setAttribute('draggable', 'true');
-        deckContainer.ondragstart = function(event) {
-            if (!virtualDeck || virtualDeck.length === 0) {
-                event.preventDefault();
-                return;
+        deckContainer.ondragstart = function(ev) {
+            if (typeof dragStartDeck === 'function') {
+                dragStartDeck(ev);
+            } else {
+                if (!virtualDeck || virtualDeck.length === 0) {
+                    ev.preventDefault();
+                    return;
+                }
+                ev.dataTransfer.setData('text/plain', 'deck-zone-drag');
+                ev.dataTransfer.effectAllowed = 'move';
             }
+        };
+
+        deckContainer.ondragend = function(ev) {
+            if (typeof dragEndDeck === 'function') {
+                dragEndDeck(ev);
+            }
+        };
+    }
 
             const topCard = virtualDeck[0];
             if (topCard) {
@@ -1357,111 +1366,6 @@ function updateVolNoiseUI() {
             volZoneEl.style.backgroundImage = "none";
         }
     }
-}
-            
-            // カードの要素を生成・セットアップする処理
-function createGameCardToHand(t, e) {
-    let a = document.getElementById('handArea');
-    let n = document.createElement('div');
-    n.className = 'game-card';
-
-    // 画像やテキストの設定
-    n.style.backgroundImage = `url(${e})`;
-    n.dataset.name = t;
-
-    // ★ カードのクリックイベント（回転＆移動処理）
-    n.addEventListener('click', function(evt) {
-        let parentZone = n.parentElement;
-
-        if (parentZone) {
-            // 安全な判定処理（id や class の有無を確認）
-            let zoneId = parentZone.id || '';
-            let zoneClass = parentZone.className || '';
-            let isYellow = zoneId.includes('yellow') || zoneClass.includes('yellow');
-
-            // 親要素が黄色ゾーンにある場合
-            if (isYellow) {
-                evt.stopPropagation(); // ゾーン選択イベントの連動を防止
-                n.classList.toggle('card-rotate-horizontal');
-                return;
-            }
-        }
-
-        // --- 手札にある場合の移動・選択処理（既存の処理があればここに記述） ---
-    });
-
-    if (a) a.appendChild(n);
-}
-
-            // ゾーンをクリックしたときの処理
-function onZoneClick(zoneElement) {
-    // すでにそのゾーンにカードが存在する場合
-    let existingCard = zoneElement.querySelector('.card, .game-card');
-    
-    // 黄色ゾーンかどうかの判定（クラス名・インラインスタイル・属性などを幅広くカバー）
-    let isYellowZone = zoneElement.classList.contains('yellow-zone') || 
-                       zoneElement.id.includes('yellow') || 
-                       zoneElement.getAttribute('style')?.includes('yellow');
-
-    // 黄色ゾーンにカードがある状態でクリックされたら90度回転
-    if (existingCard && isYellowZone) {
-        existingCard.classList.toggle('card-rotate-horizontal');
-        return;
-    }
-
-    // カードが存在しない場合は、選択中の手札を置く（既存の配置処理）
-    if (selectedCard) {
-        zoneElement.appendChild(selectedCard);
-        
-        // 黄色ゾーン以外に置かれた場合は回転を解除
-        if (!isYellowZone) {
-            selectedCard.classList.remove('card-rotate-horizontal');
-        }
-        selectedCard = null;
-    }
-}
-
-            function attachCardRotateEvent(cardElement) {
-    cardElement.addEventListener('click', function(e) {
-        let parentZone = cardElement.parentElement;
-        if (!parentZone) return;
-
-        let isYellowZone = parentZone.classList.contains('yellow-zone') || 
-                           parentZone.id.includes('yellow') || 
-                           parentZone.getAttribute('style')?.includes('yellow');
-
-        if (isYellowZone) {
-            e.stopPropagation(); // ゾーン側イベントとの重複防止
-            cardElement.classList.toggle('card-rotate-horizontal');
-        }
-    });
-}
-
-            function placeCardToZone(cardElement, targetZoneElement) {
-    targetZoneElement.appendChild(cardElement);
-
-    // 黄色ゾーン以外へ移動したら回転を解除
-    const isYellow = targetZoneElement.classList.contains('yellow-zone') || targetZoneElement.id.includes('yellow');
-    if (!isYellow) {
-        cardElement.classList.remove('card-rotate-horizontal');
-    }
-}
-
-            function placeCardToZone(cardElement, targetZoneElement) {
-    // ゾーンのIDやクラス名、dataset等で黄色ゾーンかを判定
-    // (例: targetZoneElement.classList.contains('yellow-zone') や dataset.color === 'yellow')
-    const isYellowZone = targetZoneElement.id.includes('yellow') || targetZoneElement.classList.contains('yellow-zone');
-
-    if (isYellowZone) {
-        // 黄色ゾーンの場合は横向きクラスを付与
-        cardElement.classList.add('card-rotate-horizontal');
-    } else {
-        // 黄色ゾーン以外へ移動した場合は縦向きに戻す
-        cardElement.classList.remove('card-rotate-horizontal');
-    }
-
-    // ゾーンへカードを追加する既存処理
-    targetZoneElement.appendChild(cardElement);
 }
             
         function createGameCardToHand(t, e) {
