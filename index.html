@@ -744,6 +744,12 @@
             <div class="zone-box" id="trashZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)">
                 <div class="count-display" id="trashCount">0</div>
                 <div class="zone-label">トラッシュ (確認はクリック)</div>
+                <!-- トラッシュ等からの操作用ボタン群 -->
+      <div style="display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; width: 100%;">
+        <button id="btnTrashToDeckShuffle" class="control-btn" onclick="actionTrashToDeckAndShuffle()">山札に戻してシャッフル</button>
+        <button id="btnTrashToDeckBottom" class="control-btn" onclick="actionTrashToDeckBottom()">山札の下に戻す</button>
+        <button id="btnTrashToHand" class="control-btn" onclick="actionTrashToHand()">手札に加える</button>
+      </div>
             </div>
         </div>
 
@@ -968,28 +974,6 @@
 
     <!-- ダイス結果表示コンテナ（画面中央に完全固定表示） -->
 <div id="diceDisplayArea" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 15px; z-index: 10000; pointer-events: none;"></div>
-
-    <!-- トラッシュエリア操作モーダル（画面中央・トラッシュ確認モーダルの直下に配置） -->
-<div id="trashReturnModal" class="modal-overlay" onclick="closeTrashReturnModal(event)" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 10001; justify-content: center; align-items: center;">
-  <div class="modal-content" onclick="event.stopPropagation()" style="position: absolute; top: 62%; left: 50%; transform: translate(-50%, -50%); width: 450px; max-width: 90%; background: #222; border: 2px solid #555; border-radius: 8px; padding: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); color: #fff;">
-    
-    <!-- 右上 閉じる（×）ボタン -->
-    <button class="modal-close-btn" onclick="hideTrashReturnModal()" style="position: absolute; top: 8px; right: 12px; font-size: 22px; background: none; border: none; color: #fff; cursor: pointer;">×</button>
-    
-    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; text-align: center;">トラッシュエリア操作</h3>
-    
-    <!-- カード表示領域 -->
-    <div id="trashReturnContainer" class="card-container" style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 90px; max-height: 150px; overflow-y: auto; padding: 8px; border: 1px dashed #666; background: #111; margin-bottom: 12px; justify-content: center; align-items: center;">
-      <!-- トラッシュカードが表示されます -->
-    </div>
-    
-    <!-- 操作ボタン -->
-    <div style="display: flex; gap: 10px; justify-content: center;">
-      <button class="control-btn" onclick="returnTrashSelectedToDeckBottom()" style="font-size: 12px; padding: 6px 12px;">山札の下に送る</button>
-      <button class="control-btn" onclick="returnTrashSelectedToDeckAndShuffle()" style="font-size: 12px; padding: 6px 12px;">山札に戻してシャッフル</button>
-    </div>
-  </div>
-</div>
 
         <script>
     // --- クリアボタン用関数 (追加) ---
@@ -1372,6 +1356,158 @@ function setupTrashAreaEvents() {
             }
             document.getElementById('trashCount').innerText = trashCards.length;
         }
+
+            // 選択されているカードのインデックス（複数選択用 Set）
+let selectedTrashIndices = new Set();
+
+// ★ トラッシュ確認モーダルを描画・更新する関数（既存の renderSearchModal を拡張）
+function renderSearchModal() {
+    const container = document.getElementById('searchModalContent') || document.getElementById('searchContainer'); // モーダル内のカードコンテナ
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (typeof trashCards === 'undefined' || trashCards.length === 0) {
+        container.innerHTML = '<p style="color:#aaa; text-align:center; width:100%;">トラッシュにカードがありません</p>';
+        selectedTrashIndices.clear();
+        updateTrashModalButtons();
+        return;
+    }
+
+    trashCards.forEach((card, index) => {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'card-item';
+        cardEl.style.position = 'relative';
+        cardEl.style.cursor = 'pointer';
+        cardEl.style.borderRadius = '6px';
+        cardEl.style.transition = 'all 0.2s';
+        
+        // 選択状態のスタイル（枠線とハイライト）
+        const isSelected = selectedTrashIndices.has(index);
+        cardEl.style.border = isSelected ? '3px solid #00ffcc' : '1px solid #444';
+        cardEl.style.boxShadow = isSelected ? '0 0 10px #00ffcc' : 'none';
+
+        cardEl.innerHTML = `
+            <img src="${card.imagePath}" alt="${card.name}" style="width: 90px; height: auto; display: block; pointer-events: none;">
+            ${isSelected ? '<div style="position: absolute; top: 4px; right: 4px; background: #00ffcc; color: #000; font-weight: bold; width: 20px; height: 20px; border-radius: 50%; text-align: center; line-height: 20px; font-size: 12px;">✓</div>' : ''}
+        `;
+
+        // クリックでトグル（複数選択・解除）
+        cardEl.onclick = () => {
+            if (selectedTrashIndices.has(index)) {
+                selectedTrashIndices.delete(index);
+            } else {
+                selectedTrashIndices.add(index);
+            }
+            renderSearchModal(); // 再描画
+        };
+
+        container.appendChild(cardEl);
+    });
+
+    updateTrashModalButtons();
+}
+
+// ボタンの活性/非活性状態を更新
+function updateTrashModalButtons() {
+    const count = selectedTrashIndices.size;
+    const btnTextSuffix = count > 0 ? ` (${count}枚)` : '';
+    
+    const b1 = document.getElementById('btnTrashToDeckShuffle');
+    const b2 = document.getElementById('btnTrashToDeckBottom');
+    const b3 = document.getElementById('btnTrashToHand');
+
+    if (b1) b1.innerText = `山札に戻してシャッフル${btnTextSuffix}`;
+    if (b2) b2.innerText = `山札の下に戻す${btnTextSuffix}`;
+    if (b3) b3.innerText = `手札に加える${btnTextSuffix}`;
+}
+
+// ----------------------------------------------------
+// ★ 選択したカードの抽出共通ヘルパー
+// ----------------------------------------------------
+function getAndRemoveSelectedTrashCards() {
+
+    // インデックスを降順（大きい順）にソートして安全に配列から削除
+    const sortedIndices = Array.from(selectedTrashIndices).sort((a, b) => b - a);
+    const removedCards = [];
+
+    sortedIndices.forEach(idx => {
+        const card = trashCards.splice(idx, 1)[0];
+        removedCards.push(card);
+    });
+
+    selectedTrashIndices.clear();
+    return removedCards;
+}
+
+// ★ 1. 選択したカードを山札に戻してシャッフル
+function actionTrashToDeckAndShuffle() {
+    const cards = getAndRemoveSelectedTrashCards();
+    if (!cards) return;
+
+    if (typeof virtualDeck !== 'undefined') {
+        virtualDeck.push(...cards);
+        // 山札全体をシャッフル
+        for (let i = virtualDeck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [virtualDeck[i], virtualDeck[j]] = [virtualDeck[j], virtualDeck[i]];
+        }
+    }
+
+    finishTrashAction(`${cards.length}枚のカードを山札に戻してシャッフルしました`);
+}
+
+// ★ 2. 選択したカードを山札の下（ボトム）に戻す
+function actionTrashToDeckBottom() {
+    const cards = getAndRemoveSelectedTrashCards();
+    if (!cards) return;
+
+    if (typeof virtualDeck !== 'undefined') {
+        // 選択されたカードをそのまま山札の末尾（ボトム）へ追加
+        virtualDeck.push(...cards);
+    }
+
+    finishTrashAction(`${cards.length}枚のカードを山札の下に戻しました`);
+}
+
+// ★ 3. 選択したカードを手札に加える
+function actionTrashToHand() {
+    const cards = getAndRemoveSelectedTrashCards();
+    if (!cards) return;
+
+    cards.forEach(card => {
+        if (typeof createGameCardToHand === 'function') {
+            createGameCardToHand(card.name, card.imagePath);
+        }
+    });
+
+    finishTrashAction(`${cards.length}枚のカードを手札に加えました`);
+}
+
+// ★ 処理完了後の共通更新
+function finishTrashAction(msg) {
+    renderSearchModal();
+
+    if (typeof updateTrashUI === 'function') updateTrashUI();
+
+    const deckCountEl = document.getElementById('deckCount');
+    if (deckCountEl && typeof virtualDeck !== 'undefined') {
+        deckCountEl.innerText = virtualDeck.length;
+    }
+    if (typeof updateDeckCount === 'function') updateDeckCount();
+}
+
+// モーダルを閉じるときに選択をクリア
+function closeSearchModal() {
+    const overlay = document.getElementById('searchOverlay');
+    if (overlay) overlay.style.display = 'none';
+    selectedTrashIndices.clear();
+}
+
+// グローバル登録
+window.actionTrashToDeckAndShuffle = actionTrashToDeckAndShuffle;
+window.actionTrashToDeckBottom = actionTrashToDeckBottom;
+window.actionTrashToHand = actionTrashToHand;
 
            // 山札UI更新
 function updateDeckUI() {
