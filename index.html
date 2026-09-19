@@ -1141,22 +1141,40 @@ function startGame() {
         }
     }
 
-    // ★ 12. 山札枚数カウントのUI更新
-    const deckCountEl = document.getElementById('deckCount');
-    if (deckCountEl) {
-        deckCountEl.innerText = virtualDeck.length;
-    }
-    if (typeof updateDeckCount === 'function') {
-        updateDeckCount();
+    // ★ 12. 山札（デッキ）エリアの画像と枚数カウントのUI更新
+    const deckContainer = document.getElementById('deck') || document.querySelector('.deck-zone') || document.querySelector('[class*="deck"]');
+    if (deckContainer) {
+        // 山札コンテナ内をクリアして裏面画像要素を追加
+        deckContainer.innerHTML = '';
+
+        const backImg = document.createElement('img');
+        backImg.src = 'images/back.png'; // 裏面画像のパス
+        backImg.style.width = '100%';
+        backImg.style.height = '100%';
+        backImg.style.objectFit = 'cover';
+        backImg.style.borderRadius = '6px';
+        backImg.style.position = 'absolute';
+        backImg.style.top = '0';
+        backImg.style.left = '0';
+        backImg.style.pointerEvents = 'none';
+        deckContainer.appendChild(backImg);
+
+        // 枚数テキスト要素（数字表示）を配置
+        const countSpan = document.createElement('span');
+        countSpan.id = 'deckCount';
+        countSpan.innerText = virtualDeck.length;
+        countSpan.style.position = 'relative';
+        countSpan.style.zIndex = '2';
+        deckContainer.appendChild(countSpan);
+    } else {
+        const deckCountEl = document.getElementById('deckCount');
+        if (deckCountEl) {
+            deckCountEl.innerText = virtualDeck.length;
+        }
     }
 
-            // ★ 山札の裏面画像を確実にセット・表示
-    const deckEl = document.getElementById('deck') || document.querySelector('.deck-zone') || document.querySelector('[class*="deck"]');
-    if (deckEl) {
-        deckEl.style.backgroundImage = "url('images/back.png')"; // 裏面画像のパス（環境に合わせて調整）
-        deckEl.style.backgroundSize = "cover";
-        deckEl.style.backgroundPosition = "center";
-        deckEl.style.backgroundRepeat = "no-repeat";
+    if (typeof updateDeckCount === 'function') {
+        updateDeckCount();
     }
 
     // 画面切り替え
