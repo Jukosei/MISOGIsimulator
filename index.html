@@ -1647,21 +1647,24 @@ function dropToDeck(ev) {
         // パース失敗時は無視
     }
 
-    // ★ 山札確認モーダルからの移動処理
-    if (data && data.type === 'deck-view-card') {
-        if (typeof deckViewCards !== 'undefined' && data.viewIndex !== undefined) {
-            let cardObj = deckViewCards.splice(data.viewIndex, 1)[0];
-            if (typeof renderDeckViewCards === 'function') renderDeckViewCards();
-            
-            // 山札の末尾（ボトム）に戻す
-            if (typeof virtualDeck !== 'undefined') {
-                virtualDeck.push(cardObj);
-                const deckCountEl = document.getElementById('deckCount');
-                if (deckCountEl) deckCountEl.innerText = virtualDeck.length;
+    // ★ 山札確認モーダルからの移動処理（このときのみ選択モーダルを出さずに一番上＝トップに戻す）
+        if (data && data.type === 'deck-view-card') {
+            if (typeof deckViewCards !== 'undefined' && data.viewIndex !== undefined) {
+                let cardObj = deckViewCards.splice(data.viewIndex, 1)[0];
+                if (typeof renderDeckViewCards === 'function') renderDeckViewCards();
+                if (typeof updateDeckViewButtonUI === 'function') updateDeckViewButtonUI();
+
+                // ★ 山札の一番上（先頭）に戻す
+                if (typeof virtualDeck !== 'undefined' && cardObj) {
+                    virtualDeck.unshift(cardObj);
+                    const deckCountEl = document.getElementById('deckCount');
+                    if (deckCountEl) deckCountEl.innerText = virtualDeck.length;
+                }
+                
+                if (typeof showToast === 'function') showToast('カードを山札の一番上に戻しました');
+                return; // ★ 山札確認モーダルからのドラッグ時のみここで終了（下の選択モーダルを開かない）
             }
-            return;
         }
-    }
 
     // 自分自身へのドロップは無視
     if (dataText === 'deck-zone-drag') return;
