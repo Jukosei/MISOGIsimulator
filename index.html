@@ -809,7 +809,7 @@
             <button class="control-btn" onclick="resetGameBtn()">リセット</button>
             <button id="turnBtn" class="control-btn orange" onclick="handleTurnBtnClick()">ターンエンド</button>
             <button class="control-btn" onclick="rollDice()">ダイスを振る</button>
-            <button class="control-btn" onclick="triggerAction('山札の下から1枚ドロー')">山札の下から1枚ドロー</button>
+            <button class="control-btn" onclick="drawBottomCard()">山札の下から1枚ドロー</button>
             <button class="control-btn gray" style="margin-top:10px;" onclick="backToMenu()">メニュー戻る</button>
 
            <div class="deck-zone" draggable="true" id="deckZone" onclick="drawCard()" ondragstart="dragStartDeck(event)" ondragend="dragEndDeck(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDeck(event)">
@@ -2680,9 +2680,35 @@ function rollDice() {
         }
     }, 2000);
 }
-        function triggerAction(t) {
-        alert(`${t} が実行されました`);
+            
+        // ★ 山札の一番下から1枚ドロー（ダイアログなし）
+function drawBottomCard() {
+    if (!virtualDeck || virtualDeck.length === 0) {
+        if (typeof showToast === 'function') {
+            showToast('山札にカードがありません');
+        } else {
+            alert('山札にカードがありません');
+        }
+        return;
     }
+
+    // 配列の末尾（山札の一番下）から1枚取得して取り除く
+    const bottomCard = virtualDeck.pop();
+
+    // 手札へ生成・移動
+    if (typeof createGameCardToHand === 'function') {
+        createGameCardToHand(bottomCard.name, bottomCard.imagePath);
+    }
+
+    // 山札枚数の表示（UI）を更新
+    const deckCountEl = document.getElementById('deckCount');
+    if (deckCountEl) {
+        deckCountEl.innerText = virtualDeck.length;
+    }
+    if (typeof updateDeckCount === 'function') {
+        updateDeckCount();
+    }
+}
 
     // --- 山札ドラッグ終了時のエラー回避処理 ---
     function dragEndDeck(ev) {
@@ -2723,6 +2749,7 @@ if (typeof mulliganBtn === 'function') {
 } else if (typeof mulligan === 'function') {
     window.mulligan = mulligan;
 }
+if (typeof drawBottomCard === 'function') window.drawBottomCard = drawBottomCard;
     
 </script>
 </body>
