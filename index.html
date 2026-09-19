@@ -2912,6 +2912,7 @@ function drawBottomCard() {
         }
         return;
     }
+}
 
     // モーダル管理用配列・状態フラグ
 let deckViewCards = [];
@@ -3035,7 +3036,6 @@ function closeDeckView(actionType) {
     if (typeof updateDeckCount === 'function') {
         updateDeckCount();
     }
-}
 
     // --- 山札ドラッグ終了時のエラー回避処理 ---
     function dragEndDeck(ev) {
