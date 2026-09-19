@@ -2692,29 +2692,37 @@ function rollDice() {
     } // ★ 2436行目にあった余分な「}」を削除しました
 
     // --- ドラッグアンドドロップ設定 ---
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.layer-2').forEach(zone => {
-            zone.ondragover = function(ev) { ev.preventDefault(); };
-            zone.ondragenter = function(ev) {
-                ev.preventDefault();
-                let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
-                targetZone.classList.add('drag-over');
-            };
-            zone.ondragleave = function(ev) {
-                let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
-                targetZone.classList.remove('drag-over');
-            };
-            zone.ondrop = function(ev) {
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.layer-2').forEach(zone => {
+        zone.ondragover = function(ev) { ev.preventDefault(); };
+        zone.ondragenter = function(ev) {
+            ev.preventDefault();
+            let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
+            if (targetZone) targetZone.classList.add('drag-over');
+        };
+        zone.ondragleave = function(ev) {
+            let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
+            if (targetZone) targetZone.classList.remove('drag-over');
+        };
+        zone.ondrop = function(ev) {
+            if (typeof dropToDirection === 'function') {
                 dropToDirection(ev);
-            };
-        });
+            }
+        };
     });
+});
 
-    // --- 関数のグローバル公開（onclick対応） ---
-    window.selectMode = selectMode;
-    window.startGame = startGame;
-    window.handleTurnBtnClick = handleTurnBtnClick;
+// --- 関数のグローバル公開 (onclick対応) ---
+if (typeof selectMode === 'function') window.selectMode = selectMode;
+if (typeof startGame === 'function') window.startGame = startGame;
+if (typeof handleTurnBtnClick === 'function') window.handleTurnBtnClick = handleTurnBtnClick;
+
+if (typeof mulliganBtn === 'function') {
     window.mulliganBtn = mulliganBtn;
+} else if (typeof mulligan === 'function') {
+    window.mulligan = mulligan;
+}
+    
 </script>
 </body>
 </html>
