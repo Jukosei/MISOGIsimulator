@@ -989,6 +989,11 @@ function selectMode(mode) {
     }
 }
             // selectMode 関数の定義が終わる直後に追加
+            window.onload = function() {
+    // デフォルトを1人プレイモード(1)に設定
+    selectMode(parseInt(localStorage.getItem('misogi_mode')) || 1);
+    setupTrashAreaEvents();
+};
 window.selectMode = selectMode;
 
             // --- デッキコードの保存と読み込み機能 ---
@@ -1142,39 +1147,37 @@ function startGame() {
     }
 
     // ★ 12. 山札（デッキ）エリアの画像と枚数カウントのUI更新
-    const deckContainer = document.getElementById('deck') || document.querySelector('.deck-zone') || document.querySelector('[class*="deck"]');
+    const deckContainer = document.getElementById('deck') || document.querySelector('.deck-zone');
     if (deckContainer) {
-        // 山札コンテナ内をクリアして裏面画像要素を追加
+        // コンテナ自体のドラッグを無効化（画面全体が動くのを防止）
+        deckContainer.setAttribute('draggable', 'false');
+        deckContainer.style.position = 'relative';
         deckContainer.innerHTML = '';
 
+        // 裏面画像を直接要素として挿入（最初から表示させる）
         const backImg = document.createElement('img');
-        backImg.src = 'images/back.png'; // 裏面画像のパス
+        backImg.src = 'images/back.png';
         backImg.style.width = '100%';
         backImg.style.height = '100%';
         backImg.style.objectFit = 'cover';
         backImg.style.borderRadius = '6px';
-        backImg.style.position = 'absolute';
-        backImg.style.top = '0';
-        backImg.style.left = '0';
-        backImg.style.pointerEvents = 'none';
+        backImg.style.display = 'block';
+        backImg.setAttribute('draggable', 'false'); // 画像自体のブラウザデフォルトドラッグを禁止
         deckContainer.appendChild(backImg);
 
-        // 枚数テキスト要素（数字表示）を配置
+        // 枚数テキスト要素を配置
         const countSpan = document.createElement('span');
         countSpan.id = 'deckCount';
         countSpan.innerText = virtualDeck.length;
-        countSpan.style.position = 'relative';
+        countSpan.style.position = 'absolute';
+        countSpan.style.top = '50%';
+        countSpan.style.left = '50%';
+        countSpan.style.transform = 'translate(-50%, -50%)';
         countSpan.style.zIndex = '2';
+        countSpan.style.fontWeight = 'bold';
+        countSpan.style.color = '#fff';
+        countSpan.style.pointerEvents = 'none';
         deckContainer.appendChild(countSpan);
-    } else {
-        const deckCountEl = document.getElementById('deckCount');
-        if (deckCountEl) {
-            deckCountEl.innerText = virtualDeck.length;
-        }
-    }
-
-    if (typeof updateDeckCount === 'function') {
-        updateDeckCount();
     }
 
     // 画面切り替え
