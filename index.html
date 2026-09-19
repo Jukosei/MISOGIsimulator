@@ -415,6 +415,10 @@
     cursor: pointer;
     margin-left: auto;
     margin-right: auto;
+
+    /* ★ ここから下の2行を追加 ★ */
+    position: relative;
+    z-index: 10000;
 }
 
         .deck-count { font-size: 32px; font-weight: bold; }
@@ -815,10 +819,12 @@
             <button class="control-btn gray" style="margin-top:10px;" onclick="backToMenu()">メニュー戻る</button>
 
             <!-- 山札確認用モーダル -->
-<div id="deckViewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;" onclick="if(event.target === this) hideDeckViewModal();">
-    <div style="position: relative; background: #1c1c1c; padding: 25px 20px 20px 20px; border-radius: 12px; width: 85%; max-width: 800px; text-align: center; color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+<div id="deckViewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 9999; justify-content: center; align-items: center; pointer-events: none;">
+    
+    <!-- ★ モーダルの中身（ここだけ pointer-events: auto にして操作可能にする） -->
+    <div style="position: relative; background: #1c1c1c; padding: 25px 20px 20px 20px; border-radius: 12px; width: 85%; max-width: 800px; text-align: center; color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.5); pointer-events: auto;">
         
-        <!-- ★ 右上の「×」ボタン -->
+        <!-- 右上の「×」ボタン（一時閉じ） -->
         <button onclick="hideDeckViewModal()" style="position: absolute; top: 10px; right: 15px; background: transparent; border: none; color: #aaa; font-size: 24px; font-weight: bold; cursor: pointer; line-height: 1; padding: 5px 10px;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">×</button>
 
         <h3 style="margin-top: 0;">山札確認エリア</h3>
@@ -827,7 +833,7 @@
         <!-- 展開されたカードを表示するエリア -->
         <div id="deckViewContainer" style="display: flex; gap: 10px; flex-wrap: wrap; min-height: 160px; border: 2px dashed #444; padding: 15px; margin: 15px 0; justify-content: center; align-items: center; background: rgba(0,0,0,0.3);"></div>
         
-        <!-- 操作ボタン群（×ボタンを追加したため一時閉じるボタンは削除） -->
+        <!-- 操作ボタン群 -->
         <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px; flex-wrap: wrap;">
             <button class="control-btn" onclick="closeDeckView('shuffle')">山札に戻してシャッフル</button>
             <button class="control-btn" onclick="closeDeckView('bottom')">山札の下に戻す</button>
@@ -1012,6 +1018,7 @@ function selectMode(mode) {
         if (areaPlayer2) areaPlayer2.style.display = 'block';
     }
 }
+            
             window.onload = function() {
     // 初期状態は確実にメニューを表示し、ゲーム画面を非表示にする
     const gameScr = document.getElementById('gameScreen');
@@ -2228,14 +2235,18 @@ function closeVolNoiseModal() {
 }
             
         function drawCard() {
-    // モーダル表示中は山札からの通常ドローを禁止し、モーダルへ追加
-    if (typeof isDeckViewOpen !== 'undefined' && isDeckViewOpen) {
+    // モーダル表示中、またはモーダル確認中（カードがモーダルに保持されている状態）は通常ドローを阻止し、モーダルへ追加
+    if ((typeof isDeckViewOpen !== 'undefined' && isDeckViewOpen) || (typeof deckViewCards !== 'undefined' && deckViewCards.length > 0)) {
+        if (typeof openDeckViewModal === 'function' && !isDeckViewOpen) {
+            openDeckViewModal(); // 一時閉じ中の場合はモーダルを再表示
+        }
         if (typeof peekDeckToModal === 'function') {
             peekDeckToModal();
         }
         return;
     }
 
+    // --- ここから下は通常の山札ドロー処理 ---
     if (virtualDeck.length > 0) {
         let t = virtualDeck.shift();
         document.getElementById('deckCount').innerText = virtualDeck.length;
@@ -2965,11 +2976,8 @@ function updateDeckViewButtonUI() {
     }
 }
 
-// ★ 2. 山札クリック時にモーダルへ1枚追加
+            // ★ 2. 山札クリック時にモーダルへ1枚追加
 function peekDeckToModal() {
-    // モーダルが開いていない場合は通常の処理へ引き継ぐ
-    if (!isDeckViewOpen) return false;
-
     if (!virtualDeck || virtualDeck.length === 0) {
         if (typeof showToast === 'function') showToast('山札にカードがありません');
         return true;
@@ -2985,7 +2993,7 @@ function peekDeckToModal() {
 
     // モーダル内のカードを描画＆ボタンUI更新
     renderDeckViewCards();
-    updateDeckViewButtonUI();
+    if (typeof updateDeckViewButtonUI === 'function') updateDeckViewButtonUI();
     return true;
 }
 
