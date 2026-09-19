@@ -1222,14 +1222,12 @@ function startGame() {
                 event.dataTransfer.setData('imagePath', topCard.imagePath);
             }
         };
-    }
     
     // 画面切り替え
     const menuScr = document.getElementById('menuScreen');
     if (menuScr) menuScr.style.display = 'none';
     const gameScr = document.getElementById('gameScreen');
     if (gameScr) gameScr.style.display = 'flex';
-}
 
             // 自動消滅トースト表示関数
 function showToast(text) {
