@@ -740,7 +740,7 @@
     <div class="zone-label">VOLノイズ（確認はクリック）</div>
 </div>     
             
-            <button class="control-btn" onclick="openTrashReturnModal()">トラッシュエリア</button>
+            <button class="control-btn" onclick="openTrashAreaCombined()">トラッシュエリア</button>
             <div class="zone-box" id="trashZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)">
                 <div class="count-display" id="trashCount">0</div>
                 <div class="zone-label">トラッシュ (確認はクリック)</div>
@@ -969,20 +969,24 @@
     <!-- ダイス結果表示コンテナ（画面中央に完全固定表示） -->
 <div id="diceDisplayArea" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 15px; z-index: 10000; pointer-events: none;"></div>
 
-    <!-- トラッシュ確認・戻し用モーダル -->
-<div id="trashReturnModal" class="modal-overlay" onclick="closeTrashReturnModal(event)" style="display: none;">
-  <div class="modal-content" onclick="event.stopPropagation()" style="position: relative; max-width: 600px; width: 90%;">
-    <!-- 右上の閉じるボタン -->
-    <button class="modal-close-btn" onclick="hideTrashReturnModal()" style="position: absolute; top: 10px; right: 15px; font-size: 20px; background: none; border: none; color: #fff; cursor: pointer;">×</button>
+    <!-- トラッシュエリア操作モーダル（画面中央・トラッシュ確認モーダルの直下に配置） -->
+<div id="trashReturnModal" class="modal-overlay" onclick="closeTrashReturnModal(event)" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 10001; justify-content: center; align-items: center;">
+  <div class="modal-content" onclick="event.stopPropagation()" style="position: absolute; top: 62%; left: 50%; transform: translate(-50%, -50%); width: 450px; max-width: 90%; background: #222; border: 2px solid #555; border-radius: 8px; padding: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); color: #fff;">
     
-    <h3>トラッシュエリア操作</h3>
-    <div id="trashReturnContainer" class="card-container" style="display: flex; flex-wrap: wrap; gap: 10px; min-height: 120px; padding: 10px; border: 1px dashed #666; margin-bottom: 15px;">
-      <!-- ここにトラッシュのカードが表示されます -->
+    <!-- 右上 閉じる（×）ボタン -->
+    <button class="modal-close-btn" onclick="hideTrashReturnModal()" style="position: absolute; top: 8px; right: 12px; font-size: 22px; background: none; border: none; color: #fff; cursor: pointer;">×</button>
+    
+    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; text-align: center;">トラッシュエリア操作</h3>
+    
+    <!-- カード表示領域 -->
+    <div id="trashReturnContainer" class="card-container" style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 90px; max-height: 150px; overflow-y: auto; padding: 8px; border: 1px dashed #666; background: #111; margin-bottom: 12px; justify-content: center; align-items: center;">
+      <!-- トラッシュカードが表示されます -->
     </div>
     
+    <!-- 操作ボタン -->
     <div style="display: flex; gap: 10px; justify-content: center;">
-      <button class="control-btn" onclick="returnTrashSelectedToDeckBottom()">山札の下に送る</button>
-      <button class="control-btn" onclick="returnTrashSelectedToDeckAndShuffle()">山札に戻してシャッフル</button>
+      <button class="control-btn" onclick="returnTrashSelectedToDeckBottom()" style="font-size: 12px; padding: 6px 12px;">山札の下に送る</button>
+      <button class="control-btn" onclick="returnTrashSelectedToDeckAndShuffle()" style="font-size: 12px; padding: 6px 12px;">山札に戻してシャッフル</button>
     </div>
   </div>
 </div>
@@ -2602,7 +2606,7 @@ function nextTime() {
 
     if (bm3Index === -1) {
         if (typeof showToast === 'function') {
-            showToast('手札に BM-3 がありません');
+            showToast('手札にネクタイがありません');
         }
         return;
     }
@@ -3324,24 +3328,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-            // モーダル内で選択されたトラッシュカードのインデックス管理
-let selectedTrashIndex = null;
+            let selectedTrashIndex = null;
 
-// ★ トラッシュモーダルを開く
+// ★ トラッシュエリア連動オープン（中央の既存モーダル＋下部の操作モーダルを同時起動）
+function openTrashAreaCombined() {
+    // 1. 既存のトラッシュ確認モーダルを開く
+    if (typeof openSearchModal === 'function') {
+        openSearchModal('trash');
+    }
+    
+    // 2. 直下の操作用モーダルを開く
+    openTrashReturnModal();
+}
+
+// ★ 操作モーダルを開く
 function openTrashReturnModal() {
     const modal = document.getElementById('trashReturnModal');
     if (modal) modal.style.display = 'flex';
     renderTrashReturnContainer();
 }
 
-// ★ トラッシュモーダルを閉じる（×ボタン用）
+// ★ 操作モーダルを閉じる（×ボタン）
 function hideTrashReturnModal() {
     const modal = document.getElementById('trashReturnModal');
     if (modal) modal.style.display = 'none';
     selectedTrashIndex = null;
 }
 
-// ★ モーダル外枠クリックで閉じる処理
+// ★ モーダル外枠クリックで閉じる
 function closeTrashReturnModal(event) {
     if (event.target.id === 'trashReturnModal') {
         hideTrashReturnModal();
@@ -3355,7 +3369,7 @@ function renderTrashReturnContainer() {
     container.innerHTML = '';
 
     if (typeof trashCards === 'undefined' || trashCards.length === 0) {
-        container.innerHTML = '<p style="color:#aaa; width:100%; text-align:center;">トラッシュにカードがありません</p>';
+        container.innerHTML = '<p style="color:#aaa; font-size: 12px; width:100%; text-align:center; margin:0;">トラッシュにカードがありません</p>';
         return;
     }
 
@@ -3364,9 +3378,10 @@ function renderTrashReturnContainer() {
         cardEl.className = 'card-item';
         cardEl.setAttribute('draggable', 'true');
         cardEl.style.cursor = 'pointer';
+        cardEl.style.borderRadius = '4px';
         cardEl.style.border = (selectedTrashIndex === index) ? '2px solid #00ffcc' : '1px solid #444';
         
-        cardEl.innerHTML = `<img src="${card.imagePath}" alt="${card.name}" style="width: 80px; height: auto; pointer-events: none;">`;
+        cardEl.innerHTML = `<img src="${card.imagePath}" alt="${card.name}" style="width: 60px; height: auto; display: block; pointer-events: none;">`;
 
         // クリック選択
         cardEl.onclick = () => {
@@ -3374,7 +3389,7 @@ function renderTrashReturnContainer() {
             renderTrashReturnContainer();
         };
 
-        // ドラッグ開始イベント（ドラッグ＆ドロップ用データ付与）
+        // ドラッグ開始
         cardEl.ondragstart = (e) => {
             selectedTrashIndex = index;
             const dragData = {
@@ -3399,7 +3414,7 @@ function returnTrashSelectedToDeckBottom() {
 
     const card = trashCards.splice(selectedTrashIndex, 1)[0];
     if (typeof virtualDeck !== 'undefined') {
-        virtualDeck.push(card); // ボトム（配列の末尾）へ追加
+        virtualDeck.push(card);
     }
 
     finishTrashReturn('カードを山札の一番下に戻しました');
@@ -3415,7 +3430,6 @@ function returnTrashSelectedToDeckAndShuffle() {
     const card = trashCards.splice(selectedTrashIndex, 1)[0];
     if (typeof virtualDeck !== 'undefined') {
         virtualDeck.push(card);
-        // 山札をシャッフル
         for (let i = virtualDeck.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [virtualDeck[i], virtualDeck[j]] = [virtualDeck[j], virtualDeck[i]];
@@ -3425,13 +3439,14 @@ function returnTrashSelectedToDeckAndShuffle() {
     finishTrashReturn('カードを山札に戻してシャッフルしました');
 }
 
-// ★ 処理完了後の画面更新共通関数
+// ★ 完了共通処理
 function finishTrashReturn(msg) {
     selectedTrashIndex = null;
     renderTrashReturnContainer();
 
     if (typeof updateTrashUI === 'function') updateTrashUI();
-    
+    if (typeof renderSearchModal === 'function') renderSearchModal(); // 既存の確認モーダル側も同時更新
+
     const deckCountEl = document.getElementById('deckCount');
     if (deckCountEl && typeof virtualDeck !== 'undefined') {
         deckCountEl.innerText = virtualDeck.length;
@@ -3442,12 +3457,13 @@ function finishTrashReturn(msg) {
 }
 
 // グローバル登録
+window.openTrashAreaCombined = openTrashAreaCombined;
 window.openTrashReturnModal = openTrashReturnModal;
 window.hideTrashReturnModal = hideTrashReturnModal;
 window.closeTrashReturnModal = closeTrashReturnModal;
 window.returnTrashSelectedToDeckBottom = returnTrashSelectedToDeckBottom;
 window.returnTrashSelectedToDeckAndShuffle = returnTrashSelectedToDeckAndShuffle;
-
+            
 // --- 関数のグローバル公開 (onclick対応) ---
 if (typeof selectMode === 'function') window.selectMode = selectMode;
 if (typeof startGame === 'function') window.startGame = startGame;
