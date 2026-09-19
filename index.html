@@ -814,16 +814,20 @@
             <button class="control-btn" onclick="openDeckViewModal()">山札の上を見る</button>
             <button class="control-btn gray" style="margin-top:10px;" onclick="backToMenu()">メニュー戻る</button>
 
-<!-- 山札確認用モーダル（確実表示版） -->
-<div id="deckViewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 99999; justify-content: center; align-items: center;">
-    <div style="background: #1e1e1e; padding: 20px; border-radius: 12px; width: 85%; max-width: 800px; text-align: center; color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+            <!-- 山札確認用モーダル -->
+<div id="deckViewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;" onclick="if(event.target === this) hideDeckViewModal();">
+    <div style="position: relative; background: #1c1c1c; padding: 25px 20px 20px 20px; border-radius: 12px; width: 85%; max-width: 800px; text-align: center; color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+        
+        <!-- ★ 右上の「×」ボタン -->
+        <button onclick="hideDeckViewModal()" style="position: absolute; top: 10px; right: 15px; background: transparent; border: none; color: #aaa; font-size: 24px; font-weight: bold; cursor: pointer; line-height: 1; padding: 5px 10px;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">×</button>
+
         <h3 style="margin-top: 0;">山札確認エリア</h3>
         <p style="font-size: 0.85em; color: #aaa;">山札（右下）をクリックすると、1枚ずつここに展開されます</p>
         
         <!-- 展開されたカードを表示するエリア -->
-        <div id="deckViewContainer" style="display: flex; gap: 10px; flex-wrap: wrap; min-height: 160px; border: 2px dashed #444; padding: 15px; margin: 15px 0; justify-content: center; align-items: center; background: rgba(0,0,0,0.2); border-radius: 8px;"></div>
+        <div id="deckViewContainer" style="display: flex; gap: 10px; flex-wrap: wrap; min-height: 160px; border: 2px dashed #444; padding: 15px; margin: 15px 0; justify-content: center; align-items: center; background: rgba(0,0,0,0.3);"></div>
         
-        <!-- 操作ボタン群 -->
+        <!-- 操作ボタン群（×ボタンを追加したため一時閉じるボタンは削除） -->
         <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px; flex-wrap: wrap;">
             <button class="control-btn" onclick="closeDeckView('shuffle')">山札に戻してシャッフル</button>
             <button class="control-btn" onclick="closeDeckView('bottom')">山札の下に戻す</button>
@@ -2914,27 +2918,58 @@ function drawBottomCard() {
     }
 }
 
-    // モーダル管理用配列・状態フラグ
+            // モーダル管理用配列・状態フラグ
 let deckViewCards = [];
 let isDeckViewOpen = false;
 
-// ★ 1. モーダルを開く
+// ★ 1. モーダルを開く（または再開する）
 function openDeckViewModal() {
+    // 完全に新規で開く場合（カードがまだない場合）のみ配列をリセット
+    if (!isDeckViewOpen && deckViewCards.length === 0) {
+        deckViewCards = [];
+        const container = document.getElementById('deckViewContainer');
+        if (container) container.innerHTML = '';
+    }
+
     isDeckViewOpen = true;
-    deckViewCards = [];
-    const container = document.getElementById('deckViewContainer');
-    if (container) container.innerHTML = '';
-    
     const modal = document.getElementById('deckViewModal');
     if (modal) modal.style.display = 'flex';
-    
-    if (typeof showToast === 'function') showToast('山札をクリックしてカードをめくってください');
+
+    updateDeckViewButtonUI();
+
+    if (deckViewCards.length === 0 && typeof showToast === 'function') {
+        showToast('山札をクリックしてカードをめくってください');
+    }
+}
+
+// ★ 一時的に閉じる（×ボタン・背景クリック時）
+function hideDeckViewModal() {
+    isDeckViewOpen = false;
+    const modal = document.getElementById('deckViewModal');
+    if (modal) modal.style.display = 'none';
+
+    updateDeckViewButtonUI();
+}
+
+// ★ 「山札の上を見る」ボタンの表記を動的に更新
+function updateDeckViewButtonUI() {
+    const btn = document.getElementById('peekDeckBtn') || document.querySelector("button[onclick*='openDeckViewModal']");
+    if (btn) {
+        if (!isDeckViewOpen && deckViewCards.length > 0) {
+            btn.innerText = `山札確認中 (${deckViewCards.length}枚)`;
+            btn.style.backgroundColor = '#e67e22'; // わかりやすいようオレンジ色に強調
+        } else {
+            btn.innerText = '山札の上を見る';
+            btn.style.backgroundColor = '';
+        }
+    }
 }
 
 // ★ 2. 山札クリック時にモーダルへ1枚追加
-// (既存の drawCard や clickDeck イベントの先頭に本チェックを追加してください)
 function peekDeckToModal() {
+    // モーダルが開いていない場合は通常の処理へ引き継ぐ
     if (!isDeckViewOpen) return false;
+
     if (!virtualDeck || virtualDeck.length === 0) {
         if (typeof showToast === 'function') showToast('山札にカードがありません');
         return true;
@@ -2944,12 +2979,13 @@ function peekDeckToModal() {
     const card = virtualDeck.shift();
     deckViewCards.push(card);
 
-    // UI更新（山札カウント）
+    // 山札枚数UI更新
     const deckCountEl = document.getElementById('deckCount');
     if (deckCountEl) deckCountEl.innerText = virtualDeck.length;
 
-    // モーダル内へ描画
+    // モーダル内のカードを描画＆ボタンUI更新
     renderDeckViewCards();
+    updateDeckViewButtonUI();
     return true;
 }
 
@@ -2964,12 +3000,12 @@ function renderDeckViewCards() {
         cardEl.className = 'card';
         cardEl.style.width = '100px';
         cardEl.style.height = '140px';
-        cardEl.style.backgroundImage = `url('${card.imagePath}')`;
+        cardEl.style.backgroundImage = `url('${card.imagePath || card.image || card}')`;
         cardEl.style.backgroundSize = 'cover';
         cardEl.style.borderRadius = '6px';
         cardEl.setAttribute('draggable', 'true');
 
-        // ドラッグ開始時に情報をセット（移動時にモーダルから削除できるようindexも保持）
+        // ドラッグ開始時に情報をセット
         cardEl.ondragstart = function(ev) {
             const cardData = {
                 type: 'deck-view-card',
@@ -3000,7 +3036,7 @@ function closeDeckView(actionType) {
         } else if (actionType === 'shuffleBottom') {
             // 残ったカード内だけでシャッフルしてからボトムへ追加
             for (let i = deckViewCards.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
+                const j = Math.floor(Math.length * (i + 1));
                 [deckViewCards[i], deckViewCards[j]] = [deckViewCards[j], deckViewCards[i]];
             }
             virtualDeck.push(...deckViewCards);
@@ -3013,29 +3049,20 @@ function closeDeckView(actionType) {
     // 表示更新とモーダル非表示
     const deckCountEl = document.getElementById('deckCount');
     if (deckCountEl) deckCountEl.innerText = virtualDeck.length;
-    
+
     const modal = document.getElementById('deckViewModal');
     if (modal) modal.style.display = 'none';
+
+    updateDeckViewButtonUI();
 
     if (typeof showToast === 'function') showToast('確認完了処理を実行しました');
 }
 
-    // 配列の末尾（山札の一番下）から1枚取得して取り除く
-    const bottomCard = virtualDeck.pop();
-
-    // 手札へ生成・移動
-    if (typeof createGameCardToHand === 'function') {
-        createGameCardToHand(bottomCard.name, bottomCard.imagePath);
-    }
-
-    // 山札枚数の表示（UI）を更新
-    const deckCountEl = document.getElementById('deckCount');
-    if (deckCountEl) {
-        deckCountEl.innerText = virtualDeck.length;
-    }
-    if (typeof updateDeckCount === 'function') {
-        updateDeckCount();
-    }
+// グローバルスコープ登録
+window.openDeckViewModal = openDeckViewModal;
+window.hideDeckViewModal = hideDeckViewModal;
+window.peekDeckToModal = peekDeckToModal;
+window.closeDeckView = closeDeckView;
 
     // --- 山札ドラッグ終了時のエラー回避処理 ---
     function dragEndDeck(ev) {
