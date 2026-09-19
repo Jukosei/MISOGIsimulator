@@ -2071,24 +2071,34 @@ function closeVolNoiseModal() {
 
             // ★ VOLノイズのカードをシャッフルする処理
 function shuffleVolNoise() {
-    const volContainer = document.getElementById('volNoiseArea') || document.querySelector('.vol-noise-zone') || document.getElementById('volArea');
+    const volZone = document.getElementById('volNoiseZone');
     
-    // グローバル配列（volCards 等）が存在する場合は配列をシャッフル
-    if (typeof volCards !== 'undefined' && Array.isArray(volCards) && volCards.length > 1) {
-        for (let i = volCards.length - 1; i > 0; i--) {
+    // 1. グローバル配列（volNoiseCards または volCards）のシャッフル
+    let targetArray = null;
+    if (typeof volNoiseCards !== 'undefined' && Array.isArray(volNoiseCards)) {
+        targetArray = volNoiseCards;
+    } else if (typeof volCards !== 'undefined' && Array.isArray(volCards)) {
+        targetArray = volCards;
+    }
+
+    if (targetArray && targetArray.length > 1) {
+        for (let i = targetArray.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [volCards[i], volCards[j]] = [volCards[j], volCards[i]];
+            [targetArray[i], targetArray[j]] = [targetArray[j], targetArray[i]];
         }
     }
 
-    // DOM要素（画面上のカード要素）をシャッフルして再配置
-    if (volContainer) {
-        const cards = Array.from(volContainer.children);
-        if (cards.length > 1) {
-            // ダッフルアルゴリズムで要素をランダム順に並び替え
-            for (let i = cards.length - 1; i > 0; i--) {
+    // 2. volNoiseZone 内のカード要素（DOM）のシャッフル
+    if (volZone) {
+        // 子要素の中からカード要素（.card クラスまたは count-display/zone-label 以外の要素）を抽出
+        const cardElements = Array.from(volZone.children).filter(el => 
+            el.id !== 'volNoiseCount' && !el.classList.contains('zone-label') && !el.classList.contains('count-display')
+        );
+
+        if (cardElements.length > 1) {
+            for (let i = cardElements.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                volContainer.appendChild(cards[j]);
+                volZone.appendChild(cardElements[j]);
             }
         }
     }
