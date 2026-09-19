@@ -814,17 +814,17 @@
             <button class="control-btn" onclick="openDeckViewModal()">山札の上を見る</button>
             <button class="control-btn gray" style="margin-top:10px;" onclick="backToMenu()">メニュー戻る</button>
 
-<!-- 山札確認用モーダル要素（</body>の直前などに追加） -->
-<div id="deckViewModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
-    <div style="background: #222; padding: 20px; border-radius: 8px; width: 80%; max-width: 800px; text-align: center; color: #fff;">
-        <h3>山札確認エリア</h3>
-        <p style="font-size: 0.9em; color: #ccc;">山札をクリックすると、1枚ずつここに展開されます</p>
+<!-- 山札確認用モーダル（確実表示版） -->
+<div id="deckViewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 99999; justify-content: center; align-items: center;">
+    <div style="background: #1e1e1e; padding: 20px; border-radius: 12px; width: 85%; max-width: 800px; text-align: center; color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+        <h3 style="margin-top: 0;">山札確認エリア</h3>
+        <p style="font-size: 0.85em; color: #aaa;">山札（右下）をクリックすると、1枚ずつここに展開されます</p>
         
-        <!-- 展開されたカードを表示するコンテナ -->
-        <div id="deckViewContainer" style="display: flex; gap: 10px; flex-wrap: wrap; min-height: 150px; border: 2px dashed #555; padding: 10px; margin: 15px 0; justify-content: center; align-items: center;"></div>
+        <!-- 展開されたカードを表示するエリア -->
+        <div id="deckViewContainer" style="display: flex; gap: 10px; flex-wrap: wrap; min-height: 160px; border: 2px dashed #444; padding: 15px; margin: 15px 0; justify-content: center; align-items: center; background: rgba(0,0,0,0.2); border-radius: 8px;"></div>
         
-        <!-- 返却操作ボタン群 -->
-        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+        <!-- 操作ボタン群 -->
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px; flex-wrap: wrap;">
             <button class="control-btn" onclick="closeDeckView('shuffle')">山札に戻してシャッフル</button>
             <button class="control-btn" onclick="closeDeckView('bottom')">山札の下に戻す</button>
             <button class="control-btn" onclick="closeDeckView('shuffleBottom')">シャッフルしてボトムへ</button>
@@ -1624,28 +1624,45 @@ function dropToDeck(ev) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
 
-    // ドロップ処理内での受け取りハンドリング例
-if (data && data.type === 'deck-view-card') {
-    if (data.viewIndex !== undefined) {
-        deckViewCards.splice(data.viewIndex, 1);
-        renderDeckViewCards(); // モーダル側を再描画
-    }
-}
-    
     let dataText = ev.dataTransfer.getData('text/plain') || ev.dataTransfer.getData('text');
+    let jsonText = ev.dataTransfer.getData('application/json');
+    let data = null;
+
+    try {
+        if (jsonText) data = JSON.parse(jsonText);
+        else if (dataText && dataText.startsWith('{')) data = JSON.parse(dataText);
+    } catch (e) {
+        // パース失敗時は無視
+    }
+
+    // ★ 山札確認モーダルからの移動処理
+    if (data && data.type === 'deck-view-card') {
+        if (typeof deckViewCards !== 'undefined' && data.viewIndex !== undefined) {
+            let cardObj = deckViewCards.splice(data.viewIndex, 1)[0];
+            if (typeof renderDeckViewCards === 'function') renderDeckViewCards();
+            
+            // 山札の末尾（ボトム）に戻す
+            if (typeof virtualDeck !== 'undefined') {
+                virtualDeck.push(cardObj);
+                const deckCountEl = document.getElementById('deckCount');
+                if (deckCountEl) deckCountEl.innerText = virtualDeck.length;
+            }
+            return;
+        }
+    }
 
     // 自分自身へのドロップは無視
     if (dataText === 'deck-zone-drag') return;
 
     // トラッシュから山札に戻す場合
-    if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
+    if (dataText === 'trash-zone-drag' && typeof trashCards !== 'undefined' && trashCards.length > 0) {
         let cardObj = trashCards.slice(-1)[0];
         pendingDeckReturn = {
             type: 'trash',
             card: cardObj
         };
         openDeckReturnModal();
-    } 
+    }
     // 手札やフィールドの実体カードから戻す場合
     else if (dataText) {
         let cardEl = document.getElementById(dataText);
@@ -1717,14 +1734,6 @@ function confirmDeckReturn(position) {
     ev.currentTarget.classList.remove('drag-over');
     let dataText = ev.dataTransfer.getData('text/plain');
 
-            // ドロップ処理内での受け取りハンドリング例
-if (data && data.type === 'deck-view-card') {
-    if (data.viewIndex !== undefined) {
-        deckViewCards.splice(data.viewIndex, 1);
-        renderDeckViewCards(); // モーダル側を再描画
-    }
-}
-
     // レイヤー2（黄色ゾーン）なら回転付与、それ以外なら回転解除する補助関数
     const updateCardRotation = (cardEl) => {
         if (!cardEl) return;
@@ -1783,19 +1792,38 @@ if (data && data.type === 'deck-view-card') {
             }
         }
 
-        function dropToDirection(ev, slotIdx) {
+       function dropToDirection(ev, slotIdx) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
 
     let dataText = ev.dataTransfer.getData('text/plain');
+    let jsonText = ev.dataTransfer.getData('application/json');
+    let data = null;
 
-            // ドロップ処理内での受け取りハンドリング例
-if (data && data.type === 'deck-view-card') {
-    if (data.viewIndex !== undefined) {
-        deckViewCards.splice(data.viewIndex, 1);
-        renderDeckViewCards(); // モーダル側を再描画
+    // 1. JSONデータの安全なパース処理を追加
+    try {
+        if (jsonText) data = JSON.parse(jsonText);
+        else if (dataText && dataText.startsWith('{')) data = JSON.parse(dataText);
+    } catch (e) {}
+
+    // 2. 山札確認モーダル（deck-view-card）からのドロップ受け取り処理
+    if (data && data.type === 'deck-view-card') {
+        if (typeof deckViewCards !== 'undefined' && data.viewIndex !== undefined) {
+            // モーダルの配列からカードを取り出す
+            let cardObj = deckViewCards.splice(data.viewIndex, 1)[0];
+            if (typeof renderDeckViewCards === 'function') renderDeckViewCards();
+
+            // ドロップ先のスロットへカードを移動・生成する処理を実行
+            if (cardObj && typeof createGameCardToHand === 'function') {
+                // 手札や対象スロット等へカードを配置
+                let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
+                if (targetZone) {
+                    createGameCardToHand(cardObj.name, cardObj.imagePath);
+                }
+            }
+            return;
+        }
     }
-}
             
     // 1. サーチ・トラッシュモーダルからのドラッグ処理
     if (dataText === 'search-drag') {
@@ -1872,13 +1900,30 @@ if (data && data.type === 'deck-view-card') {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
 
-            // ドロップ処理内での受け取りハンドリング例
-if (data && data.type === 'deck-view-card') {
-    if (data.viewIndex !== undefined) {
-        deckViewCards.splice(data.viewIndex, 1);
-        renderDeckViewCards(); // モーダル側を再描画
+    let dataText = ev.dataTransfer.getData('text/plain');
+    let jsonText = ev.dataTransfer.getData('application/json');
+    let data = null;
+
+    // 1. JSONデータを安全に取得・パース
+    try {
+        if (jsonText) data = JSON.parse(jsonText);
+        else if (dataText && dataText.startsWith('{')) data = JSON.parse(dataText);
+    } catch (e) {}
+
+    // 2. 山札確認モーダル（deck-view-card）からのドロップ処理
+    if (data && data.type === 'deck-view-card') {
+        if (typeof deckViewCards !== 'undefined' && data.viewIndex !== undefined) {
+            // モーダル側からカードを取り出す
+            let cardObj = deckViewCards.splice(data.viewIndex, 1)[0];
+            if (typeof renderDeckViewCards === 'function') renderDeckViewCards();
+
+            // 手札にカードを追加・生成する
+            if (cardObj && typeof createGameCardToHand === 'function') {
+                createGameCardToHand(cardObj.name, cardObj.imagePath);
+            }
+            return;
+        }
     }
-}
             
     let dataText = ev.dataTransfer.getData('text/plain');
 
@@ -1921,21 +1966,34 @@ if (data && data.type === 'deck-view-card') {
     }
 }
 
-        // トラッシュへドロップ
-function dropToTrash(ev) {
+        function dropToTrash(ev) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
 
-    // ドロップ処理内での受け取りハンドリング例
-if (data && data.type === 'deck-view-card') {
-    if (data.viewIndex !== undefined) {
-        deckViewCards.splice(data.viewIndex, 1);
-        renderDeckViewCards(); // モーダル側を再描画
-    }
-}
-    
     let dataText = ev.dataTransfer.getData('text/plain');
+    let jsonText = ev.dataTransfer.getData('application/json');
+    let data = null;
 
+    try {
+        if (jsonText) data = JSON.parse(jsonText);
+        else if (dataText && dataText.startsWith('{')) data = JSON.parse(dataText);
+    } catch (e) {}
+
+    // ★ 山札確認モーダルからのドロップ処理を追加
+    if (data && data.type === 'deck-view-card') {
+        if (typeof deckViewCards !== 'undefined' && data.viewIndex !== undefined) {
+            let cardObj = deckViewCards.splice(data.viewIndex, 1)[0];
+            if (typeof renderDeckViewCards === 'function') renderDeckViewCards();
+
+            // トラッシュ配列に追加してUI更新
+            if (cardObj && typeof trashCards !== 'undefined') {
+                trashCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
+                if (typeof updateTrashUI === 'function') updateTrashUI();
+            }
+            return;
+        }
+    }
+            
     // 山札からのドラッグ判定
     if (dataText === 'deck-zone-drag' && virtualDeck && virtualDeck.length > 0) {
         let topCard = virtualDeck.shift(); // 先頭を取得して除外
@@ -1959,14 +2017,6 @@ function dropToVolNoise(ev) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
 
-    // ドロップ処理内での受け取りハンドリング例
-if (data && data.type === 'deck-view-card') {
-    if (data.viewIndex !== undefined) {
-        deckViewCards.splice(data.viewIndex, 1);
-        renderDeckViewCards(); // モーダル側を再描画
-    }
-}
-
     // 配列の存在確認と枚数チェック（5枚以上なら中断）
     if (!volNoiseCards) volNoiseCards = [];
     if (volNoiseCards.length >= 5) {
@@ -1975,68 +2025,115 @@ if (data && data.type === 'deck-view-card') {
     }
 
     let dataText = ev.dataTransfer.getData('text/plain') || ev.dataTransfer.getData('text');
+    let jsonText = ev.dataTransfer.getData('application/json');
+    let data = null;
 
+    // JSONデータの安全なパース
+    try {
+        if (jsonText) data = JSON.parse(jsonText);
+        else if (dataText && dataText.startsWith('{')) data = JSON.parse(dataText);
+    } catch (e) {}
+
+    // ★ 山札確認モーダルからのドロップ処理
+    if (data && data.type === 'deck-view-card') {
+        if (typeof deckViewCards !== 'undefined' && data.viewIndex !== undefined) {
+            let cardObj = deckViewCards.splice(data.viewIndex, 1)[0];
+            if (typeof renderDeckViewCards === 'function') renderDeckViewCards();
+
+            // VOLノイズ配列に追加
+            if (cardObj) {
+                volNoiseCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
+            }
+
+            updateDeckUI();
+            updateVolNoiseUI();
+            return;
+        }
+    }
+
+    // 山札からのドロップ
     if (dataText === 'deck-zone-drag' && virtualDeck && virtualDeck.length > 0) {
         let topCard = virtualDeck.shift();
         volNoiseCards.push({ name: topCard.name, imagePath: topCard.imagePath });
-    } 
+    }
+    // トラッシュからのドロップ
     else if (dataText === 'trash-zone-drag' && trashCards && trashCards.length > 0) {
         let cardObj = trashCards.pop();
         volNoiseCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
         updateTrashUI();
-    } 
+    }
+    // その他のカード要素からのドロップ
     else if (dataText && dataText !== 'deck-zone-drag') {
         let a = document.getElementById(dataText);
         if (a) {
-            volNoiseCards.push({ 
-                name: a.getAttribute('data-cardname'), 
-                imagePath: a.getAttribute('data-imagepath') 
+            volNoiseCards.push({
+                name: a.getAttribute('data-cardname'),
+                imagePath: a.getAttribute('data-imagepath')
             });
             a.remove();
         }
     }
 
-    // ★ 個別の innerText 更新を削除し、ここで一括UI更新
+    // ★ UIの一括更新
     updateDeckUI();
     updateVolNoiseUI();
 }
+            
         function dropToDeckZone(ev) {
-            ev.preventDefault();
-            ev.currentTarget.classList.remove('drag-over');
-            let dataText = ev.dataTransfer.getData('text/plain');
+    ev.preventDefault();
+    ev.currentTarget.classList.remove('drag-over');
 
-            // ドロップ処理内での受け取りハンドリング例
-if (data && data.type === 'deck-view-card') {
-    if (data.viewIndex !== undefined) {
-        deckViewCards.splice(data.viewIndex, 1);
-        renderDeckViewCards(); // モーダル側を再描画
+    let dataText = ev.dataTransfer.getData('text/plain');
+    let jsonText = ev.dataTransfer.getData('application/json');
+    let data = null;
+
+    // 1. JSONデータの安全なパース
+    try {
+        if (jsonText) data = JSON.parse(jsonText);
+        else if (dataText && dataText.startsWith('{')) data = JSON.parse(dataText);
+    } catch (e) {}
+
+    // 2. 山札確認モーダル（deck-view-card）からのドロップ処理
+    if (data && data.type === 'deck-view-card') {
+        if (typeof deckViewCards !== 'undefined' && data.viewIndex !== undefined) {
+            let cardObj = deckViewCards.splice(data.viewIndex, 1)[0];
+            if (typeof renderDeckViewCards === 'function') renderDeckViewCards();
+
+            // 山札の末尾（ボトム）に戻す
+            if (cardObj && typeof virtualDeck !== 'undefined') {
+                virtualDeck.push(cardObj);
+                if (typeof updateDeckUI === 'function') updateDeckUI();
+            }
+            return;
+        }
+    }
+
+    // トラッシュからのドロップ
+    if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
+        let cardObj = trashCards.pop();
+        pendingActionData = { name: cardObj.name, imagePath: cardObj.imagePath, elementId: null, fromHand: false };
+        updateTrashUI();
+        openActionMenu(`カード「${cardObj.name}」の戻し先`, [
+            { label: "山札の一番上に戻す", value: "top" },
+            { label: "山札の一番下に戻す", value: "bottom" }
+        ], handleDeckReturnChoice);
+        return;
+    }
+
+    // フィールドや手札からのドロップ
+    if (dataText && dataText !== 'search-drag') {
+        let a = document.getElementById(dataText);
+        if (a) {
+            let cName = a.getAttribute('data-cardname');
+            let imgP = a.getAttribute('data-imagepath');
+            pendingActionData = { name: cName, imagePath: imgP, elementId: a.id, fromHand: true };
+            openActionMenu(`カード「${cName}」の戻し先`, [
+                { label: "山札の一番上に戻す", value: "top" },
+                { label: "山札の一番下に戻す", value: "bottom" }
+            ], handleDeckReturnChoice);
+        }
     }
 }
-
-            if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
-                let cardObj = trashCards.pop();
-                pendingActionData = { name: cardObj.name, imagePath: cardObj.imagePath, elementId: null, fromHand: false };
-                updateTrashUI();
-                openActionMenu(`カード「${cardObj.name}」の戻し先`, [
-                    { label: "山札の一番上に戻す", value: "top" },
-                    { label: "山札の一番下に戻す", value: "bottom" }
-                ], handleDeckReturnChoice);
-                return;
-            }
-
-            if (dataText && dataText !== 'search-drag') {
-                let a = document.getElementById(dataText);
-                if (a) {
-                    let cName = a.getAttribute('data-cardname');
-                    let imgP = a.getAttribute('data-imagepath');
-                    pendingActionData = { name: cName, imagePath: imgP, elementId: a.id, fromHand: true };
-                    openActionMenu(`カード「${cName}」の戻し先`, [
-                        { label: "山札の一番上に戻す", value: "top" },
-                        { label: "山札の一番下に戻す", value: "bottom" }
-                    ], handleDeckReturnChoice);
-                }
-            }
-        }
 
             function onModalCardDragStart(ev, index) {
     // 1. ドラッグするカードのインデックスや識別データをセット
