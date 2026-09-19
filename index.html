@@ -2572,7 +2572,7 @@ function dimensionWarp() {
 // グローバル登録
 window.dimensionWarp = dimensionWarp;
 
-            // ★ ネクストタイム機能（BM-3のみの場合は使用不可）
+// ★ ネクストタイム機能（BM-3のみ使用不可 / 処理後に3枚ドロー）
 function nextTime() {
     let t = document.getElementById('handArea');
     if (!t) return;
@@ -2584,7 +2584,7 @@ function nextTime() {
 
     if (bm3Index === -1) {
         if (typeof showToast === 'function') {
-            showToast('手札にネクタイがありません');
+            showToast('手札に BM-3 がありません');
         }
         return;
     }
@@ -2592,10 +2592,10 @@ function nextTime() {
     // 2. 残りの手札カードを取得（BM-3以外のカード）
     let remainingCards = list.filter((_, index) => index !== bm3Index);
 
-    // ★追加条件：BM-3しか手札にない（残りの手札が0枚）場合は使用不可
+    // BM-3しか手札にない（残りの手札が0枚）場合は使用不可
     if (remainingCards.length === 0) {
         if (typeof showToast === 'function') {
-            showToast('手札にネクタイしかないため使用できません');
+            showToast('手札に BM-3 以外のカードがないため使用できません');
         }
         return;
     }
@@ -2615,7 +2615,6 @@ function nextTime() {
     }
 
     // 4. 残りの手札カードの処理（シャッフルして山札の下へ）
-    // カードのオブジェクト情報を抽出
     let remainingData = remainingCards.map(card => ({
         name: card.getAttribute('data-cardname'),
         imagePath: card.getAttribute('data-imagepath')
@@ -2635,13 +2634,32 @@ function nextTime() {
     // 残りの手札要素を画面から削除
     remainingCards.forEach(card => card.remove());
 
-    // 5. UI（山札枚数表示など）を更新
+    // ★ 5. 山札の上から3枚ドロー
+    let drawCount = 0;
+    for (let i = 0; i < 3; i++) {
+        if (typeof virtualDeck !== 'undefined' && virtualDeck.length > 0) {
+            const drawnCard = virtualDeck.shift(); // 山札の一番上から引く
+            if (typeof createGameCardToHand === 'function') {
+                createGameCardToHand(drawnCard.name, drawnCard.imagePath);
+            }
+            drawCount++;
+        } else {
+            break; // 山札がなくなったら打ち切り
+        }
+    }
+
+    // 6. UI（山札枚数表示など）を更新
     const deckCountEl = document.getElementById('deckCount');
     if (deckCountEl && typeof virtualDeck !== 'undefined') {
         deckCountEl.innerText = virtualDeck.length;
     }
     if (typeof updateDeckCount === 'function') {
         updateDeckCount();
+    }
+
+    // 通知メッセージ
+    if (typeof showToast === 'function') {
+        showToast(`BM-3をトラッシュし、残りの手札を山札の下に戻して${drawCount}枚ドローしました`);
     }
 }
 
