@@ -1184,23 +1184,37 @@ function startGame() {
         countSpan.style.pointerEvents = 'none';
         deckContainer.appendChild(countSpan);
 
-        // 3. 山札コンテナからのドラッグ操作を有効化
+        // 3. 山札コンテナからのドラッグ操作を有効化（各ドロップエリアの受け取り形式に互換対応）
         deckContainer.setAttribute('draggable', 'true');
         deckContainer.ondragstart = function(event) {
-            if (virtualDeck.length === 0) {
+            if (!virtualDeck || virtualDeck.length === 0) {
                 event.preventDefault();
                 return;
             }
+
             const topCard = virtualDeck[0];
             if (topCard) {
-                event.dataTransfer.setData('text/plain', JSON.stringify({
+                // 既存のドロップ処理で使われている各種キー名をカバーしてセット
+                const cardData = {
                     type: 'deck-draw',
+                    from: 'deck',
                     name: topCard.name,
-                    imagePath: topCard.imagePath
-                }));
+                    cardName: topCard.name,
+                    imagePath: topCard.imagePath,
+                    src: topCard.imagePath
+                };
+
+                // JSON文字列としてセット
+                event.dataTransfer.setData('text/plain', JSON.stringify(cardData));
+                event.dataTransfer.setData('application/json', JSON.stringify(cardData));
+                
+                // カード名単体や画像パス単体もフォールバック用にセット
+                event.dataTransfer.setData('cardName', topCard.name);
+                event.dataTransfer.setData('imagePath', topCard.imagePath);
             }
         };
     }
+    
     // 画面切り替え
     const menuScr = document.getElementById('menuScreen');
     if (menuScr) menuScr.style.display = 'none';
