@@ -1160,11 +1160,10 @@ function startGame() {
     // ★ 12. 山札（デッキ）エリアの画像と枚数カウントのUI更新
     const deckContainer = document.getElementById('deck') || document.querySelector('.deck-zone');
     if (deckContainer) {
-        // コンテナ内を初期化
         deckContainer.innerHTML = '';
         deckContainer.style.position = 'relative';
 
-        // 1. 裏面カード画像を配置（最初から表示・画像単体ドラッグによる画面ずれ防止）
+        // 1. 裏面カード画像を配置（最初から表示）
         const backImg = document.createElement('img');
         backImg.src = 'images/back.png';
         backImg.style.width = '100%';
@@ -1172,8 +1171,8 @@ function startGame() {
         backImg.style.objectFit = 'cover';
         backImg.style.borderRadius = '6px';
         backImg.style.display = 'block';
-        backImg.style.pointerEvents = 'none'; // 画像の標準ドラッグを無効化
-        backImg.onerror = function() { this.style.display = 'none'; }; // 画像がない場合のフォールバック
+        backImg.style.pointerEvents = 'none'; // 画像単体の標準ドラッグを無効化（画面ズレ防止）
+        backImg.onerror = function() { this.style.display = 'none'; }; // 画像パスエラー時の非表示処理
         deckContainer.appendChild(backImg);
 
         // 2. 枚数テキスト要素を配置
@@ -1190,56 +1189,35 @@ function startGame() {
         countSpan.style.pointerEvents = 'none';
         deckContainer.appendChild(countSpan);
 
-        // 3. コンテナ全体に元のドラッグイベント（dragStartDeck / dragEndDeck）を正しくセット
+        // 3. 元の山札ドラッグ関数（dragStartDeck / dragEndDeck）を安全に実行
         deckContainer.setAttribute('draggable', 'true');
-        deckContainer.ondragstart = function(ev) {
+        deckContainer.ondragstart = function(e) {
             if (typeof dragStartDeck === 'function') {
-                dragStartDeck(ev);
+                dragStartDeck(e);
             } else {
                 if (!virtualDeck || virtualDeck.length === 0) {
-                    ev.preventDefault();
+                    e.preventDefault();
                     return;
                 }
-                ev.dataTransfer.setData('text/plain', 'deck-zone-drag');
-                ev.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', 'deck-zone-drag');
+                e.dataTransfer.effectAllowed = 'move';
             }
         };
 
-        deckContainer.ondragend = function(ev) {
+        deckContainer.ondragend = function(e) {
             if (typeof dragEndDeck === 'function') {
-                dragEndDeck(ev);
+                dragEndDeck(e);
             }
         };
     }
 
-            const topCard = virtualDeck[0];
-            if (topCard) {
-                // 既存のドロップ処理で使われている各種キー名をカバーしてセット
-                const cardData = {
-                    type: 'deck-draw',
-                    from: 'deck',
-                    name: topCard.name,
-                    cardName: topCard.name,
-                    imagePath: topCard.imagePath,
-                    src: topCard.imagePath
-                };
-
-                // JSON文字列としてセット
-                event.dataTransfer.setData('text/plain', JSON.stringify(cardData));
-                event.dataTransfer.setData('application/json', JSON.stringify(cardData));
-                
-                // カード名単体や画像パス単体もフォールバック用にセット
-                event.dataTransfer.setData('cardName', topCard.name);
-                event.dataTransfer.setData('imagePath', topCard.imagePath);
-            }
-        };
-    
-    // 画面切り替え
+    // ★ 画面切り替え（ゲーム開始）
     const menuScr = document.getElementById('menuScreen');
     if (menuScr) menuScr.style.display = 'none';
+
     const gameScr = document.getElementById('gameScreen');
     if (gameScr) gameScr.style.display = 'flex';
-
+    
             // 自動消滅トースト表示関数
 function showToast(text) {
     let toast = document.getElementById('toastMessage');
