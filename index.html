@@ -1924,8 +1924,6 @@ function confirmDeckReturn(position) {
             return;
         }
     }
-            
-    let dataText = ev.dataTransfer.getData('text/plain');
 
     // 山札からのドラッグ＆ドロップを追加
     if (dataText === 'deck-zone-drag' && virtualDeck && virtualDeck.length > 0) {
