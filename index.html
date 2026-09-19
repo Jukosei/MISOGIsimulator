@@ -803,6 +803,7 @@
         <div class="control-panel">
             <button class="control-btn" onclick="shuffleDeckBtn()">山札シャッフル</button>
             <button class="control-btn" onclick="openSearchModal('deck')">山札からサーチ</button>
+            <button class="control-btn" onclick="shuffleVolNoise()">VOLノイズシャッフル</button>
             <button class="control-btn" onclick="openSearchModal('noise')">VOLノイズからサーチ</button>
             <button class="control-btn" onclick="trashAllHandBtn()">手札を全てトラッシュ</button>
             <button class="control-btn" onclick="mulliganBtn()">マリガン</button>
@@ -2068,6 +2069,35 @@ function closeVolNoiseModal() {
     showToast('SHUFFLE');
 }
 
+            // ★ VOLノイズのカードをシャッフルする処理
+function shuffleVolNoise() {
+    const volContainer = document.getElementById('volNoiseArea') || document.querySelector('.vol-noise-zone') || document.getElementById('volArea');
+    
+    // グローバル配列（volCards 等）が存在する場合は配列をシャッフル
+    if (typeof volCards !== 'undefined' && Array.isArray(volCards) && volCards.length > 1) {
+        for (let i = volCards.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [volCards[i], volCards[j]] = [volCards[j], volCards[i]];
+        }
+    }
+
+    // DOM要素（画面上のカード要素）をシャッフルして再配置
+    if (volContainer) {
+        const cards = Array.from(volContainer.children);
+        if (cards.length > 1) {
+            // ダッフルアルゴリズムで要素をランダム順に並び替え
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                volContainer.appendChild(cards[j]);
+            }
+        }
+    }
+
+    if (typeof showToast === 'function') {
+        showToast('VOLノイズをシャッフルしました');
+    }
+}
+
         function trashAllHandBtn() {
             let t = document.getElementById('handArea');
             if (t.children.length === 0) return alert('手札がありません。');
@@ -2750,6 +2780,7 @@ if (typeof mulliganBtn === 'function') {
     window.mulligan = mulligan;
 }
 if (typeof drawBottomCard === 'function') window.drawBottomCard = drawBottomCard;
+if (typeof shuffleVolNoise === 'function') window.shuffleVolNoise = shuffleVolNoise;
     
 </script>
 </body>
