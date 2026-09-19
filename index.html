@@ -2509,6 +2509,66 @@ function executeResetGame() {
         btn.style.backgroundColor = '#ffa500';
     }
 }
+
+            // ★ ディメンションワープ機能
+function dimensionWarp() {
+    let t = document.getElementById('handArea');
+    if (!t) return;
+
+    let list = Array.from(t.children);
+
+    // 1. 手札に「AM-1」があるか確認
+    const hasAM1 = list.some(card => card.getAttribute('data-cardname') === 'AM-1');
+
+    if (!hasAM1) {
+        if (typeof showToast === 'function') {
+            showToast('手札にワープがありません');
+        }
+        return;
+    }
+
+    // 2. 手札をすべてトラッシュへ移動（trashAllHandBtn と同様の処理）
+    list.forEach(a => {
+        if (typeof trashCards !== 'undefined') {
+            trashCards.push({
+                name: a.getAttribute('data-cardname'),
+                imagePath: a.getAttribute('data-imagepath')
+            });
+        }
+        a.remove();
+    });
+
+    if (typeof updateTrashUI === 'function') {
+        updateTrashUI();
+    }
+
+    // 3. 山札の上から5枚ドロー
+    let drawCount = 0;
+    for (let i = 0; i < 5; i++) {
+        // 山札が存在し、カードが残っているか確認
+        if (typeof virtualDeck !== 'undefined' && virtualDeck.length > 0) {
+            const drawnCard = virtualDeck.shift(); // 山札の上から1枚引き出す
+            if (typeof createGameCardToHand === 'function') {
+                createGameCardToHand(drawnCard.name, drawnCard.imagePath);
+            }
+            drawCount++;
+        } else {
+            break; // 山札が尽きたら終了
+        }
+    }
+
+    // 山札枚数表示の更新
+    const deckCountEl = document.getElementById('deckCount');
+    if (deckCountEl && typeof virtualDeck !== 'undefined') {
+        deckCountEl.innerText = virtualDeck.length;
+    }
+    if (typeof updateDeckCount === 'function') {
+        updateDeckCount();
+    }
+}
+
+// グローバル登録
+window.dimensionWarp = dimensionWarp;
             
         function openSearchModal(t) {
             currentSearchType = t;
