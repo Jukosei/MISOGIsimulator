@@ -818,6 +818,7 @@
             <button class="control-btn" onclick="drawBottomCard()">山札の下から1枚ドロー</button>
             <button class="control-btn" onclick="openDeckViewModal()">山札の上を見る</button>
             <button class="control-btn" onclick="dimensionWarp()">ディメンションワープ</button>
+            <button class="control-btn" onclick="nextTime()">ネクストタイム</button>
             <button class="control-btn gray" style="margin-top:10px;" onclick="backToMenu()">メニュー戻る</button>
 
             <!-- 山札確認用モーダル -->
@@ -2570,6 +2571,82 @@ function dimensionWarp() {
 
 // グローバル登録
 window.dimensionWarp = dimensionWarp;
+
+            // ★ ネクストタイム機能（BM-3のみの場合は使用不可）
+function nextTime() {
+    let t = document.getElementById('handArea');
+    if (!t) return;
+
+    let list = Array.from(t.children);
+
+    // 1. 手札に「BM-3」があるか確認
+    const bm3Index = list.findIndex(card => card.getAttribute('data-cardname') === 'BM-3');
+
+    if (bm3Index === -1) {
+        if (typeof showToast === 'function') {
+            showToast('手札にネクタイがありません');
+        }
+        return;
+    }
+
+    // 2. 残りの手札カードを取得（BM-3以外のカード）
+    let remainingCards = list.filter((_, index) => index !== bm3Index);
+
+    // ★追加条件：BM-3しか手札にない（残りの手札が0枚）場合は使用不可
+    if (remainingCards.length === 0) {
+        if (typeof showToast === 'function') {
+            showToast('手札にネクタイしかないため使用できません');
+        }
+        return;
+    }
+
+    // 3. BM-3 のみを1枚指定してトラッシュへ送る
+    const bm3Card = list[bm3Index];
+    if (typeof trashCards !== 'undefined') {
+        trashCards.push({
+            name: bm3Card.getAttribute('data-cardname'),
+            imagePath: bm3Card.getAttribute('data-imagepath')
+        });
+    }
+    bm3Card.remove(); // 画面から削除
+
+    if (typeof updateTrashUI === 'function') {
+        updateTrashUI();
+    }
+
+    // 4. 残りの手札カードの処理（シャッフルして山札の下へ）
+    // カードのオブジェクト情報を抽出
+    let remainingData = remainingCards.map(card => ({
+        name: card.getAttribute('data-cardname'),
+        imagePath: card.getAttribute('data-imagepath')
+    }));
+
+    // フィッシャー–イェーツ法でランダムシャッフル
+    for (let i = remainingData.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [remainingData[i], remainingData[j]] = [remainingData[j], remainingData[i]];
+    }
+
+    // シャッフルしたカードを山札の一番下（ボトム＝配列の末尾）へ追加
+    if (typeof virtualDeck !== 'undefined') {
+        virtualDeck.push(...remainingData);
+    }
+
+    // 残りの手札要素を画面から削除
+    remainingCards.forEach(card => card.remove());
+
+    // 5. UI（山札枚数表示など）を更新
+    const deckCountEl = document.getElementById('deckCount');
+    if (deckCountEl && typeof virtualDeck !== 'undefined') {
+        deckCountEl.innerText = virtualDeck.length;
+    }
+    if (typeof updateDeckCount === 'function') {
+        updateDeckCount();
+    }
+}
+
+// グローバル登録
+window.nextTime = nextTime;
             
         function openSearchModal(t) {
             currentSearchType = t;
