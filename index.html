@@ -809,6 +809,7 @@
             <button class="control-btn" onclick="openSearchModal('deck')">山札からサーチ</button>
             <button class="control-btn" onclick="shuffleVolNoise()">VOLノイズシャッフル</button>
             <button class="control-btn" onclick="openSearchModal('noise')">VOLノイズからサーチ</button>
+            <button class="control-btn" onclick="randomHandDiscard()">ランダムハンデス</button>
             <button class="control-btn" onclick="trashAllHandBtn()">手札を全てトラッシュ</button>
             <button class="control-btn" onclick="mulliganBtn()">マリガン</button>
             <button class="control-btn" onclick="resetGameBtn()">リセット</button>
@@ -2311,6 +2312,35 @@ function shuffleVolNoise() {
             });
             updateTrashUI();
         }
+
+            // ★ ランダムハンデス機能
+function randomHandDiscard() {
+    // 手札の要素（カード）を取得
+    const handContainer = document.getElementById('handContainer') || document.querySelector('.hand-area'); // 手札エリアのID/クラス名
+    if (!handContainer) return;
+
+    // 手札内のカード要素を取得
+    const cards = handContainer.querySelectorAll('.card'); // 手札カードの要素指定
+    if (cards.length === 0) {
+        if (typeof showToast === 'function') showToast('手札にカードがありません');
+        return;
+    }
+
+    // ランダムに1枚選択
+    const randomIndex = Math.floor(Math.random() * cards.length);
+    const targetCard = cards[randomIndex];
+
+    // トラッシュ（破棄）エリアへ移動
+    const trashContainer = document.getElementById('trashContainer') || document.querySelector('.trash-area');
+    if (trashContainer) {
+        trashContainer.appendChild(targetCard);
+    } else {
+        targetCard.remove(); // トラッシュエリアが見つからない場合は削除
+    }
+}
+
+// ボタンから確実に呼び出せるようにグローバル登録
+window.randomHandDiscard = randomHandDiscard;
 
         function mulliganBtn() {
     let t = document.getElementById('handArea');
