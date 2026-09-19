@@ -1149,23 +1149,28 @@ function startGame() {
     // ★ 12. 山札（デッキ）エリアの画像と枚数カウントのUI更新
     const deckContainer = document.getElementById('deck') || document.querySelector('.deck-zone');
     if (deckContainer) {
-        // コンテナ自体のドラッグを無効化（画面全体が動くのを防止）
-        deckContainer.setAttribute('draggable', 'false');
-        deckContainer.style.position = 'relative';
         deckContainer.innerHTML = '';
+        deckContainer.style.position = 'relative';
 
-        // 裏面画像を直接要素として挿入（最初から表示させる）
+        // 1. 裏面カード画像を配置
         const backImg = document.createElement('img');
-        backImg.src = 'images/back.png';
+        // パスが合っているか確認（プロジェクト内の裏面画像ファイル名に合わせて調整してください）
+        backImg.src = 'images/card_back.png';
         backImg.style.width = '100%';
         backImg.style.height = '100%';
         backImg.style.objectFit = 'cover';
         backImg.style.borderRadius = '6px';
         backImg.style.display = 'block';
-        backImg.setAttribute('draggable', 'false'); // 画像自体のブラウザデフォルトドラッグを禁止
+        backImg.style.pointerEvents = 'none';
+
+        // ★ 画像読み込みエラー時のフォールバック処理（破損アイコンを表示させない）
+        backImg.onerror = function() {
+            this.style.display = 'none'; // 画像が見つからない場合は非表示にして枠のみにする
+        };
+
         deckContainer.appendChild(backImg);
 
-        // 枚数テキスト要素を配置
+        // 2. 枚数テキスト要素を配置
         const countSpan = document.createElement('span');
         countSpan.id = 'deckCount';
         countSpan.innerText = virtualDeck.length;
@@ -1178,8 +1183,24 @@ function startGame() {
         countSpan.style.color = '#fff';
         countSpan.style.pointerEvents = 'none';
         deckContainer.appendChild(countSpan);
-    }
 
+        // 3. 山札コンテナからのドラッグ操作を有効化
+        deckContainer.setAttribute('draggable', 'true');
+        deckContainer.ondragstart = function(event) {
+            if (virtualDeck.length === 0) {
+                event.preventDefault();
+                return;
+            }
+            const topCard = virtualDeck[0];
+            if (topCard) {
+                event.dataTransfer.setData('text/plain', JSON.stringify({
+                    type: 'deck-draw',
+                    name: topCard.name,
+                    imagePath: topCard.imagePath
+                }));
+            }
+        };
+    }
     // 画面切り替え
     const menuScr = document.getElementById('menuScreen');
     if (menuScr) menuScr.style.display = 'none';
