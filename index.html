@@ -811,7 +811,26 @@
             <button id="turnBtn" class="control-btn orange" onclick="handleTurnBtnClick()">ターンエンド</button>
             <button class="control-btn" onclick="rollDice()">ダイスを振る</button>
             <button class="control-btn" onclick="drawBottomCard()">山札の下から1枚ドロー</button>
+            <button class="control-btn" onclick="openDeckViewModal()">山札の上を見る</button>
             <button class="control-btn gray" style="margin-top:10px;" onclick="backToMenu()">メニュー戻る</button>
+
+<!-- 山札確認用モーダル要素（</body>の直前などに追加） -->
+<div id="deckViewModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: #222; padding: 20px; border-radius: 8px; width: 80%; max-width: 800px; text-align: center; color: #fff;">
+        <h3>山札確認エリア</h3>
+        <p style="font-size: 0.9em; color: #ccc;">山札をクリックすると、1枚ずつここに展開されます</p>
+        
+        <!-- 展開されたカードを表示するコンテナ -->
+        <div id="deckViewContainer" style="display: flex; gap: 10px; flex-wrap: wrap; min-height: 150px; border: 2px dashed #555; padding: 10px; margin: 15px 0; justify-content: center; align-items: center;"></div>
+        
+        <!-- 返却操作ボタン群 -->
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+            <button class="control-btn" onclick="closeDeckView('shuffle')">山札に戻してシャッフル</button>
+            <button class="control-btn" onclick="closeDeckView('bottom')">山札の下に戻す</button>
+            <button class="control-btn" onclick="closeDeckView('shuffleBottom')">シャッフルしてボトムへ</button>
+        </div>
+    </div>
+</div>
 
            <div class="deck-zone" draggable="true" id="deckZone" onclick="drawCard()" ondragstart="dragStartDeck(event)" ondragend="dragEndDeck(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDeck(event)">
     <div class="count-display" id="deckCount">0</div>
@@ -1604,6 +1623,15 @@ function dragEndDeck(ev) {
 function dropToDeck(ev) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
+
+    // ドロップ処理内での受け取りハンドリング例
+if (data && data.type === 'deck-view-card') {
+    if (data.viewIndex !== undefined) {
+        deckViewCards.splice(data.viewIndex, 1);
+        renderDeckViewCards(); // モーダル側を再描画
+    }
+}
+    
     let dataText = ev.dataTransfer.getData('text/plain') || ev.dataTransfer.getData('text');
 
     // 自分自身へのドロップは無視
@@ -1689,6 +1717,14 @@ function confirmDeckReturn(position) {
     ev.currentTarget.classList.remove('drag-over');
     let dataText = ev.dataTransfer.getData('text/plain');
 
+            // ドロップ処理内での受け取りハンドリング例
+if (data && data.type === 'deck-view-card') {
+    if (data.viewIndex !== undefined) {
+        deckViewCards.splice(data.viewIndex, 1);
+        renderDeckViewCards(); // モーダル側を再描画
+    }
+}
+
     // レイヤー2（黄色ゾーン）なら回転付与、それ以外なら回転解除する補助関数
     const updateCardRotation = (cardEl) => {
         if (!cardEl) return;
@@ -1753,6 +1789,14 @@ function confirmDeckReturn(position) {
 
     let dataText = ev.dataTransfer.getData('text/plain');
 
+            // ドロップ処理内での受け取りハンドリング例
+if (data && data.type === 'deck-view-card') {
+    if (data.viewIndex !== undefined) {
+        deckViewCards.splice(data.viewIndex, 1);
+        renderDeckViewCards(); // モーダル側を再描画
+    }
+}
+            
     // 1. サーチ・トラッシュモーダルからのドラッグ処理
     if (dataText === 'search-drag') {
         let rawIdx = ev.dataTransfer.getData('search-index');
@@ -1827,6 +1871,15 @@ function confirmDeckReturn(position) {
         function dropToHand(ev) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
+
+            // ドロップ処理内での受け取りハンドリング例
+if (data && data.type === 'deck-view-card') {
+    if (data.viewIndex !== undefined) {
+        deckViewCards.splice(data.viewIndex, 1);
+        renderDeckViewCards(); // モーダル側を再描画
+    }
+}
+            
     let dataText = ev.dataTransfer.getData('text/plain');
 
     // 山札からのドラッグ＆ドロップを追加
@@ -1872,6 +1925,15 @@ function confirmDeckReturn(position) {
 function dropToTrash(ev) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
+
+    // ドロップ処理内での受け取りハンドリング例
+if (data && data.type === 'deck-view-card') {
+    if (data.viewIndex !== undefined) {
+        deckViewCards.splice(data.viewIndex, 1);
+        renderDeckViewCards(); // モーダル側を再描画
+    }
+}
+    
     let dataText = ev.dataTransfer.getData('text/plain');
 
     // 山札からのドラッグ判定
@@ -1896,6 +1958,14 @@ function dropToTrash(ev) {
 function dropToVolNoise(ev) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
+
+    // ドロップ処理内での受け取りハンドリング例
+if (data && data.type === 'deck-view-card') {
+    if (data.viewIndex !== undefined) {
+        deckViewCards.splice(data.viewIndex, 1);
+        renderDeckViewCards(); // モーダル側を再描画
+    }
+}
 
     // 配列の存在確認と枚数チェック（5枚以上なら中断）
     if (!volNoiseCards) volNoiseCards = [];
@@ -1934,6 +2004,14 @@ function dropToVolNoise(ev) {
             ev.preventDefault();
             ev.currentTarget.classList.remove('drag-over');
             let dataText = ev.dataTransfer.getData('text/plain');
+
+            // ドロップ処理内での受け取りハンドリング例
+if (data && data.type === 'deck-view-card') {
+    if (data.viewIndex !== undefined) {
+        deckViewCards.splice(data.viewIndex, 1);
+        renderDeckViewCards(); // モーダル側を再描画
+    }
+}
 
             if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
                 let cardObj = trashCards.pop();
@@ -2051,14 +2129,22 @@ function closeVolNoiseModal() {
 }
             
         function drawCard() {
-            if (virtualDeck.length > 0) {
-                let t = virtualDeck.shift();
-                document.getElementById('deckCount').innerText = virtualDeck.length;
-                createGameCardToHand(t.name, t.imagePath);
-            } else {
-                alert('山札がなくなりました！');
-            }
+    // モーダル表示中は山札からの通常ドローを禁止し、モーダルへ追加
+    if (typeof isDeckViewOpen !== 'undefined' && isDeckViewOpen) {
+        if (typeof peekDeckToModal === 'function') {
+            peekDeckToModal();
         }
+        return;
+    }
+
+    if (virtualDeck.length > 0) {
+        let t = virtualDeck.shift();
+        document.getElementById('deckCount').innerText = virtualDeck.length;
+        createGameCardToHand(t.name, t.imagePath);
+    } else {
+        alert('山札がなくなりました！');
+    }
+}
 
         function shuffleDeckBtn() {
     if (virtualDeck.length === 0) return showToast('山札が空です');
@@ -2731,6 +2817,112 @@ function drawBottomCard() {
         }
         return;
     }
+
+    // モーダル管理用配列・状態フラグ
+let deckViewCards = [];
+let isDeckViewOpen = false;
+
+// ★ 1. モーダルを開く
+function openDeckViewModal() {
+    isDeckViewOpen = true;
+    deckViewCards = [];
+    const container = document.getElementById('deckViewContainer');
+    if (container) container.innerHTML = '';
+    
+    const modal = document.getElementById('deckViewModal');
+    if (modal) modal.style.display = 'flex';
+    
+    if (typeof showToast === 'function') showToast('山札をクリックしてカードをめくってください');
+}
+
+// ★ 2. 山札クリック時にモーダルへ1枚追加
+// (既存の drawCard や clickDeck イベントの先頭に本チェックを追加してください)
+function peekDeckToModal() {
+    if (!isDeckViewOpen) return false;
+    if (!virtualDeck || virtualDeck.length === 0) {
+        if (typeof showToast === 'function') showToast('山札にカードがありません');
+        return true;
+    }
+
+    // 山札の先頭から1枚取得してモーダル用配列へ追加
+    const card = virtualDeck.shift();
+    deckViewCards.push(card);
+
+    // UI更新（山札カウント）
+    const deckCountEl = document.getElementById('deckCount');
+    if (deckCountEl) deckCountEl.innerText = virtualDeck.length;
+
+    // モーダル内へ描画
+    renderDeckViewCards();
+    return true;
+}
+
+// モーダル内のカード描画（ドラッグ＆ドロップ対応）
+function renderDeckViewCards() {
+    const container = document.getElementById('deckViewContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    deckViewCards.forEach((card, index) => {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'card';
+        cardEl.style.width = '100px';
+        cardEl.style.height = '140px';
+        cardEl.style.backgroundImage = `url('${card.imagePath}')`;
+        cardEl.style.backgroundSize = 'cover';
+        cardEl.style.borderRadius = '6px';
+        cardEl.setAttribute('draggable', 'true');
+
+        // ドラッグ開始時に情報をセット（移動時にモーダルから削除できるようindexも保持）
+        cardEl.ondragstart = function(ev) {
+            const cardData = {
+                type: 'deck-view-card',
+                name: card.name,
+                cardName: card.name,
+                imagePath: card.imagePath,
+                src: card.imagePath,
+                viewIndex: index
+            };
+            ev.dataTransfer.setData('text/plain', JSON.stringify(cardData));
+            ev.dataTransfer.setData('application/json', JSON.stringify(cardData));
+        };
+
+        container.appendChild(cardEl);
+    });
+}
+
+// ★ 3. 処理完了時のモーダルクローズ & 返却操作
+function closeDeckView(actionType) {
+    if (deckViewCards.length > 0) {
+        if (actionType === 'shuffle') {
+            // 残りを山札に戻して全体シャッフル
+            virtualDeck.push(...deckViewCards);
+            if (typeof shuffleDeckBtn === 'function') shuffleDeckBtn();
+        } else if (actionType === 'bottom') {
+            // そのまま山札の末尾（ボトム）へ戻す
+            virtualDeck.push(...deckViewCards);
+        } else if (actionType === 'shuffleBottom') {
+            // 残ったカード内だけでシャッフルしてからボトムへ追加
+            for (let i = deckViewCards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deckViewCards[i], deckViewCards[j]] = [deckViewCards[j], deckViewCards[i]];
+            }
+            virtualDeck.push(...deckViewCards);
+        }
+    }
+
+    deckViewCards = [];
+    isDeckViewOpen = false;
+
+    // 表示更新とモーダル非表示
+    const deckCountEl = document.getElementById('deckCount');
+    if (deckCountEl) deckCountEl.innerText = virtualDeck.length;
+    
+    const modal = document.getElementById('deckViewModal');
+    if (modal) modal.style.display = 'none';
+
+    if (typeof showToast === 'function') showToast('確認完了処理を実行しました');
+}
 
     // 配列の末尾（山札の一番下）から1枚取得して取り除く
     const bottomCard = virtualDeck.pop();
