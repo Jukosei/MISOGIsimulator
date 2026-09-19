@@ -1211,12 +1211,13 @@ function startGame() {
         };
     }
 
-    // ★ 画面切り替え（ゲーム開始）
+    // ★ 画面切り替え（ゲーム開始）- startGame 関数の内部に配置
     const menuScr = document.getElementById('menuScreen');
     if (menuScr) menuScr.style.display = 'none';
 
     const gameScr = document.getElementById('gameScreen');
     if (gameScr) gameScr.style.display = 'flex';
+} // ← startGame 関数の閉じ波括弧はここに配置します
     
             // 自動消滅トースト表示関数
 function showToast(text) {
