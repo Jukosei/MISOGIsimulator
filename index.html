@@ -2313,29 +2313,43 @@ function shuffleVolNoise() {
             updateTrashUI();
         }
 
-            // ★ ランダムハンデス機能
+           // ★ ランダムハンデス機能
 function randomHandDiscard() {
-    // 手札の要素（カード）を取得
-    const handContainer = document.getElementById('handContainer') || document.querySelector('.hand-area'); // 手札エリアのID/クラス名
-    if (!handContainer) return;
+    let t = document.getElementById('handArea');
+    if (!t) return;
 
-    // 手札内のカード要素を取得
-    const cards = handContainer.querySelectorAll('.card'); // 手札カードの要素指定
-    if (cards.length === 0) {
-        if (typeof showToast === 'function') showToast('手札にカードがありません');
+    let list = Array.from(t.children);
+
+    if (list.length === 0) {
+        if (typeof showToast === 'function') {
+            showToast('手札にカードがありません');
+        }
         return;
     }
 
     // ランダムに1枚選択
-    const randomIndex = Math.floor(Math.random() * cards.length);
-    const targetCard = cards[randomIndex];
+    const randomIndex = Math.floor(Math.random() * list.length);
+    const targetCard = list[randomIndex];
 
-    // トラッシュ（破棄）エリアへ移動
-    const trashContainer = document.getElementById('trashContainer') || document.querySelector('.trash-area');
-    if (trashContainer) {
-        trashContainer.appendChild(targetCard);
-    } else {
-        targetCard.remove(); // トラッシュエリアが見つからない場合は削除
+    // カードの情報を取得してトラッシュ配列に追加
+    const cardName = targetCard.getAttribute('data-cardname');
+    const imagePath = targetCard.getAttribute('data-imagepath');
+
+    if (typeof trashCards !== 'undefined') {
+        trashCards.push({ name: cardName, imagePath: imagePath });
+    }
+
+    // 手札（画面）から削除
+    targetCard.remove();
+
+    // トラッシュの表示・枚数を更新
+    if (typeof updateTrashUI === 'function') {
+        updateTrashUI();
+    }
+
+    // 通知メッセージ
+    if (typeof showToast === 'function') {
+        showToast('手札からランダムに1枚破棄しました');
     }
 }
 
