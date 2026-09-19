@@ -1150,13 +1150,6 @@ function startGame() {
         updateDeckCount();
     }
 
-    // 画面切り替え
-    const menuScr = document.getElementById('menuScreen');
-    if (menuScr) menuScr.style.display = 'none';
-    const gameScr = document.getElementById('gameScreen');
-    if (gameScr) gameScr.style.display = 'flex';
-}
-
             // ★ 山札の裏面画像を確実にセット・表示
     const deckEl = document.getElementById('deck') || document.querySelector('.deck-zone') || document.querySelector('[class*="deck"]');
     if (deckEl) {
