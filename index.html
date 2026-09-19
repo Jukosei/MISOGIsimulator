@@ -988,13 +988,24 @@ function selectMode(mode) {
         if (areaPlayer2) areaPlayer2.style.display = 'block';
     }
 }
-            // selectMode 関数の定義が終わる直後に追加
             window.onload = function() {
-    // デフォルトを1人プレイモード(1)に設定
-    selectMode(parseInt(localStorage.getItem('misogi_mode')) || 1);
-    setupTrashAreaEvents();
+    // 初期状態は確実にメニューを表示し、ゲーム画面を非表示にする
+    const gameScr = document.getElementById('gameScreen');
+    if (gameScr) gameScr.style.display = 'none';
+
+    const menuScr = document.getElementById('menuScreen');
+    if (menuScr) {
+        menuScr.style.flexDirection = 'column';
+        menuScr.style.display = 'flex';
+    }
+
+    if (typeof selectMode === 'function') {
+        selectMode(parseInt(localStorage.getItem('misogi_mode')) || 1);
+    }
+    if (typeof setupTrashAreaEvents === 'function') {
+        setupTrashAreaEvents();
+    }
 };
-window.selectMode = selectMode;
 
             // --- デッキコードの保存と読み込み機能 ---
 
@@ -2471,11 +2482,22 @@ function executeResetGame() {
         }
 
         function backToMenu() {
-            document.getElementById('gameScreen').style.display = 'none';
-            document.getElementById('menuScreen').style.flexDirection = 'column';
-            document.getElementById('menuScreen').style.display = 'flex';
-        }
+    // 盤面状態のリセット処理が存在すれば実行
+    if (typeof executeResetGame === 'function') {
+        executeResetGame();
+    }
 
+    // 画面の切り替え
+    const gameScr = document.getElementById('gameScreen');
+    if (gameScr) gameScr.style.display = 'none';
+
+    const menuScr = document.getElementById('menuScreen');
+    if (menuScr) {
+        menuScr.style.flexDirection = 'column';
+        menuScr.style.display = 'flex';
+    }
+}
+            
         function changeCounter(t, e) {
     // 1. タイプごとの最大値を定義
     const maxLimits = { vol: 10, alpha: 5, beta: 5, omega: 5 };
