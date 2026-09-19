@@ -2914,29 +2914,23 @@ function rollDice() {
 }
             
         function drawBottomCard() {
-    // 1. モーダル表示中、または確認中の場合は警告を出して処理を中断（事故防止）
-    if ((typeof isDeckViewOpen !== 'undefined' && isDeckViewOpen) || (typeof deckViewCards !== 'undefined' && deckViewCards.length > 0)) {
-        if (typeof showToast === 'function') {
-            showToast('山札の確認中はボトムドローできません');
-        return;
-    }
-
-    // 2. 山札が空でないか確認
+    // 1. 山札が空でないか確認
     if (!virtualDeck || virtualDeck.length === 0) {
         if (typeof showToast === 'function') {
             showToast('山札にカードがありません');
+        }
         return;
     }
 
-    // 3. 配列の末尾（山札の一番下）から1枚取り出す
+    // 2. 配列の末尾（山札の一番下）から1枚取り出す
     const bottomCard = virtualDeck.pop();
 
-    // 4. 手札へ追加
+    // 3. 手札へ追加
     if (typeof createGameCardToHand === 'function') {
         createGameCardToHand(bottomCard.name, bottomCard.imagePath);
     }
 
-    // 5. 山札枚数表示（UI）を更新
+    // 4. 山札枚数表示（UI）を更新
     const deckCountEl = document.getElementById('deckCount');
     if (deckCountEl) {
         deckCountEl.innerText = virtualDeck.length;
@@ -2944,9 +2938,11 @@ function rollDice() {
     if (typeof updateDeckCount === 'function') {
         updateDeckCount();
     }
-}
+
+    if (typeof showToast === 'function') {
+        showToast('山札の一番下から1枚引きました');
     }
-        }
+}
             
             // モーダル管理用配列・状態フラグ
 let deckViewCards = [];
