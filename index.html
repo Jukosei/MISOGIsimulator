@@ -1940,21 +1940,18 @@ function confirmDeckReturn(position) {
             
         function dropToSpecificFrame(ev, colIndex, layerNum) {
     ev.preventDefault();
-    ev.stopPropagation();
     ev.currentTarget.classList.remove('drag-over');
+
     let dataText = ev.dataTransfer.getData('text/plain');
+    let jsonText = ev.dataTransfer.getData('application/json');
+    let data = null;
 
-    // レイヤー2（黄色ゾーン）なら回転付与、それ以外なら回転解除する補助関数
-    const updateCardRotation = (cardEl) => {
-        if (!cardEl) return;
-        if (layerNum === 2) {
-            cardEl.classList.add('card-rotate-horizontal'); // 黄色ゾーンに置かれたら最初から横向き
-        } else {
-            cardEl.classList.remove('card-rotate-horizontal'); // それ以外は縦向き
-        }
-    };
+    try {
+        if (jsonText) data = JSON.parse(jsonText);
+        else if (dataText && dataText.startsWith('{')) data = JSON.parse(dataText);
+    } catch (e) {}
 
-    // カードの型（M, A, S）を判定する補助関数
+    // カードの型 (M, A, S) 判定補助関数
     const isValidCardType = (cardInput) => {
         if (!cardInput) return false;
 
@@ -1965,10 +1962,7 @@ function confirmDeckReturn(position) {
             codeStr = cardInput.suffix || cardInput.name || cardInput.code || '';
         }
 
-        // ハイフンより前の文字列を取り出す (例: "AM-1" -> "AM", "HA-2" -> "HA")
         const prefixGroup = codeStr.trim().split('-')[0].toUpperCase();
-        
-        // ハイフン前の「一番最後の文字」をカード種別(M, A, S)として取得 (例: "AM" -> "M", "HA" -> "A")
         const cardType = prefixGroup.charAt(prefixGroup.length - 1);
 
         console.log("判定対象:", cardInput, "種別判定:", cardType, "対象レイヤー:", layerNum);
@@ -1979,64 +1973,77 @@ function confirmDeckReturn(position) {
         return true;
     };
 
-    // 1. サーチからのドラッグドロップ
+    // レイヤー2（Aゾーン）の場合のみ回転クラスを管理
+    const updateCardRotation = (cardEl) => {
+        if (!cardEl) return;
+        if (layerNum === 2) {
+            cardEl.classList.add('card-rotate-horizontal');
+        } else {
+            cardEl.classList.remove('card-rotate-horizontal');
+        }
+    };
+
+    // 1. サーチモーダルからのドラッグ
     if (dataText === 'search-drag') {
         let idx = parseInt(ev.dataTransfer.getData('search-index'));
-        let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
+        let targetList = (currentSearchType === 'deck') 
+            ? virtualDeck 
+            : ((currentSearchType === 'noise') ? volNoiseCards : trashCards);
+
         let cardObj = targetList[idx];
 
-        // 型判定チェック (不適合なら配置せず中断)
-        if (cardObj && !isValidCardType(cardObj)) {
-            return;
-        }
-
-        cardObj = targetList.splice(idx, 1)[0];
-        createGameCardToHand(cardObj.name, cardObj.imagePath);
-        let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-        if (genCard) {
-            updateCardRotation(genCard);
-            executeCardPlacement(genCard, ev.currentTarget, layerNum);
-        }
-        updateDeckUI();
-        updateVolNoiseUI();
-        updateTrashUI();
-        renderSearchList();
-        return;
-    }
-
-    // 2. トラッシュエリアからのドラッグドロップ
-    if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
-        let cardObj = trashCards[trashCards.length - 1]; // 末尾要素を確認
-
-        // 型判定チェック
-        if (cardObj && !isValidCardType(cardObj)) {
-            return;
-        }
-
-        cardObj = trashCards.pop();
-        createGameCardToHand(cardObj.name, cardObj.imagePath);
-        let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-        if (genCard) {
-            updateCardRotation(genCard);
-            executeCardPlacement(genCard, ev.currentTarget, layerNum);
-        }
-        updateTrashUI();
-        return;
-    }
-
-    // 3. 盤面・手札からのドラッグドロップ (既存要素の移動)
-    if (dataText) {
-        let r = document.getElementById(dataText);
-        if (r) {
-            let cardName = r.getAttribute('data-cardname') || r.getAttribute('data-cardcode') || r.innerText || '';
-
-            // 型判定チェック (不適合なら配置せず元の場所/手札に戻す)
-            if (!isValidCardType(cardName)) {
-                return; // 移動処理をキャンセル
+        if (cardObj && isValidCardType(cardObj)) {
+            cardObj = targetList.splice(idx, 1)[0];
+            if (typeof createGameCardToHand === 'function') {
+                createGameCardToHand(cardObj.name, cardObj.imagePath);
             }
 
-            updateCardRotation(r);
-            executeCardPlacement(r, ev.currentTarget, layerNum);
+            let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
+            if (genCard) {
+                updateCardRotation(genCard);
+                ev.currentTarget.appendChild(genCard);
+            }
+
+            if (document.getElementById('deckCount')) document.getElementById('deckCount').innerText = virtualDeck.length;
+            if (document.getElementById('volNoiseCount')) document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+            if (typeof updateTrashUI === 'function') updateTrashUI();
+            if (typeof renderSearchList === 'function') renderSearchList();
+        }
+        return;
+    }
+
+    // 2. トラッシュアイコンからのドラッグ
+    if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
+        let cardObj = trashCards[trashCards.length - 1];
+
+        if (cardObj && isValidCardType(cardObj)) {
+            cardObj = trashCards.pop();
+            if (typeof createGameCardToHand === 'function') {
+                createGameCardToHand(cardObj.name, cardObj.imagePath);
+            }
+
+            let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
+            if (genCard) {
+                updateCardRotation(genCard);
+                ev.currentTarget.appendChild(genCard);
+            }
+            if (typeof updateTrashUI === 'function') updateTrashUI();
+        }
+        return;
+    }
+
+    // 3. 盤面・手札からのドラッグ (通常ドロップ)
+    if (dataText) {
+        let n = document.getElementById(dataText);
+        if (n) {
+            let cardName = n.getAttribute('data-cardcode') || n.getAttribute('data-code') || n.getAttribute('data-cardname') || n.id || n.innerText || '';
+
+            if (!isValidCardType(cardName)) {
+                return; // 不適合な場合はドロップをキャンセル
+            }
+
+            updateCardRotation(n);
+            ev.currentTarget.appendChild(n);
         }
     }
 }
