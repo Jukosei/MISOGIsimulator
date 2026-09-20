@@ -272,10 +272,11 @@
     height: var(--card-height);
     border-radius: 6px;
     box-sizing: border-box;
-    z-index: 5;
+    /* 重なりによるドロップ阻害を防ぐため、枠自体はマウスイベントを通過させる */
+    pointer-events: auto;
 }
 
-/* z-index を指定して、中央(layer-2)や下(layer-3)が上のレイヤーの被さりに負けないようにする */
+/* 画面の上から順にレイヤー3, レイヤー2, レイヤー1 の重なり順を定義 */
 .frame-layer.layer-1 { 
     top: 0px; 
     border: 2px dashed #1565c0; 
@@ -290,6 +291,11 @@
     top: 168px; 
     border: 2px dashed #6a1b9a; 
     z-index: 3; 
+}
+
+/* カードが配置された後は、枠内のカードが正常にドラッグ・クリックできるようにする */
+.frame-layer .game-card {
+    pointer-events: auto;
 }
 
         .frame-layer.drag-over {
@@ -1961,12 +1967,10 @@ function confirmDeckReturn(position) {
             codeStr = cardInput.suffix || cardInput.name || cardInput.code || '';
         }
 
-        // ハイフン前を取得 (例: "JA-8" -> "JA", "BM-3" -> "BM")
         const prefixGroup = codeStr.trim().split('-')[0].toUpperCase();
-        // ハイフン直前の文字を取得 (例: "JA" -> "A", "BM" -> "M", "DS" -> "S")
         const cardType = prefixGroup.length > 0 ? prefixGroup.charAt(prefixGroup.length - 1) : '';
 
-        // layerNumを確実に数値に変換して比較
+        // layerNum を数値を考慮して判定
         const targetLayer = Number(layerNum);
 
         console.log("判定対象:", cardInput, "抽出種別:", cardType, "対象レイヤー:", targetLayer);
