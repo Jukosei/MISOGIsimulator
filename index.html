@@ -1360,35 +1360,30 @@ function setupTrashAreaEvents() {
             // 選択されているカードのインデックス（複数選択用 Set）
 let selectedTrashIndices = new Set();
 
-            // ★ トラッシュ確認モーダルを描画・更新する関数
-function renderSearchModal() {
-    // 1. トラッシュ操作用ボタンの表示/非表示切り替え
+            function renderSearchModal() {
+    // トラッシュ表示時だけボタンを強制表示
     const trashBtns = document.getElementById('trashActionButtons');
     if (trashBtns) {
-        // currentSearchMode が 'trash' のときだけ表示
-        if (typeof currentSearchMode !== 'undefined' && currentSearchMode === 'trash') {
+        if (window.currentSearchMode === 'trash') {
             trashBtns.style.display = 'flex';
         } else {
             trashBtns.style.display = 'none';
         }
     }
 
+    // トラッシュモード以外（山札サーチなど）の時は既存処理に任せるか、ここで抜ける
+    if (window.currentSearchMode !== 'trash') {
+        return; 
+    }
+
     const container = document.getElementById('searchCardGrid') || document.getElementById('searchModalContent') || document.getElementById('searchContainer');
     if (!container) return;
-
-    // トラッシュモード以外の時は、既存の標準描画処理を実行（もし既存の描画ロジックがある場合）
-    // トラッシュモードの時のみ選択機能付きで描画します
-    if (typeof currentSearchMode !== 'undefined' && currentSearchMode !== 'trash') {
-        // トラッシュ以外のモードでは選択をクリア
-        selectedTrashIndices.clear();
-        return;
-    }
 
     container.innerHTML = '';
 
     if (typeof trashCards === 'undefined' || trashCards.length === 0) {
         container.innerHTML = '<p style="color:#aaa; text-align:center; width:100%;">トラッシュにカードがありません</p>';
-        selectedTrashIndices.clear();
+        if (typeof selectedTrashIndices !== 'undefined') selectedTrashIndices.clear();
         updateTrashModalButtons();
         return;
     }
@@ -1401,7 +1396,6 @@ function renderSearchModal() {
         cardEl.style.borderRadius = '6px';
         cardEl.style.transition = 'all 0.2s';
         
-        // 選択状態のスタイル（枠線とハイライト）
         const isSelected = selectedTrashIndices.has(index);
         cardEl.style.border = isSelected ? '3px solid #00ffcc' : '1px solid #444';
         cardEl.style.boxShadow = isSelected ? '0 0 10px #00ffcc' : 'none';
@@ -1411,14 +1405,13 @@ function renderSearchModal() {
             ${isSelected ? '<div style="position: absolute; top: 4px; right: 4px; background: #00ffcc; color: #000; font-weight: bold; width: 20px; height: 20px; border-radius: 50%; text-align: center; line-height: 20px; font-size: 12px;">✓</div>' : ''}
         `;
 
-        // クリックでトグル（複数選択・解除）
         cardEl.onclick = () => {
             if (selectedTrashIndices.has(index)) {
                 selectedTrashIndices.delete(index);
             } else {
                 selectedTrashIndices.add(index);
             }
-            renderSearchModal(); // 再描画
+            renderSearchModal();
         };
 
         container.appendChild(cardEl);
@@ -1426,7 +1419,6 @@ function renderSearchModal() {
 
     updateTrashModalButtons();
 }
-
 // ボタンの活性/非活性状態を更新
 function updateTrashModalButtons() {
     const count = selectedTrashIndices.size;
@@ -2846,28 +2838,46 @@ window.nextTime = nextTime;
         }
 
         function renderSearchList() {
-            let t = document.getElementById('searchModalTitle');
-            let e = document.getElementById('searchCardGrid');
-            e.innerHTML = "";
-            let a = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
+    let t = document.getElementById('searchModalTitle');
+    let e = document.getElementById('searchCardGrid');
+    if (!e) return;
 
-            t.innerText = (currentSearchType === 'deck') 
-                ? `山札からサーチ (残り: ${virtualDeck.length}枚)` 
-                : (currentSearchType === 'noise' ? `VOLノイズからサーチ (現在: ${volNoiseCards.length}枚)` : `トラッシュ確認 (現在: ${trashCards.length}枚)`);
+    e.innerHTML = "";
+    let a = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
 
-            if (a.length === 0) {
-                e.innerHTML = "<div style='color:#666; font-size:14px; padding:20px;'>カードがありません</div>";
-                return;
-            }
+    if (t) {
+        t.innerText = (currentSearchType === 'deck')
+            ? `山札からサーチ (残り: ${virtualDeck.length}枚)`
+            : (currentSearchType === 'noise' ? `VOLノイズからサーチ (現在: ${volNoiseCards.length}枚)` : `トラッシュ確認 (現在: ${trashCards.length}枚)`);
+    }
 
-            a.forEach((cardData, n) => {
-                let r = document.createElement('div');
-                r.className = 'game-card';
-                r.innerText = cardData.name;
-                r.style.backgroundImage = `url('${cardData.imagePath}')`;
-                r.setAttribute('draggable', 'true');
+    // ★ トラッシュ表示時のみ操作ボタン群を表示制御
+    const trashBtns = document.getElementById('trashActionButtons');
+    if (trashBtns) {
+        trashBtns.style.display = (currentSearchType === 'trash') ? 'flex' : 'none';
+    }
 
-                r.ondragstart = function(ev) {
+    if (a.length === 0) {
+        e.innerHTML = "<div style='color:#666; font-size:14px; padding:20px;'>カードがありません</div>";
+        if (typeof selectedTrashIndices !== 'undefined') selectedTrashIndices.clear();
+        return;
+    }
+
+    a.forEach((cardData, n) => {
+        let r = document.createElement('div');
+        r.className = 'game-card';
+        r.innerText = cardData.name;
+        r.style.backgroundImage = `url('${cardData.imagePath}')`;
+        r.setAttribute('draggable', 'true');
+
+        // ★ トラッシュ表示時のみ選択状態のスタイル（枠線とハイライト）を適用
+        if (currentSearchType === 'trash' && typeof selectedTrashIndices !== 'undefined') {
+            const isSelected = selectedTrashIndices.has(n);
+            r.style.border = isSelected ? '3px solid #00ffcc' : '1px solid #444';
+            r.style.boxShadow = isSelected ? '0 0 10px #00ffcc' : 'none';
+        }
+
+        r.ondragstart = function(ev) {
             // 文字列 'search-drag' をセット
             ev.dataTransfer.setData('text/plain', 'search-drag');
             ev.dataTransfer.setData('search-index', n.toString());
@@ -2876,7 +2886,7 @@ window.nextTime = nextTime;
             let overlay = document.getElementById('searchOverlay');
             if (overlay) {
                 overlay.classList.add('dragging-mode');
-                overlay.style.pointerEvents = 'none'; // ★直接スタイルを追記して確実に判定を消す
+                overlay.style.pointerEvents = 'none'; // ★直接スタイルを追加して確実に判定を消す
             }
         };
 
@@ -2888,32 +2898,36 @@ window.nextTime = nextTime;
             }
         };
 
-                r.addEventListener('touchstart', function(ev) {
-                    ev.preventDefault();
-                    dragTarget = ev.currentTarget;
-                    let touch = ev.touches[0];
-                    let c = dragTarget.getBoundingClientRect();
-                    startX = touch.clientX - c.left;
-                    startY = touch.clientY - c.top;
-                    dragTarget.classList.add('dragging');
-                    dragTarget.setAttribute('data-from-search', 'true');
-                    dragTarget.setAttribute('data-search-index', n);
-                    dragTarget.style.backgroundImage = `url('${cardData.imagePath}')`;
-                    dragTarget.innerText = cardData.name;
-                    document.body.appendChild(dragTarget);
-                    if (isSearchOpen) document.getElementById('searchOverlay').classList.add('dragging-mode');
-                }, { passive: false });
+        r.addEventListener('touchstart', function(ev) {
+            ev.preventDefault();
+            dragTarget = ev.currentTarget;
+            let touch = ev.touches[0];
+            let c = dragTarget.getBoundingClientRect();
+            startX = touch.clientX - c.left;
+            startY = touch.clientY - c.top;
+            dragTarget.classList.add('dragging');
+            dragTarget.setAttribute('data-from-search', 'true');
+            dragTarget.setAttribute('data-search-index', n);
+            dragTarget.style.backgroundImage = `url('${cardData.imagePath}')`;
+            dragTarget.innerText = cardData.name;
+            document.body.appendChild(dragTarget);
+            if (isSearchOpen) document.getElementById('searchOverlay').classList.add('dragging-mode');
+        }, { passive: false });
 
-              r.onclick = function(ev) {
+        r.onclick = function(ev) {
             ev.stopPropagation();
             if (currentSearchType === 'trash') {
-                pendingActionData = { name: cardData.name, imagePath: cardData.imagePath, index: n, list: a };
-                openActionMenu(`トラッシュ: ${cardData.name}`, [
-                    { label: "手札に加える", value: "hand" },
-                    { label: "山札の一番上に戻す", value: "top" },
-                    { label: "山札の一番下に戻す", value: "bottom" }
-                ], handleTrashChoice);
+                // ★ トラッシュ時はカードクリックで複数選択（トグル切り替え）
+                if (typeof selectedTrashIndices !== 'undefined') {
+                    if (selectedTrashIndices.has(n)) {
+                        selectedTrashIndices.delete(n);
+                    } else {
+                        selectedTrashIndices.add(n);
+                    }
+                    renderSearchList(); // 再描画して枠線・ボタン更新
+                }
             } else {
+                // 山札・ノイズサーチ時の単一移動処理
                 let cut = a.splice(n, 1)[0];
                 createGameCardToHand(cut.name, cut.imagePath);
 
@@ -2925,7 +2939,6 @@ window.nextTime = nextTime;
                     showToast('SHUFFLE');
                 }
 
-                // renderSearchList 関数の末尾部分
                 updateDeckUI();
                 updateVolNoiseUI();
                 updateTrashUI();
@@ -2935,7 +2948,7 @@ window.nextTime = nextTime;
 
         e.appendChild(r);
     });
-} // ← この閉じ括弧が抜けていると以降の関数（startGameなど）が壊れます
+}
 
         function handleTrashChoice(value) {
             if (!pendingActionData) return;
