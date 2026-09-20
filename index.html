@@ -1954,7 +1954,7 @@ function confirmDeckReturn(position) {
         }
     };
 
-    // カードの型（M, A, S）を判定する補助関数 (suffix / name / string の両対応)
+    // カードの型（M, A, S）を判定する補助関数
     const isValidCardType = (cardInput) => {
         if (!cardInput) return false;
 
@@ -1965,14 +1965,17 @@ function confirmDeckReturn(position) {
             codeStr = cardInput.suffix || cardInput.name || cardInput.code || '';
         }
 
-        const prefix = codeStr.trim().split('-')[0].toUpperCase();
+        // ハイフンより前の文字列を取り出す (例: "AM-1" -> "AM", "HA-2" -> "HA")
+        const prefixGroup = codeStr.trim().split('-')[0].toUpperCase();
+        
+        // ハイフン前の「一番最後の文字」をカード種別(M, A, S)として取得 (例: "AM" -> "M", "HA" -> "A")
+        const cardType = prefixGroup.charAt(prefixGroup.length - 1);
 
-        // コンソールで渡されている値を確認（F12キーのConsoleに表示されます）
-        console.log("判定対象:", cardInput, "抽出コード:", prefix, "対象レイヤー:", layerNum);
+        console.log("判定対象:", cardInput, "種別判定:", cardType, "対象レイヤー:", layerNum);
 
-        if (layerNum === 1) return prefix === 'M' || prefix.endsWith('M');
-        if (layerNum === 2) return prefix === 'A' || prefix.endsWith('A');
-        if (layerNum === 3) return prefix === 'S' || prefix.endsWith('S');
+        if (layerNum === 1) return cardType === 'M';
+        if (layerNum === 2) return cardType === 'A';
+        if (layerNum === 3) return cardType === 'S';
         return true;
     };
 
