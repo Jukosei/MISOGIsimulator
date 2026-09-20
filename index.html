@@ -1628,11 +1628,14 @@ function updateVolNoiseUI() {
     n.setAttribute('data-cardcode', t);
     n.setAttribute('data-imagepath', e);
 
-    // ★ ドラッグ開始処理（直接属性に代入）
-    n.ondragstart = function(ev) {
-        // カード自身のIDを渡す
+    // ★ ドラッグ開始処理
+n.ondragstart = function(ev) {
+    window.draggedElement = n; // グローバル変数にドラッグ中の要素を保持
+    if (ev.dataTransfer) {
         ev.dataTransfer.setData('text/plain', n.id);
-    };
+        ev.dataTransfer.effectAllowed = 'move';
+    }
+};
 
     // ★ クリック時の処理（黄色ゾーンは90°回転、ディレクションエリアは暗転）
     n.onclick = function(ev) {
@@ -1956,7 +1959,7 @@ function confirmDeckReturn(position) {
     closeDeckReturnModal();
 }
 
-    function dropToSpecificFrame(ev, colIndex, layerNum) {
+function dropToSpecificFrame(ev, colIndex, layerNum) {
     ev.preventDefault();
     if (ev.stopPropagation) ev.stopPropagation();
 
@@ -1964,11 +1967,14 @@ function confirmDeckReturn(position) {
         ev.currentTarget.classList.remove('drag-over');
     }
 
+    // 1. dataTransfer または グローバル変数からカード要素を取得
     let dataText = ev.dataTransfer ? ev.dataTransfer.getData('text/plain') : '';
-    if (!dataText) return;
+    let draggedElement = (dataText ? document.getElementById(dataText) : null) || window.draggedElement;
 
-    let draggedElement = document.getElementById(dataText);
-    if (!draggedElement) return;
+    if (!draggedElement) {
+        console.warn("[DropError] ドラッグ中のカード要素が取得できませんでした。");
+        return;
+    }
 
     let cardCode = draggedElement.getAttribute('data-cardcode') 
                  || draggedElement.getAttribute('data-cardname') 
@@ -1977,7 +1983,7 @@ function confirmDeckReturn(position) {
 
     const targetLayer = Number(layerNum);
 
-    // 種別チェック (M / A / S)
+    // 2. 種別チェック (M / A / S)
     const isValidCardType = (code, layer) => {
         if (!code) return true;
         let cleanCode = String(code).trim().toUpperCase();
@@ -1991,29 +1997,32 @@ function confirmDeckReturn(position) {
     };
 
     if (!isValidCardType(cardCode, targetLayer)) {
-        console.warn(`[配置不可] 種別不一致: ${cardCode}`);
+        console.warn(`[配置不可] レイヤー ${targetLayer} に "${cardCode}" は配置できません。`);
         return;
     }
 
-    // レイヤー2への配置時の回転処理
+    // レイヤー2 (Aゾーン) の回転処理
     if (targetLayer === 2) {
         draggedElement.classList.add('card-rotate-horizontal');
     } else {
         draggedElement.classList.remove('card-rotate-horizontal');
     }
 
-    // カードのドロップ実行
+    // ドロップ先へ要素を追加
     ev.currentTarget.appendChild(draggedElement);
 
-    // ★ レイヤー2にカードが置かれたら、同じ列のレイヤー1と3を活性化（開放）する
+    // レイヤー2にカードが置かれた場合、同じ列のレイヤー1と3を有効化
     if (targetLayer === 2) {
         let frame1 = document.getElementById(`frame-${colIndex}-1`);
         let frame3 = document.getElementById(`frame-${colIndex}-3`);
 
         if (frame1) frame1.classList.add('layer-active');
         if (frame3) frame3.classList.add('layer-active');
-        console.log(`列 ${colIndex} のレイヤー1と3が開放されました。`);
+        console.log(`[成功] 列 ${colIndex} のレイヤー2に配置成功。レイヤー1と3が解放されました。`);
     }
+
+    // 変数をクリア
+    window.draggedElement = null;
 }
             
        function dropToDirection(ev, slotIdx) {
