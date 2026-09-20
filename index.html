@@ -1592,6 +1592,7 @@ function updateVolNoiseUI() {
     n.style.backgroundImage = `url('${e}')`;
     n.setAttribute('draggable', 'true');
     n.setAttribute('data-cardname', t);
+    n.setAttribute('data-cardcode', t); // ★ カード種別判定（M, A, S等）に必要な属性を追加
     n.setAttribute('data-imagepath', e);
 
     // ★ クリック時の処理（黄色ゾーンは90°回転、ディレクションエリアは暗転）
@@ -1602,14 +1603,14 @@ function updateVolNoiseUI() {
             let pId = parentZone.id || '';
             let layerVal = parentZone.dataset.layer || parentZone.getAttribute('data-layer');
 
-            // 黄色ゾーン（layer-2）の場合は90°回転
+            // 黄色ゾーン (layer-2) の場合は90°回転
             if (layerVal === "2" || pClass.includes('layer-2')) {
                 ev.stopPropagation();
                 n.classList.toggle('card-rotate-horizontal');
                 return;
             }
 
-            // ディレクションエリア（class="direction-placeholder" または id="dir-slot-X"）の場合は薄暗く切替
+            // ディレクションエリア (class="direction-placeholder" または id="dir-slot-X") の場合は薄暗く切替
             if (pClass.includes('direction-placeholder') || pId.includes('dir-slot')) {
                 ev.stopPropagation();
                 n.classList.toggle('card-dimmed');
@@ -1637,10 +1638,10 @@ function updateVolNoiseUI() {
     n.addEventListener('touchstart', touchStartCard, { passive: false });
     n.addEventListener('touchmove', touchMoveCard, { passive: false });
     n.addEventListener('touchend', touchEndCard, { passive: false });
-    
+
     if (a) a.appendChild(n);
 }
-
+            
         function touchStartCard(t) {
             t.preventDefault();
             dragTarget = t.currentTarget;
@@ -1941,16 +1942,11 @@ function confirmDeckReturn(position) {
         function dropToSpecificFrame(ev, colIndex, layerNum) {
     ev.preventDefault();
     ev.stopPropagation();
-    ev.currentTarget.classList.remove('drag-over');
+    if (ev.currentTarget && ev.currentTarget.classList) {
+        ev.currentTarget.classList.remove('drag-over');
+    }
 
-    let dataText = ev.dataTransfer.getData('text/plain');
-    let jsonText = ev.dataTransfer.getData('application/json');
-    let data = null;
-
-    try {
-        if (jsonText) data = JSON.parse(jsonText);
-        else if (dataText && dataText.startsWith('{')) data = JSON.parse(dataText);
-    } catch (e) {}
+    let dataText = ev.dataTransfer ? ev.dataTransfer.getData('text/plain') : '';
 
     // カードの型 (M, A, S) 判定補助関数
     const isValidCardType = (cardInput) => {
@@ -1963,9 +1959,9 @@ function confirmDeckReturn(position) {
             codeStr = cardInput.suffix || cardInput.name || cardInput.code || '';
         }
 
-        // ハイフンより前の文字列を取り出す (例: "AM-1" -> "AM", "HA-2" -> "HA")
+        // ハイフン前を取得 (例: "HA-1" -> "HA", "GA-13" -> "GA")
         const prefixGroup = codeStr.trim().split('-')[0].toUpperCase();
-        // 一番最後の文字を取得 (例: "AM" -> "M", "HA" -> "A", "DS" -> "S")
+        // ハイフン直前の最後の1文字を取得 (例: "HA" -> "A", "GA" -> "A", "JS" -> "S", "M" -> "M")
         const cardType = prefixGroup.charAt(prefixGroup.length - 1);
 
         console.log("判定対象:", cardInput, "種別判定:", cardType, "対象レイヤー:", layerNum);
@@ -2042,7 +2038,7 @@ function confirmDeckReturn(position) {
             let cardName = n.getAttribute('data-cardcode') || n.getAttribute('data-code') || n.getAttribute('data-cardname') || n.id || n.innerText || '';
 
             if (!isValidCardType(cardName)) {
-                return; // 不適合な場合は移動キャンセル
+                return; // 条件に合わない場合は配置せず戻る
             }
 
             updateCardRotation(n);
@@ -2050,6 +2046,7 @@ function confirmDeckReturn(position) {
         }
     }
 }
+            
        function dropToDirection(ev, slotIdx) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
