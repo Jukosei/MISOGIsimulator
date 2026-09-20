@@ -1940,6 +1940,7 @@ function confirmDeckReturn(position) {
             
         function dropToSpecificFrame(ev, colIndex, layerNum) {
     ev.preventDefault();
+    ev.stopPropagation();
     ev.currentTarget.classList.remove('drag-over');
 
     let dataText = ev.dataTransfer.getData('text/plain');
@@ -1962,7 +1963,9 @@ function confirmDeckReturn(position) {
             codeStr = cardInput.suffix || cardInput.name || cardInput.code || '';
         }
 
+        // ハイフンより前の文字列を取り出す (例: "AM-1" -> "AM", "HA-2" -> "HA")
         const prefixGroup = codeStr.trim().split('-')[0].toUpperCase();
+        // 一番最後の文字を取得 (例: "AM" -> "M", "HA" -> "A", "DS" -> "S")
         const cardType = prefixGroup.charAt(prefixGroup.length - 1);
 
         console.log("判定対象:", cardInput, "種別判定:", cardType, "対象レイヤー:", layerNum);
@@ -1973,7 +1976,7 @@ function confirmDeckReturn(position) {
         return true;
     };
 
-    // レイヤー2（Aゾーン）の場合のみ回転クラスを管理
+    // レイヤー2（Aゾーン）の横向き回転制御
     const updateCardRotation = (cardEl) => {
         if (!cardEl) return;
         if (layerNum === 2) {
@@ -2039,7 +2042,7 @@ function confirmDeckReturn(position) {
             let cardName = n.getAttribute('data-cardcode') || n.getAttribute('data-code') || n.getAttribute('data-cardname') || n.id || n.innerText || '';
 
             if (!isValidCardType(cardName)) {
-                return; // 不適合な場合はドロップをキャンセル
+                return; // 不適合な場合は移動キャンセル
             }
 
             updateCardRotation(n);
@@ -2047,14 +2050,6 @@ function confirmDeckReturn(position) {
         }
     }
 }
-            
-        function executeCardPlacement(t, e, a) {
-            let n = e.children.length;
-            if (a === 3) {
-                if (n < 2) e.appendChild(t);
-        }
-        }
-
        function dropToDirection(ev, slotIdx) {
     ev.preventDefault();
     ev.currentTarget.classList.remove('drag-over');
