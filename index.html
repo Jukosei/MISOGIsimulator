@@ -1592,7 +1592,7 @@ function updateVolNoiseUI() {
     n.style.backgroundImage = `url('${e}')`;
     n.setAttribute('draggable', 'true');
     n.setAttribute('data-cardname', t);
-    n.setAttribute('data-cardcode', t); // ★ カード種別判定（M, A, S等）に必要な属性を追加
+    n.setAttribute('data-cardcode', t);
     n.setAttribute('data-imagepath', e);
 
     // ★ クリック時の処理（黄色ゾーンは90°回転、ディレクションエリアは暗転）
@@ -1619,19 +1619,24 @@ function updateVolNoiseUI() {
         }
     };
 
+    // ★ ドラッグ開始時の処理（ev.target.id を n.id に変更して確実に要素IDを取得）
     n.ondragstart = function(ev) {
-        ev.dataTransfer.setData('text/plain', ev.target.id);
-        if (isSearchOpen) document.getElementById('searchOverlay').classList.add('dragging-mode');
+        ev.dataTransfer.setData('text/plain', n.id);
+        if (typeof isSearchOpen !== 'undefined' && isSearchOpen) {
+            let overlay = document.getElementById('searchOverlay');
+            if (overlay) overlay.classList.add('dragging-mode');
+        }
     };
 
     n.ondragend = function(ev) {
-        document.getElementById('searchOverlay').classList.remove('dragging-mode');
+        let overlay = document.getElementById('searchOverlay');
+        if (overlay) overlay.classList.remove('dragging-mode');
     };
 
     n.oncontextmenu = function(ev) {
-        if (isSearchOpen) {
+        if (typeof isSearchOpen !== 'undefined' && isSearchOpen) {
             ev.preventDefault();
-            returnCardFromHand(n);
+            if (typeof returnCardFromHand === 'function') returnCardFromHand(n);
         }
     };
 
