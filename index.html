@@ -1937,6 +1937,7 @@ function confirmDeckReturn(position) {
 
     closeDeckReturnModal();
 }
+            
         function dropToSpecificFrame(ev, colIndex, layerNum) {
     ev.preventDefault();
     ev.stopPropagation();
@@ -1953,10 +1954,28 @@ function confirmDeckReturn(position) {
         }
     };
 
+    // カードの型（ハイフン前の頭文字）を判定する補助関数
+    const isValidCardType = (cardName) => {
+        if (!cardName) return false;
+        const prefix = cardName.split('-')[0].toUpperCase();
+        if (layerNum === 1) return prefix === 'M';
+        if (layerNum === 2) return prefix === 'A';
+        if (layerNum === 3) return prefix === 'S';
+        return true;
+    };
+
+    // 1. サーチからのドラッグドロップ
     if (dataText === 'search-drag') {
         let idx = parseInt(ev.dataTransfer.getData('search-index'));
         let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
-        let cardObj = targetList.splice(idx, 1)[0];
+        let cardObj = targetList[idx];
+
+        // 型判定チェック (不適合なら配置せず中断)
+        if (cardObj && !isValidCardType(cardObj.name)) {
+            return;
+        }
+
+        cardObj = targetList.splice(idx, 1)[0];
         createGameCardToHand(cardObj.name, cardObj.imagePath);
         let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
         if (genCard) {
@@ -1970,8 +1989,16 @@ function confirmDeckReturn(position) {
         return;
     }
 
+    // 2. トラッシュエリアからのドラッグドロップ
     if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
-        let cardObj = trashCards.pop();
+        let cardObj = trashCards[trashCards.length - 1]; // 末尾要素を確認
+
+        // 型判定チェック
+        if (cardObj && !isValidCardType(cardObj.name)) {
+            return;
+        }
+
+        cardObj = trashCards.pop();
         createGameCardToHand(cardObj.name, cardObj.imagePath);
         let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
         if (genCard) {
@@ -1982,9 +2009,17 @@ function confirmDeckReturn(position) {
         return;
     }
 
+    // 3. 盤面・手札からのドラッグドロップ (既存要素の移動)
     if (dataText) {
         let r = document.getElementById(dataText);
         if (r) {
+            let cardName = r.getAttribute('data-cardname') || r.innerText || '';
+
+            // 型判定チェック (不適合なら配置せず元の場所/手札に戻す)
+            if (!isValidCardType(cardName)) {
+                return; // ここでリターンすることで移動処理がキャンセルされます
+            }
+
             updateCardRotation(r);
             executeCardPlacement(r, ev.currentTarget, layerNum);
         }
@@ -1995,11 +2030,6 @@ function confirmDeckReturn(position) {
             let n = e.children.length;
             if (a === 3) {
                 if (n < 2) e.appendChild(t);
-                else alert('紫色の枠にはこれ以上重ねられません！');
-            } else {
-                if (n === 0) e.appendChild(t);
-                else alert('この枠には既にカードがあります！');
-            }
         }
 
        function dropToDirection(ev, slotIdx) {
@@ -2016,16 +2046,27 @@ function confirmDeckReturn(position) {
         else if (dataText && dataText.startsWith('{')) data = JSON.parse(dataText);
     } catch (e) {}
 
-    // 2. 山札確認モーダル（deck-view-card）からのドロップ受け取り処理
+    // カードの型（ハイフン前）が D かどうか判定するヘルパー関数
+    const isDCard = (cardName) => {
+        if (!cardName) return false;
+        const prefix = cardName.split('-')[0].toUpperCase();
+        return prefix === 'D';
+    };
+
+    // 2. 山札確認モーダル (deck-view-card) からのドロップ受け取り処理
     if (data && data.type === 'deck-view-card') {
         if (typeof deckViewCards !== 'undefined' && data.viewIndex !== undefined) {
-            // モーダルの配列からカードを取り出す
-            let cardObj = deckViewCards.splice(data.viewIndex, 1)[0];
+            let cardObj = deckViewCards[data.viewIndex];
+
+            // 条件チェック (Dカード以外は配置をキャンセル)
+            if (cardObj && !isDCard(cardObj.name)) {
+                return;
+            }
+
+            cardObj = deckViewCards.splice(data.viewIndex, 1)[0];
             if (typeof renderDeckViewCards === 'function') renderDeckViewCards();
 
-            // ドロップ先のスロットへカードを移動・生成する処理を実行
             if (cardObj && typeof createGameCardToHand === 'function') {
-                // 手札や対象スロット等へカードを配置
                 let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
                 if (targetZone) {
                     createGameCardToHand(cardObj.name, cardObj.imagePath);
@@ -2034,8 +2075,8 @@ function confirmDeckReturn(position) {
             return;
         }
     }
-            
-    // 1. サーチ・トラッシュモーダルからのドラッグ処理
+
+    // 3. サーチ・トラッシュモーダルからのドラッグ処理
     if (dataText === 'search-drag') {
         let rawIdx = ev.dataTransfer.getData('search-index');
         let idx = parseInt(rawIdx);
@@ -2048,7 +2089,14 @@ function confirmDeckReturn(position) {
         let existingCard = targetZone.querySelector('.game-card');
 
         if (!existingCard && !isNaN(idx) && targetList[idx]) {
-            let cardObj = targetList.splice(idx, 1)[0];
+            let cardObj = targetList[idx];
+
+            // 条件チェック (Dカード以外は配置をキャンセル)
+            if (!isDCard(cardObj.name)) {
+                return;
+            }
+
+            cardObj = targetList.splice(idx, 1)[0];
             createGameCardToHand(cardObj.name, cardObj.imagePath);
 
             let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
@@ -2056,7 +2104,7 @@ function confirmDeckReturn(position) {
 
             if (genCard) {
                 if (isLayer2) {
-                    genCard.classList.add('card-rotate-horizontal'); // 黄色エリアなら横向き
+                    genCard.classList.add('card-rotate-horizontal');
                 }
                 targetZone.appendChild(genCard);
             }
@@ -2070,19 +2118,26 @@ function confirmDeckReturn(position) {
         return;
     }
 
-    // 2. トラッシュゾーン（アイコン）からのドラッグ処理
+    // 4. トラッシュゾーン (アイコン) からのドラッグ処理
     if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
         let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
         let existingCard = targetZone.querySelector('.game-card');
 
         if (!existingCard) {
-            let cardObj = trashCards.pop();
+            let cardObj = trashCards[trashCards.length - 1];
+
+            // 条件チェック (Dカード以外は配置をキャンセル)
+            if (cardObj && !isDCard(cardObj.name)) {
+                return;
+            }
+
+            cardObj = trashCards.pop();
             createGameCardToHand(cardObj.name, cardObj.imagePath);
             let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
 
             if (genCard) {
                 if (targetZone.classList.contains('layer-2')) {
-                    genCard.classList.add('card-rotate-horizontal'); // 黄色エリアなら横向き
+                    genCard.classList.add('card-rotate-horizontal');
                 }
                 targetZone.appendChild(genCard);
             }
@@ -2091,15 +2146,22 @@ function confirmDeckReturn(position) {
         return;
     }
 
-    // 3. 通常のカード移動（手札や他エリアから）
+    // 5. 通常のカード移動 (手札や他エリアから)
     if (dataText) {
         let n = document.getElementById(dataText);
         let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
         let existingCard = targetZone.querySelector('.game-card');
 
         if (n && !existingCard) {
+            let cardName = n.getAttribute('data-cardname') || n.innerText || '';
+
+            // 条件チェック (Dカード以外は配置をキャンセル)
+            if (!isDCard(cardName)) {
+                return; // ここで中断されるため、カードは元の場所にとどまります
+            }
+
             if (targetZone.classList.contains('layer-2')) {
-                n.classList.add('card-rotate-horizontal'); // 黄色エリアなら横向き
+                n.classList.add('card-rotate-horizontal');
             }
             targetZone.appendChild(n);
         }
