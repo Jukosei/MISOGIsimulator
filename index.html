@@ -811,7 +811,7 @@
             <button class="control-btn" onclick="shuffleVolNoise()">VOLノイズシャッフル</button>
             <button class="control-btn" onclick="openSearchModal('noise')">VOLノイズからサーチ</button>
             <button class="control-btn" onclick="randomHandDiscard()">ランダムハンデス</button>
-            <button class="control-btn" onclick="trashAllHandBtn()">手札を全てトラッシュ</button>
+            <button onclick="returnAllHandToDeckBtn()">手札を全て山札へ</button>
             <button class="control-btn" onclick="shuffleDeckBtn()">山札シャッフル</button>
             <button class="control-btn" onclick="openSearchModal('deck')">山札からサーチ</button>
             <button class="control-btn" onclick="openDeckViewModal()">山札の上を見る</button>
@@ -2488,15 +2488,36 @@ function shuffleVolNoise() {
     }
 }
 
-        function trashAllHandBtn() {
-            let t = document.getElementById('handArea');
-            let list = Array.from(t.children);
-            list.forEach(a => {
-                trashCards.push({ name: a.getAttribute('data-cardname'), imagePath: a.getAttribute('data-imagepath') });
-                a.remove();
-            });
-            updateTrashUI();
+        function returnAllHandToDeckBtn() {
+    let t = document.getElementById('handArea');
+    if (!t) return;
+    
+    let list = Array.from(t.children);
+    if (list.length === 0) {
+        if (typeof showToast === 'function') showToast('手札にカードがありません');
+        return;
+    }
+
+    // 1. 手札のカードを山札(virtualDeck)に追加し、画面上の手札要素を削除
+    list.forEach(a => {
+        let cardName = a.getAttribute('data-cardname');
+        let imagePath = a.getAttribute('data-imagepath');
+        if (cardName && imagePath) {
+            virtualDeck.push({ name: cardName, imagePath: imagePath });
         }
+        a.remove();
+    });
+
+    // 2. 山札をシャッフル
+    for (let i = virtualDeck.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        [virtualDeck[i], virtualDeck[j]] = [virtualDeck[j], virtualDeck[i]];
+    }
+
+    // 3. 各UIの更新と通知表示
+    if (typeof updateDeckUI === 'function') updateDeckUI();
+    if (typeof updateDeckCount === 'function') updateDeckCount();
+}
 
            // ★ ランダムハンデス機能
 function randomHandDiscard() {
