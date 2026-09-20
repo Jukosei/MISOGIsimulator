@@ -1956,40 +1956,66 @@ function confirmDeckReturn(position) {
     let dataText = ev.dataTransfer ? ev.dataTransfer.getData('text/plain') : '';
     if (!dataText) return;
 
-    // カードの型 (M, A, S) 判定補助関数
-    const isValidCardType = (cardInput) => {
-        if (!cardInput) return true;
+    function dropToSpecificFrame(ev, colIndex, layerNum) {
+    ev.preventDefault();
+    if (ev.stopPropagation) ev.stopPropagation();
 
-        let codeStr = '';
-        if (typeof cardInput === 'string') {
-            codeStr = cardInput;
-        } else if (typeof cardInput === 'object') {
-            codeStr = cardInput.suffix || cardInput.name || cardInput.code || '';
-        }
+    // ドラッグオーバー用スタイルの解除
+    if (ev.currentTarget && ev.currentTarget.classList) {
+        ev.currentTarget.classList.remove('drag-over');
+    }
 
-        const prefixGroup = codeStr.trim().split('-')[0].toUpperCase();
-        const cardType = prefixGroup.length > 0 ? prefixGroup.charAt(prefixGroup.length - 1) : '';
+    let dataText = ev.dataTransfer ? ev.dataTransfer.getData('text/plain') : '';
+    if (!dataText) return;
 
-        // layerNum を数値を考慮して判定
-        const targetLayer = Number(layerNum);
+    let draggedElement = document.getElementById(dataText);
+    if (!draggedElement) return;
 
-        console.log("判定対象:", cardInput, "抽出種別:", cardType, "対象レイヤー:", targetLayer);
+    // カードコードを取得 (data-cardcode, data-cardname, または ID)
+    let cardCode = draggedElement.getAttribute('data-cardcode') 
+                 || draggedElement.getAttribute('data-cardname') 
+                 || draggedElement.id 
+                 || '';
 
-        if (targetLayer === 1) return cardType === 'M';
-        if (targetLayer === 2) return cardType === 'A';
-        if (targetLayer === 3) return cardType === 'S';
+    const targetLayer = Number(layerNum);
+
+    // ★ 判定ロジック（型判定）
+    const isValidCardType = (code, layer) => {
+        if (!code) return true; // コードが取れない場合は安全のため配置を許可
+
+        // 文字列化してクリーンアップ
+        let cleanCode = String(code).trim().toUpperCase();
+        // ハイフンで分割 (例: "JA-8" -> "JA", "BM-1" -> "BM", "HA-2" -> "HA")
+        let prefixGroup = cleanCode.split('-')[0];
+        // 末尾の1文字を取得 (例: "JA" -> "A", "BM" -> "M", "DS" -> "S")
+        let cardType = prefixGroup.length > 0 ? prefixGroup.charAt(prefixGroup.length - 1) : '';
+
+        console.log(`[DropCheck] カード: ${cleanCode} | 抽出タイプ: ${cardType} | 対象レイヤー: ${layer}`);
+
+        // レイヤー1 = M, レイヤー2 = A, レイヤー3 = S
+        if (layer === 1 && cardType !== 'M') return false;
+        if (layer === 2 && cardType !== 'A') return false;
+        if (layer === 3 && cardType !== 'S') return false;
+
         return true;
     };
 
-    // レイヤー2（Aゾーン）の横向き回転制御
-    const updateCardRotation = (cardEl) => {
-        if (!cardEl) return;
-        if (layerNum === 2) {
-            cardEl.classList.add('card-rotate-horizontal');
-        } else {
-            cardEl.classList.remove('card-rotate-horizontal');
-        }
-    };
+    // 判定チェック
+    if (!isValidCardType(cardCode, targetLayer)) {
+        console.warn(`[配置不許可] レイヤー ${targetLayer} に ${cardCode} は配置できません。`);
+        return;
+    }
+
+    // レイヤー2 (Aゾーン) の場合は90度回転クラスを付与
+    if (targetLayer === 2) {
+        draggedElement.classList.add('card-rotate-horizontal');
+    } else {
+        draggedElement.classList.remove('card-rotate-horizontal');
+    }
+
+    // ドロップ先にカード要素を移動
+    ev.currentTarget.appendChild(draggedElement);
+}
 
     // 通常のカード要素（手札や盤面から）の取得と配置
     let draggedElement = document.getElementById(dataText);
