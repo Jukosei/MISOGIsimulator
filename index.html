@@ -811,7 +811,7 @@
             <button class="control-btn" onclick="shuffleVolNoise()">VOLノイズシャッフル</button>
             <button class="control-btn" onclick="openSearchModal('noise')">VOLノイズからサーチ</button>
             <button class="control-btn" onclick="randomHandDiscard()">ランダムハンデス</button>
-            <button onclick="returnAllHandToDeckBtn()">手札を全て山札へ</button>
+            <button class="control-btn" onclick="returnAllHandToDeckBtn()">手札を全て山札へ</button>
             <button class="control-btn" onclick="shuffleDeckBtn()">山札シャッフル</button>
             <button class="control-btn" onclick="openSearchModal('deck')">山札からサーチ</button>
             <button class="control-btn" onclick="openDeckViewModal()">山札の上を見る</button>
@@ -2517,6 +2517,7 @@ function shuffleVolNoise() {
     // 3. 各UIの更新と通知表示
     if (typeof updateDeckUI === 'function') updateDeckUI();
     if (typeof updateDeckCount === 'function') updateDeckCount();
+    if (typeof showToast === 'function') showToast('SHUFFLE');
 }
 
            // ★ ランダムハンデス機能
