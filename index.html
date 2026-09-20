@@ -272,25 +272,37 @@
     height: var(--card-height);
     border-radius: 6px;
     box-sizing: border-box;
-    /* 重なりによるドロップ阻害を防ぐため、枠自体はマウスイベントを通過させる */
-    pointer-events: auto;
 }
 
-/* 画面の上から順にレイヤー3, レイヤー2, レイヤー1 の重なり順を定義 */
+/* 初期状態: レイヤー1と3はマウス反応を透過させてレイヤー2へのドロップを優先する */
 .frame-layer.layer-1 { 
     top: 0px; 
     border: 2px dashed #1565c0; 
     z-index: 1; 
+    pointer-events: none;
+    opacity: 0.6;
 }
+
+/* レイヤー2 (中央) は常に最前面でマウス操作を受け付ける */
 .frame-layer.layer-2 { 
     top: 84px; 
     border: 2px dashed #f9a825; 
-    z-index: 2; 
+    z-index: 10; 
+    pointer-events: auto;
 }
+
 .frame-layer.layer-3 { 
     top: 168px; 
     border: 2px dashed #6a1b9a; 
-    z-index: 3; 
+    z-index: 2; 
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* レイヤー2にカードが置かれた後に1と3を有効化するためのクラス */
+.frame-layer.layer-active {
+    pointer-events: auto !important;
+    opacity: 1.0 !important;
 }
 
 /* カードが配置された後は、枠内のカードが正常にドラッグ・クリックできるようにする */
@@ -1965,47 +1977,43 @@ function confirmDeckReturn(position) {
 
     const targetLayer = Number(layerNum);
 
-    // ★ 1. レイヤー2（条件付き配置ルール）のチェック
-    if (targetLayer === 1 || targetLayer === 3) {
-        // 同じ列のレイヤー2枠を取得 (例: id="frame-0-2")
-        let layer2Frame = document.getElementById(`frame-${colIndex}-2`);
-        let hasLayer2Card = layer2Frame && layer2Frame.querySelector('.game-card');
-
-        if (!hasLayer2Card) {
-            console.warn(`[配置不可] 列 ${colIndex} のレイヤー2にカードが置かれていないため、レイヤー ${targetLayer} に配置できません。`);
-            return;
-        }
-    }
-
-    // ★ 2. カードの種別適合チェック (M / A / S)
+    // 種別チェック (M / A / S)
     const isValidCardType = (code, layer) => {
         if (!code) return true;
-
         let cleanCode = String(code).trim().toUpperCase();
         let prefixGroup = cleanCode.split('-')[0];
         let cardType = prefixGroup.length > 0 ? prefixGroup.charAt(prefixGroup.length - 1) : '';
 
-        if (layer === 1) return cardType === 'M';
-        if (layer === 2) return cardType === 'A';
-        if (layer === 3) return cardType === 'S';
-
+        if (layer === 1) return cardType === 'M' || cleanCode.includes('M');
+        if (layer === 2) return cardType === 'A' || cleanCode.includes('A');
+        if (layer === 3) return cardType === 'S' || cleanCode.includes('S');
         return true;
     };
 
     if (!isValidCardType(cardCode, targetLayer)) {
-        console.warn(`[配置不可] レイヤー ${targetLayer} に ${cardCode} はカード種別が一致しないため配置できません。`);
+        console.warn(`[配置不可] 種別不一致: ${cardCode}`);
         return;
     }
 
-    // レイヤー2 (Aゾーン) の回転処理
+    // レイヤー2への配置時の回転処理
     if (targetLayer === 2) {
         draggedElement.classList.add('card-rotate-horizontal');
     } else {
         draggedElement.classList.remove('card-rotate-horizontal');
     }
 
-    // カードをドロップ先に配置
+    // カードのドロップ実行
     ev.currentTarget.appendChild(draggedElement);
+
+    // ★ レイヤー2にカードが置かれたら、同じ列のレイヤー1と3を活性化（開放）する
+    if (targetLayer === 2) {
+        let frame1 = document.getElementById(`frame-${colIndex}-1`);
+        let frame3 = document.getElementById(`frame-${colIndex}-3`);
+
+        if (frame1) frame1.classList.add('layer-active');
+        if (frame3) frame3.classList.add('layer-active');
+        console.log(`列 ${colIndex} のレイヤー1と3が開放されました。`);
+    }
 }
             
        function dropToDirection(ev, slotIdx) {
