@@ -1943,18 +1943,6 @@ function confirmDeckReturn(position) {
 
     closeDeckReturnModal();
 }
-            
-        function dropToSpecificFrame(ev, colIndex, layerNum) {
-    ev.preventDefault();
-    if (ev.stopPropagation) ev.stopPropagation();
-
-    // ドラッグオーバー用スタイルの解除
-    if (ev.currentTarget && ev.currentTarget.classList) {
-        ev.currentTarget.classList.remove('drag-over');
-    }
-
-    let dataText = ev.dataTransfer ? ev.dataTransfer.getData('text/plain') : '';
-    if (!dataText) return;
 
     function dropToSpecificFrame(ev, colIndex, layerNum) {
     ev.preventDefault();
