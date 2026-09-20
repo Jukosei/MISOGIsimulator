@@ -266,15 +266,24 @@
             margin-top: -6px;
         }
 
-        .frame-layer {
-    position: absolute;
+        /* 親要素：この要素を基準にして3枚の枠を縦に重ねます */
+.stage-placeholder-stack {
+    position: relative !important;
+    width: var(--card-width);
+    height: 252px; /* カード3枚分の高さ領域 */
+}
+
+/* 子要素：各レイヤー枠の基本設定 */
+.frame-layer {
+    position: absolute !important;
+    left: 0;
     width: var(--card-width);
     height: var(--card-height);
     border-radius: 6px;
     box-sizing: border-box;
 }
 
-/* 初期状態: レイヤー1と3はマウス反応を透過させてレイヤー2へのドロップを優先する */
+/* レイヤー1 (Mゾーン: 一番上) */
 .frame-layer.layer-1 { 
     top: 0px; 
     border: 2px dashed #1565c0; 
@@ -283,7 +292,7 @@
     opacity: 0.6;
 }
 
-/* レイヤー2 (中央) は常に最前面でマウス操作を受け付ける */
+/* レイヤー2 (Aゾーン: 中央・最前面) */
 .frame-layer.layer-2 { 
     top: 84px; 
     border: 2px dashed #f9a825; 
@@ -291,6 +300,7 @@
     pointer-events: auto;
 }
 
+/* レイヤー3 (Sゾーン: 一番下) */
 .frame-layer.layer-3 { 
     top: 168px; 
     border: 2px dashed #6a1b9a; 
@@ -299,7 +309,7 @@
     opacity: 0.6;
 }
 
-/* レイヤー2にカードが置かれた後に1と3を有効化するためのクラス */
+/* レイヤー2にカードが置かれた後に1・3を有効化するクラス */
 .frame-layer.layer-active {
     pointer-events: auto !important;
     opacity: 1.0 !important;
