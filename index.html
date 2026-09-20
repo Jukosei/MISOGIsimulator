@@ -1962,12 +1962,13 @@ function confirmDeckReturn(position) {
         if (typeof cardInput === 'string') {
             codeStr = cardInput;
         } else if (typeof cardInput === 'object') {
-            // suffix または name プロパティから取得
             codeStr = cardInput.suffix || cardInput.name || cardInput.code || '';
         }
 
-        // ハイフン前の文字を取得（例: "M-01" -> "M"）
         const prefix = codeStr.trim().split('-')[0].toUpperCase();
+
+        // コンソールで渡されている値を確認（F12キーのConsoleに表示されます）
+        console.log("判定対象:", cardInput, "抽出コード:", prefix, "対象レイヤー:", layerNum);
 
         if (layerNum === 1) return prefix === 'M' || prefix.endsWith('M');
         if (layerNum === 2) return prefix === 'A' || prefix.endsWith('A');
