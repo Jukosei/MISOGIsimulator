@@ -251,29 +251,22 @@
         }
 
         .slot-column-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            gap: 8px;
-            height: 380px;
-        }
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    gap: 8px;
+}
 
-        .stage-placeholder-stack {
-            position: relative;
-            width: var(--card-width);
-            height: 336px;
-            margin-top: -6px;
-        }
-
-        /* 親要素：この要素を基準にして3枚の枠を縦に重ねます */
+/* 3枚のカード枠を縦に綺麗に重ねる基準 */
 .stage-placeholder-stack {
     position: relative !important;
     width: var(--card-width);
-    height: 252px; /* カード3枚分の高さ領域 */
+    height: 252px;
+    margin-top: -6px;
 }
 
-/* 子要素：各レイヤー枠の基本設定 */
+/* 各フレームレイヤーの共通指定 */
 .frame-layer {
     position: absolute !important;
     left: 0;
@@ -309,7 +302,7 @@
     opacity: 0.6;
 }
 
-/* レイヤー2にカードが置かれた後に1・3を有効化するクラス */
+/* レイヤー2にカードが置かれた後に1・3を開放 */
 .frame-layer.layer-active {
     pointer-events: auto !important;
     opacity: 1.0 !important;
@@ -802,7 +795,7 @@
     <div class="row-label">ステージ</div>
     <div class="field-row">
 
-        <!-- Column 0 -->
+        <!-- 列 0 -->
         <div class="slot-column-wrapper">
             <button class="slot-tag-btn" id="change-btn-0" onclick="clickChangeBtn(0)">チェンジ</button>
             <div class="stage-placeholder-stack">
@@ -812,7 +805,7 @@
             </div>
         </div>
 
-        <!-- Column 1 -->
+        <!-- 列 1 -->
         <div class="slot-column-wrapper">
             <button class="slot-tag-btn" id="change-btn-1" onclick="clickChangeBtn(1)">チェンジ</button>
             <div class="stage-placeholder-stack">
@@ -822,7 +815,7 @@
             </div>
         </div>
 
-        <!-- Column 2 -->
+        <!-- 列 2 -->
         <div class="slot-column-wrapper">
             <button class="slot-tag-btn" id="change-btn-2" onclick="clickChangeBtn(2)">チェンジ</button>
             <div class="stage-placeholder-stack">
@@ -832,7 +825,7 @@
             </div>
         </div>
 
-        <!-- Column 3 -->
+        <!-- 列 3 -->
         <div class="slot-column-wrapper">
             <button class="slot-tag-btn" id="change-btn-3" onclick="clickChangeBtn(3)">チェンジ</button>
             <div class="stage-placeholder-stack">
@@ -842,7 +835,7 @@
             </div>
         </div>
 
-        <!-- Column 4 -->
+        <!-- 列 4 -->
         <div class="slot-column-wrapper">
             <button class="slot-tag-btn" id="change-btn-4" onclick="clickChangeBtn(4)">チェンジ</button>
             <div class="stage-placeholder-stack">
