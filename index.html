@@ -1590,10 +1590,18 @@ function updateVolNoiseUI() {
     n.id = `card-id-${cardIdCounter++}`;
     n.innerText = t;
     n.style.backgroundImage = `url('${e}')`;
+    
+    // ドラッグ可能属性を付与
     n.setAttribute('draggable', 'true');
     n.setAttribute('data-cardname', t);
     n.setAttribute('data-cardcode', t);
     n.setAttribute('data-imagepath', e);
+
+    // ★ ドラッグ開始処理（直接属性に代入）
+    n.ondragstart = function(ev) {
+        // カード自身のIDを渡す
+        ev.dataTransfer.setData('text/plain', n.id);
+    };
 
     // ★ クリック時の処理（黄色ゾーンは90°回転、ディレクションエリアは暗転）
     n.onclick = function(ev) {
@@ -1603,14 +1611,12 @@ function updateVolNoiseUI() {
             let pId = parentZone.id || '';
             let layerVal = parentZone.dataset.layer || parentZone.getAttribute('data-layer');
 
-            // 黄色ゾーン (layer-2) の場合は90°回転
             if (layerVal === "2" || pClass.includes('layer-2')) {
                 ev.stopPropagation();
                 n.classList.toggle('card-rotate-horizontal');
                 return;
             }
 
-            // ディレクションエリア (class="direction-placeholder" または id="dir-slot-X") の場合は薄暗く切替
             if (pClass.includes('direction-placeholder') || pId.includes('dir-slot')) {
                 ev.stopPropagation();
                 n.classList.toggle('card-dimmed');
@@ -1618,31 +1624,6 @@ function updateVolNoiseUI() {
             }
         }
     };
-
-    // ★ ドラッグ開始時の処理（ev.target.id を n.id に変更して確実に要素IDを取得）
-    n.ondragstart = function(ev) {
-        ev.dataTransfer.setData('text/plain', n.id);
-        if (typeof isSearchOpen !== 'undefined' && isSearchOpen) {
-            let overlay = document.getElementById('searchOverlay');
-            if (overlay) overlay.classList.add('dragging-mode');
-        }
-    };
-
-    n.ondragend = function(ev) {
-        let overlay = document.getElementById('searchOverlay');
-        if (overlay) overlay.classList.remove('dragging-mode');
-    };
-
-    n.oncontextmenu = function(ev) {
-        if (typeof isSearchOpen !== 'undefined' && isSearchOpen) {
-            ev.preventDefault();
-            if (typeof returnCardFromHand === 'function') returnCardFromHand(n);
-        }
-    };
-
-    n.addEventListener('touchstart', touchStartCard, { passive: false });
-    n.addEventListener('touchmove', touchMoveCard, { passive: false });
-    n.addEventListener('touchend', touchEndCard, { passive: false });
 
     if (a) a.appendChild(n);
 }
