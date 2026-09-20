@@ -1965,15 +1965,25 @@ function confirmDeckReturn(position) {
 
     const targetLayer = Number(layerNum);
 
-    // ★ 内部で判定用関数を定義
+    // ★ 1. レイヤー2（条件付き配置ルール）のチェック
+    if (targetLayer === 1 || targetLayer === 3) {
+        // 同じ列のレイヤー2枠を取得 (例: id="frame-0-2")
+        let layer2Frame = document.getElementById(`frame-${colIndex}-2`);
+        let hasLayer2Card = layer2Frame && layer2Frame.querySelector('.game-card');
+
+        if (!hasLayer2Card) {
+            console.warn(`[配置不可] 列 ${colIndex} のレイヤー2にカードが置かれていないため、レイヤー ${targetLayer} に配置できません。`);
+            return;
+        }
+    }
+
+    // ★ 2. カードの種別適合チェック (M / A / S)
     const isValidCardType = (code, layer) => {
         if (!code) return true;
 
         let cleanCode = String(code).trim().toUpperCase();
         let prefixGroup = cleanCode.split('-')[0];
         let cardType = prefixGroup.length > 0 ? prefixGroup.charAt(prefixGroup.length - 1) : '';
-
-        console.log(`[DropCheck] カード: ${cleanCode} | 抽出タイプ: ${cardType} | 対象レイヤー: ${layer}`);
 
         if (layer === 1) return cardType === 'M';
         if (layer === 2) return cardType === 'A';
@@ -1982,20 +1992,19 @@ function confirmDeckReturn(position) {
         return true;
     };
 
-    // 種別チェック（不適合な場合は処理中断）
     if (!isValidCardType(cardCode, targetLayer)) {
-        console.warn(`[配置不可] レイヤー ${targetLayer} に ${cardCode} は配置できません。`);
+        console.warn(`[配置不可] レイヤー ${targetLayer} に ${cardCode} はカード種別が一致しないため配置できません。`);
         return;
     }
 
-    // レイヤー2 (Aゾーン) の場合は90度回転クラスを付与、それ以外は解除
+    // レイヤー2 (Aゾーン) の回転処理
     if (targetLayer === 2) {
         draggedElement.classList.add('card-rotate-horizontal');
     } else {
         draggedElement.classList.remove('card-rotate-horizontal');
     }
 
-    // ドロップ先のフレームにカード要素を移動
+    // カードをドロップ先に配置
     ev.currentTarget.appendChild(draggedElement);
 }
             
