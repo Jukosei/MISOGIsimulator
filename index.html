@@ -789,49 +789,62 @@
 
         <div class="center-panel">
             <div class="field-section-box stage-box">
-                <div class="row-label">ステージ</div>
-                <div class="field-row">
-                    <div class="slot-column-wrapper">
-                        <button class="slot-tag-btn" id="change-btn-0" onclick="clickChangeBtn(0)">チェンジ</button>
-                        <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1" id="frame-0-1" data-type="stage" data-col="0" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,0,1)"></div>
-                            <div class="frame-layer layer-2" id="frame-0-2" data-type="stage" data-col="0" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,0,2)"></div>
-                            <div class="frame-layer layer-3" id="frame-0-3" data-type="stage" data-col="0" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,0,3)"></div>
-                        </div>
-                    </div>
-                    <div class="slot-column-wrapper">
-                        <button class="slot-tag-btn" id="change-btn-1" onclick="clickChangeBtn(1)">チェンジ</button>
-                        <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1" id="frame-1-1" data-type="stage" data-col="1" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,1,1)"></div>
-                            <div class="frame-layer layer-2" id="frame-1-2" data-type="stage" data-col="1" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,1,2)"></div>
-                            <div class="frame-layer layer-3" id="frame-1-3" data-type="stage" data-col="1" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,1,3)"></div>
-                        </div>
-                    </div>
-                    <div class="slot-column-wrapper">
-                        <button class="slot-tag-btn" id="change-btn-2" onclick="clickChangeBtn(2)">チェンジ</button>
-                        <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1" id="frame-2-1" data-type="stage" data-col="2" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,2,1)"></div>
-                            <div class="frame-layer layer-2" id="frame-2-2" data-type="stage" data-col="2" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,2,2)"></div>
-                            <div class="frame-layer layer-3" id="frame-2-3" data-type="stage" data-col="2" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,2,3)"></div>
-                        </div>
-                    </div>
-                    <div class="slot-column-wrapper">
-                        <button class="slot-tag-btn" id="change-btn-3" onclick="clickChangeBtn(3)">チェンジ</button>
-                        <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1" id="frame-3-1" data-type="stage" data-col="3" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,3,1)"></div>
-                            <div class="frame-layer layer-2" id="frame-3-2" data-type="stage" data-col="3" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,3,2)"></div>
-                            <div class="frame-layer layer-3" id="frame-3-3" data-type="stage" data-col="3" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,3,3)"></div>
-                        </div>
-                    </div>
-                    <div class="slot-column-wrapper">
-                        <button class="slot-tag-btn" id="change-btn-4" onclick="clickChangeBtn(4)">チェンジ</button>
-                        <div class="stage-placeholder-stack">
-                            <div class="frame-layer layer-1" id="frame-4-1" data-type="stage" data-col="4" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,4,1)"></div>
-                            <div class="frame-layer layer-2" id="frame-4-2" data-type="stage" data-col="4" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,4,2)"></div>
-                            <div class="frame-layer layer-3" id="frame-4-3" data-type="stage" data-col="4" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,4,3)"></div>
-                        </div>
-                    </div>
-                </div>
+    <div class="row-label">ステージ</div>
+    <div class="field-row">
+
+        <!-- Column 0 -->
+        <div class="slot-column-wrapper">
+            <button class="slot-tag-btn" id="change-btn-0" onclick="clickChangeBtn(0)">チェンジ</button>
+            <div class="stage-placeholder-stack">
+                <div class="frame-layer layer-1" id="frame-0-1" data-type="stage" data-col="0" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,0,1)"></div>
+                <div class="frame-layer layer-2" id="frame-0-2" data-type="stage" data-col="0" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,0,2)"></div>
+                <div class="frame-layer layer-3" id="frame-0-3" data-type="stage" data-col="0" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,0,3)"></div>
+            </div>
+        </div>
+
+        <!-- Column 1 -->
+        <div class="slot-column-wrapper">
+            <button class="slot-tag-btn" id="change-btn-1" onclick="clickChangeBtn(1)">チェンジ</button>
+            <div class="stage-placeholder-stack">
+                <div class="frame-layer layer-1" id="frame-1-1" data-type="stage" data-col="1" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,1,1)"></div>
+                <div class="frame-layer layer-2" id="frame-1-2" data-type="stage" data-col="1" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,1,2)"></div>
+                <div class="frame-layer layer-3" id="frame-1-3" data-type="stage" data-col="1" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,1,3)"></div>
+            </div>
+        </div>
+
+        <!-- Column 2 -->
+        <div class="slot-column-wrapper">
+            <button class="slot-tag-btn" id="change-btn-2" onclick="clickChangeBtn(2)">チェンジ</button>
+            <div class="stage-placeholder-stack">
+                <div class="frame-layer layer-1" id="frame-2-1" data-type="stage" data-col="2" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,2,1)"></div>
+                <div class="frame-layer layer-2" id="frame-2-2" data-type="stage" data-col="2" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,2,2)"></div>
+                <div class="frame-layer layer-3" id="frame-2-3" data-type="stage" data-col="2" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,2,3)"></div>
+            </div>
+        </div>
+
+        <!-- Column 3 -->
+        <div class="slot-column-wrapper">
+            <button class="slot-tag-btn" id="change-btn-3" onclick="clickChangeBtn(3)">チェンジ</button>
+            <div class="stage-placeholder-stack">
+                <div class="frame-layer layer-1" id="frame-3-1" data-type="stage" data-col="3" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,3,1)"></div>
+                <div class="frame-layer layer-2" id="frame-3-2" data-type="stage" data-col="3" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,3,2)"></div>
+                <div class="frame-layer layer-3" id="frame-3-3" data-type="stage" data-col="3" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,3,3)"></div>
+            </div>
+        </div>
+
+        <!-- Column 4 -->
+        <div class="slot-column-wrapper">
+            <button class="slot-tag-btn" id="change-btn-4" onclick="clickChangeBtn(4)">チェンジ</button>
+            <div class="stage-placeholder-stack">
+                <div class="frame-layer layer-1" id="frame-4-1" data-type="stage" data-col="4" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,4,1)"></div>
+                <div class="frame-layer layer-2" id="frame-4-2" data-type="stage" data-col="4" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,4,2)"></div>
+                <div class="frame-layer layer-3" id="frame-4-3" data-type="stage" data-col="4" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,4,3)"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+            
             </div><div class="field-section-box direction-box">
                 <div class="field-row">
                     <div class="direction-placeholder" id="dir-slot-0" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event,0)"></div>
