@@ -912,12 +912,12 @@
                 <button class="search-modal-close" onclick="closeSearchModal()">×</button>
             </div>
             <div class="search-card-grid" id="searchCardGrid" ondragover="allowDrop(event)" ondrop="dropReturnToSearch(event)"></div>
-            <!-- トラッシュ等からの操作用ボタン群 -->
-      <div style="display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; width: 100%;">
-        <button id="btnTrashToDeckShuffle" class="control-btn" onclick="actionTrashToDeckAndShuffle()">山札に戻してシャッフル</button>
-        <button id="btnTrashToDeckBottom" class="control-btn" onclick="actionTrashToDeckBottom()">山札の下に戻す</button>
-        <button id="btnTrashToHand" class="control-btn" onclick="actionTrashToHand()">手札に加える</button>
-      </div>
+            <!-- トラッシュ操作用ボタン群（初期状態は display: none;） -->
+<div id="trashActionButtons" style="display: none; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; width: 100%;">
+  <button id="btnTrashToDeckShuffle" class="control-btn" onclick="actionTrashToDeckAndShuffle()">山札に戻してシャッフル</button>
+  <button id="btnTrashToDeckBottom" class="control-btn" onclick="actionTrashToDeckBottom()">山札の下に戻す</button>
+  <button id="btnTrashToHand" class="control-btn" onclick="actionTrashToHand()">手札に加える</button>
+</div>
         </div>
     </div>
 
@@ -1360,10 +1360,29 @@ function setupTrashAreaEvents() {
             // 選択されているカードのインデックス（複数選択用 Set）
 let selectedTrashIndices = new Set();
 
-// ★ トラッシュ確認モーダルを描画・更新する関数（既存の renderSearchModal を拡張）
+            // ★ トラッシュ確認モーダルを描画・更新する関数
 function renderSearchModal() {
-    const container = document.getElementById('searchModalContent') || document.getElementById('searchContainer'); // モーダル内のカードコンテナ
+    // 1. トラッシュ操作用ボタンの表示/非表示切り替え
+    const trashBtns = document.getElementById('trashActionButtons');
+    if (trashBtns) {
+        // currentSearchMode が 'trash' のときだけ表示
+        if (typeof currentSearchMode !== 'undefined' && currentSearchMode === 'trash') {
+            trashBtns.style.display = 'flex';
+        } else {
+            trashBtns.style.display = 'none';
+        }
+    }
+
+    const container = document.getElementById('searchCardGrid') || document.getElementById('searchModalContent') || document.getElementById('searchContainer');
     if (!container) return;
+
+    // トラッシュモード以外の時は、既存の標準描画処理を実行（もし既存の描画ロジックがある場合）
+    // トラッシュモードの時のみ選択機能付きで描画します
+    if (typeof currentSearchMode !== 'undefined' && currentSearchMode !== 'trash') {
+        // トラッシュ以外のモードでは選択をクリア
+        selectedTrashIndices.clear();
+        return;
+    }
 
     container.innerHTML = '';
 
