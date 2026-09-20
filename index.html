@@ -744,12 +744,6 @@
             <div class="zone-box" id="trashZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)">
                 <div class="count-display" id="trashCount">0</div>
                 <div class="zone-label">トラッシュ (確認はクリック)</div>
-                <!-- トラッシュ等からの操作用ボタン群 -->
-      <div style="display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; width: 100%;">
-        <button id="btnTrashToDeckShuffle" class="control-btn" onclick="actionTrashToDeckAndShuffle()">山札に戻してシャッフル</button>
-        <button id="btnTrashToDeckBottom" class="control-btn" onclick="actionTrashToDeckBottom()">山札の下に戻す</button>
-        <button id="btnTrashToHand" class="control-btn" onclick="actionTrashToHand()">手札に加える</button>
-      </div>
             </div>
         </div>
 
@@ -1406,6 +1400,12 @@ function renderSearchModal() {
     });
 
     updateTrashModalButtons();
+
+    <div style="display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap;">
+  <button id="btnTrashToDeckShuffle" class="control-btn" onclick="actionTrashToDeckAndShuffle()">山札に戻してシャッフル</button>
+  <button id="btnTrashToDeckBottom" class="control-btn" onclick="actionTrashToDeckBottom()">山札の下に戻す</button>
+  <button id="btnTrashToHand" class="control-btn" onclick="actionTrashToHand()">手札に加える</button>
+</div>
 }
 
 // ボタンの活性/非活性状態を更新
