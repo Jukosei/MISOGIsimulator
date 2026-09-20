@@ -267,17 +267,30 @@
         }
 
         .frame-layer {
-            position: absolute;
-            width: var(--card-width);
-            height: var(--card-height);
-            border-radius: 6px;
-            box-sizing: border-box;
-            z-index: 5;
-        }
+    position: absolute;
+    width: var(--card-width);
+    height: var(--card-height);
+    border-radius: 6px;
+    box-sizing: border-box;
+    z-index: 5;
+}
 
-        .frame-layer.layer-1 { top: 0px; border: 2px dashed #1565c0; }
-        .frame-layer.layer-2 { top: 84px; border: 2px dashed #f9a825; }
-        .frame-layer.layer-3 { top: 168px; border: 2px dashed #6a1b9a; }
+/* z-index を指定して、中央(layer-2)や下(layer-3)が上のレイヤーの被さりに負けないようにする */
+.frame-layer.layer-1 { 
+    top: 0px; 
+    border: 2px dashed #1565c0; 
+    z-index: 1; 
+}
+.frame-layer.layer-2 { 
+    top: 84px; 
+    border: 2px dashed #f9a825; 
+    z-index: 2; 
+}
+.frame-layer.layer-3 { 
+    top: 168px; 
+    border: 2px dashed #6a1b9a; 
+    z-index: 3; 
+}
 
         .frame-layer.drag-over {
             background-color: rgba(255, 255, 255, 0.08);
@@ -1939,7 +1952,7 @@ function confirmDeckReturn(position) {
 
     // カードの型 (M, A, S) 判定補助関数
     const isValidCardType = (cardInput) => {
-        if (!cardInput) return true; // 空の場合は安全のため通過させる
+        if (!cardInput) return true;
 
         let codeStr = '';
         if (typeof cardInput === 'string') {
@@ -1948,16 +1961,19 @@ function confirmDeckReturn(position) {
             codeStr = cardInput.suffix || cardInput.name || cardInput.code || '';
         }
 
-        // ハイフン前を取得 (例: "AM-1" -> "AM", "HA-2" -> "HA")
+        // ハイフン前を取得 (例: "JA-8" -> "JA", "BM-3" -> "BM")
         const prefixGroup = codeStr.trim().split('-')[0].toUpperCase();
-        // ハイフン直前の最後の1文字を取得 (例: "AM" -> "M", "HA" -> "A")
+        // ハイフン直前の文字を取得 (例: "JA" -> "A", "BM" -> "M", "DS" -> "S")
         const cardType = prefixGroup.length > 0 ? prefixGroup.charAt(prefixGroup.length - 1) : '';
 
-        console.log("判定対象:", cardInput, "抽出種別:", cardType, "対象レイヤー:", layerNum);
+        // layerNumを確実に数値に変換して比較
+        const targetLayer = Number(layerNum);
 
-        if (layerNum === 1) return cardType === 'M';
-        if (layerNum === 2) return cardType === 'A';
-        if (layerNum === 3) return cardType === 'S';
+        console.log("判定対象:", cardInput, "抽出種別:", cardType, "対象レイヤー:", targetLayer);
+
+        if (targetLayer === 1) return cardType === 'M';
+        if (targetLayer === 2) return cardType === 'A';
+        if (targetLayer === 3) return cardType === 'S';
         return true;
     };
 
