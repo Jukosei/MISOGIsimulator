@@ -422,7 +422,7 @@
     z-index: 10000;
 }
 
-        .deck-count { font-size: 32px; font-weight: bold; }
+        .deck-count { font-size: 64px; font-weight: bold; }
         .deck-label { font-size: 10px; color: #888; margin-top: 4px; }
 
         .counter-panel {
@@ -1954,13 +1954,24 @@ function confirmDeckReturn(position) {
         }
     };
 
-    // カードの型（ハイフン前の頭文字）を判定する補助関数
-    const isValidCardType = (cardName) => {
-        if (!cardName) return false;
-        const prefix = cardName.split('-')[0].toUpperCase();
-        if (layerNum === 1) return prefix === 'M';
-        if (layerNum === 2) return prefix === 'A';
-        if (layerNum === 3) return prefix === 'S';
+    // カードの型（M, A, S）を判定する補助関数 (suffix / name / string の両対応)
+    const isValidCardType = (cardInput) => {
+        if (!cardInput) return false;
+
+        let codeStr = '';
+        if (typeof cardInput === 'string') {
+            codeStr = cardInput;
+        } else if (typeof cardInput === 'object') {
+            // suffix または name プロパティから取得
+            codeStr = cardInput.suffix || cardInput.name || cardInput.code || '';
+        }
+
+        // ハイフン前の文字を取得（例: "M-01" -> "M"）
+        const prefix = codeStr.trim().split('-')[0].toUpperCase();
+
+        if (layerNum === 1) return prefix === 'M' || prefix.endsWith('M');
+        if (layerNum === 2) return prefix === 'A' || prefix.endsWith('A');
+        if (layerNum === 3) return prefix === 'S' || prefix.endsWith('S');
         return true;
     };
 
@@ -1971,7 +1982,7 @@ function confirmDeckReturn(position) {
         let cardObj = targetList[idx];
 
         // 型判定チェック (不適合なら配置せず中断)
-        if (cardObj && !isValidCardType(cardObj.name)) {
+        if (cardObj && !isValidCardType(cardObj)) {
             return;
         }
 
@@ -1994,7 +2005,7 @@ function confirmDeckReturn(position) {
         let cardObj = trashCards[trashCards.length - 1]; // 末尾要素を確認
 
         // 型判定チェック
-        if (cardObj && !isValidCardType(cardObj.name)) {
+        if (cardObj && !isValidCardType(cardObj)) {
             return;
         }
 
@@ -2013,11 +2024,11 @@ function confirmDeckReturn(position) {
     if (dataText) {
         let r = document.getElementById(dataText);
         if (r) {
-            let cardName = r.getAttribute('data-cardname') || r.innerText || '';
+            let cardName = r.getAttribute('data-cardname') || r.getAttribute('data-cardcode') || r.innerText || '';
 
             // 型判定チェック (不適合なら配置せず元の場所/手札に戻す)
             if (!isValidCardType(cardName)) {
-                return; // ここでリターンすることで移動処理がキャンセルされます
+                return; // 移動処理をキャンセル
             }
 
             updateCardRotation(r);
@@ -2048,19 +2059,27 @@ function confirmDeckReturn(position) {
     } catch (e) {}
 
     // カードの型（ハイフン前）が D かどうか判定するヘルパー関数
-    const isDCard = (cardName) => {
-        if (!cardName) return false;
-        const prefix = cardName.split('-')[0].toUpperCase();
-        return prefix === 'D';
+    const isDCard = (cardInput) => {
+        if (!cardInput) return false;
+
+        let codeStr = '';
+        if (typeof cardInput === 'string') {
+            codeStr = cardInput;
+        } else if (typeof cardInput === 'object') {
+            codeStr = cardInput.suffix || cardInput.name || cardInput.code || '';
+        }
+
+        const prefix = codeStr.trim().split('-')[0].toUpperCase();
+        return prefix === 'D' || prefix.endsWith('D');
     };
 
-    // 2. 山札確認モーダル (deck-view-card) からのドロップ受け取り処理
+    // 2. 山札確認モーダル（deck-view-card）からのドロップ受け取り処理
     if (data && data.type === 'deck-view-card') {
         if (typeof deckViewCards !== 'undefined' && data.viewIndex !== undefined) {
             let cardObj = deckViewCards[data.viewIndex];
 
             // 条件チェック (Dカード以外は配置をキャンセル)
-            if (cardObj && !isDCard(cardObj.name)) {
+            if (cardObj && !isDCard(cardObj)) {
                 return;
             }
 
@@ -2082,8 +2101,8 @@ function confirmDeckReturn(position) {
         let rawIdx = ev.dataTransfer.getData('search-index');
         let idx = parseInt(rawIdx);
 
-        let targetList = (currentSearchType === 'deck')
-            ? virtualDeck
+        let targetList = (currentSearchType === 'deck') 
+            ? virtualDeck 
             : ((currentSearchType === 'noise') ? volNoiseCards : trashCards);
 
         let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
@@ -2093,7 +2112,7 @@ function confirmDeckReturn(position) {
             let cardObj = targetList[idx];
 
             // 条件チェック (Dカード以外は配置をキャンセル)
-            if (!isDCard(cardObj.name)) {
+            if (cardObj && !isDCard(cardObj)) {
                 return;
             }
 
@@ -2119,7 +2138,7 @@ function confirmDeckReturn(position) {
         return;
     }
 
-    // 4. トラッシュゾーン (アイコン) からのドラッグ処理
+    // 4. トラッシュゾーン（アイコン）からのドラッグ処理
     if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
         let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
         let existingCard = targetZone.querySelector('.game-card');
@@ -2128,14 +2147,14 @@ function confirmDeckReturn(position) {
             let cardObj = trashCards[trashCards.length - 1];
 
             // 条件チェック (Dカード以外は配置をキャンセル)
-            if (cardObj && !isDCard(cardObj.name)) {
+            if (cardObj && !isDCard(cardObj)) {
                 return;
             }
 
             cardObj = trashCards.pop();
             createGameCardToHand(cardObj.name, cardObj.imagePath);
-            let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
 
+            let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
             if (genCard) {
                 if (targetZone.classList.contains('layer-2')) {
                     genCard.classList.add('card-rotate-horizontal');
@@ -2147,14 +2166,14 @@ function confirmDeckReturn(position) {
         return;
     }
 
-    // 5. 通常のカード移動 (手札や他エリアから)
+    // 5. 通常のカード移動（手札や他エリアから）
     if (dataText) {
         let n = document.getElementById(dataText);
         let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
         let existingCard = targetZone.querySelector('.game-card');
 
         if (n && !existingCard) {
-            let cardName = n.getAttribute('data-cardname') || n.innerText || '';
+            let cardName = n.getAttribute('data-cardname') || n.getAttribute('data-cardcode') || n.innerText || '';
 
             // 条件チェック (Dカード以外は配置をキャンセル)
             if (!isDCard(cardName)) {
