@@ -1927,16 +1927,19 @@ function confirmDeckReturn(position) {
             
         function dropToSpecificFrame(ev, colIndex, layerNum) {
     ev.preventDefault();
-    ev.stopPropagation();
+    if (ev.stopPropagation) ev.stopPropagation();
+
+    // ドラッグオーバー用スタイルの解除
     if (ev.currentTarget && ev.currentTarget.classList) {
         ev.currentTarget.classList.remove('drag-over');
     }
 
     let dataText = ev.dataTransfer ? ev.dataTransfer.getData('text/plain') : '';
+    if (!dataText) return;
 
     // カードの型 (M, A, S) 判定補助関数
     const isValidCardType = (cardInput) => {
-        if (!cardInput) return false;
+        if (!cardInput) return true; // 空の場合は安全のため通過させる
 
         let codeStr = '';
         if (typeof cardInput === 'string') {
@@ -1945,12 +1948,12 @@ function confirmDeckReturn(position) {
             codeStr = cardInput.suffix || cardInput.name || cardInput.code || '';
         }
 
-        // ハイフン前を取得 (例: "HA-1" -> "HA", "GA-13" -> "GA")
+        // ハイフン前を取得 (例: "AM-1" -> "AM", "HA-2" -> "HA")
         const prefixGroup = codeStr.trim().split('-')[0].toUpperCase();
-        // ハイフン直前の最後の1文字を取得 (例: "HA" -> "A", "GA" -> "A", "JS" -> "S", "M" -> "M")
-        const cardType = prefixGroup.charAt(prefixGroup.length - 1);
+        // ハイフン直前の最後の1文字を取得 (例: "AM" -> "M", "HA" -> "A")
+        const cardType = prefixGroup.length > 0 ? prefixGroup.charAt(prefixGroup.length - 1) : '';
 
-        console.log("判定対象:", cardInput, "種別判定:", cardType, "対象レイヤー:", layerNum);
+        console.log("判定対象:", cardInput, "抽出種別:", cardType, "対象レイヤー:", layerNum);
 
         if (layerNum === 1) return cardType === 'M';
         if (layerNum === 2) return cardType === 'A';
@@ -1968,68 +1971,22 @@ function confirmDeckReturn(position) {
         }
     };
 
-    // 1. サーチモーダルからのドラッグ
-    if (dataText === 'search-drag') {
-        let idx = parseInt(ev.dataTransfer.getData('search-index'));
-        let targetList = (currentSearchType === 'deck') 
-            ? virtualDeck 
-            : ((currentSearchType === 'noise') ? volNoiseCards : trashCards);
+    // 通常のカード要素（手札や盤面から）の取得と配置
+    let draggedElement = document.getElementById(dataText);
+    if (draggedElement) {
+        let cardCode = draggedElement.getAttribute('data-cardcode') 
+                     || draggedElement.getAttribute('data-cardname') 
+                     || draggedElement.id 
+                     || '';
 
-        let cardObj = targetList[idx];
-
-        if (cardObj && isValidCardType(cardObj)) {
-            cardObj = targetList.splice(idx, 1)[0];
-            if (typeof createGameCardToHand === 'function') {
-                createGameCardToHand(cardObj.name, cardObj.imagePath);
-            }
-
-            let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-            if (genCard) {
-                updateCardRotation(genCard);
-                ev.currentTarget.appendChild(genCard);
-            }
-
-            if (document.getElementById('deckCount')) document.getElementById('deckCount').innerText = virtualDeck.length;
-            if (document.getElementById('volNoiseCount')) document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-            if (typeof updateTrashUI === 'function') updateTrashUI();
-            if (typeof renderSearchList === 'function') renderSearchList();
+        // 種別チェック（不適合な場合は判定を出力して処理中断）
+        if (!isValidCardType(cardCode)) {
+            console.warn(`Layer ${layerNum} に ${cardCode} は配置できません。`);
+            return;
         }
-        return;
-    }
 
-    // 2. トラッシュアイコンからのドラッグ
-    if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
-        let cardObj = trashCards[trashCards.length - 1];
-
-        if (cardObj && isValidCardType(cardObj)) {
-            cardObj = trashCards.pop();
-            if (typeof createGameCardToHand === 'function') {
-                createGameCardToHand(cardObj.name, cardObj.imagePath);
-            }
-
-            let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-            if (genCard) {
-                updateCardRotation(genCard);
-                ev.currentTarget.appendChild(genCard);
-            }
-            if (typeof updateTrashUI === 'function') updateTrashUI();
-        }
-        return;
-    }
-
-    // 3. 盤面・手札からのドラッグ (通常ドロップ)
-    if (dataText) {
-        let n = document.getElementById(dataText);
-        if (n) {
-            let cardName = n.getAttribute('data-cardcode') || n.getAttribute('data-code') || n.getAttribute('data-cardname') || n.id || n.innerText || '';
-
-            if (!isValidCardType(cardName)) {
-                return; // 条件に合わない場合は配置せず戻る
-            }
-
-            updateCardRotation(n);
-            ev.currentTarget.appendChild(n);
-        }
+        updateCardRotation(draggedElement);
+        ev.currentTarget.appendChild(draggedElement);
     }
 }
             
