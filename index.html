@@ -1497,24 +1497,38 @@ function actionTrashToHand() {
 
 // ★ 処理完了後の共通更新
 function finishTrashAction(msg) {
-    renderSearchModal();
+    // 1. 本来のモーダル再描画関数を実行
+    if (typeof renderSearchList === 'function') {
+        renderSearchList();
+    }
+    
+    // 2. トラッシュエリアの枚数UIを更新
+    if (typeof updateTrashUI === 'function') {
+        updateTrashUI();
+    }
 
-    if (typeof updateTrashUI === 'function') updateTrashUI();
-
+    // 3. 山札の枚数UIを更新
     const deckCountEl = document.getElementById('deckCount');
     if (deckCountEl && typeof virtualDeck !== 'undefined') {
         deckCountEl.innerText = virtualDeck.length;
     }
-    if (typeof updateDeckCount === 'function') updateDeckCount();
+    if (typeof updateDeckCount === 'function') {
+        updateDeckCount();
+    }
+    if (typeof updateDeckUI === 'function') {
+        updateDeckUI();
+    }
 }
 
 // モーダルを閉じるときに選択をクリア
 function closeSearchModal() {
     const overlay = document.getElementById('searchOverlay');
     if (overlay) overlay.style.display = 'none';
-    selectedTrashIndices.clear();
+    if (typeof selectedTrashIndices !== 'undefined') {
+        selectedTrashIndices.clear();
+    }
 }
-
+            
 // グローバル登録
 window.actionTrashToDeckAndShuffle = actionTrashToDeckAndShuffle;
 window.actionTrashToDeckBottom = actionTrashToDeckBottom;
