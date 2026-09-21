@@ -2547,13 +2547,12 @@ function dropToVolNoise(ev) {
         else if (dataText && dataText.startsWith('{')) data = JSON.parse(dataText);
     } catch (e) {}
 
-    // ★ 山札確認モーダルからのドロップ処理
+    // ★ 1. 山札確認モーダルからのドロップ処理
     if (data && data.type === 'deck-view-card') {
         if (typeof deckViewCards !== 'undefined' && data.viewIndex !== undefined) {
             let cardObj = deckViewCards.splice(data.viewIndex, 1)[0];
             if (typeof renderDeckViewCards === 'function') renderDeckViewCards();
 
-            // VOLノイズ配列に追加
             if (cardObj) {
                 volNoiseCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
             }
@@ -2564,32 +2563,46 @@ function dropToVolNoise(ev) {
         }
     }
 
-    // 山札からのドロップ
-    if (dataText === 'deck-zone-drag' && virtualDeck && virtualDeck.length > 0) {
+    // ★ 2. 山札からのドロップ
+    if (dataText === 'deck-zone-drag' && typeof virtualDeck !== 'undefined' && virtualDeck.length > 0) {
         let topCard = virtualDeck.shift();
         volNoiseCards.push({ name: topCard.name, imagePath: topCard.imagePath });
-    }
-    // トラッシュからのドロップ
-    else if (dataText === 'trash-zone-drag' && trashCards && trashCards.length > 0) {
+    } 
+    // ★ 3. トラッシュからのドロップ
+    else if (dataText === 'trash-zone-drag' && typeof trashCards !== 'undefined' && trashCards.length > 0) {
         let cardObj = trashCards.pop();
         volNoiseCards.push({ name: cardObj.name, imagePath: cardObj.imagePath });
         updateTrashUI();
-    }
-    // その他のカード要素からのドロップ
-    else if (dataText && dataText !== 'deck-zone-drag') {
-        let a = document.getElementById(dataText);
+    } 
+    // ★ 4. 手札やステージ（その他のカード要素）からのドロップ
+    else {
+        // IDによる取得、またはドラッグ中のグローバル保持要素（window.draggedElement）から取得
+        let a = document.getElementById(dataText) || window.draggedElement;
         if (a) {
+            const cardName = a.getAttribute('data-cardname') || a.dataset.cardname || '';
+            const imagePath = a.getAttribute('data-imagepath') || a.dataset.imagepath || '';
+
             volNoiseCards.push({
-                name: a.getAttribute('data-cardname'),
-                imagePath: a.getAttribute('data-imagepath')
+                name: cardName,
+                imagePath: imagePath
             });
+
+            // フィールドのカードDOMを削除
             a.remove();
         }
     }
 
     // ★ UIの一括更新
-    updateDeckUI();
-    updateVolNoiseUI();
+    if (typeof updateDeckUI === 'function') updateDeckUI();
+    if (typeof updateVolNoiseUI === 'function') updateVolNoiseUI();
+
+    // ★ レイヤー2からVOLノイズへ移動した場合の自動連動トラッシュ処理
+    if (window.sourceColumnWrapper) {
+        if (typeof checkAndTrashDirectionCards === 'function') {
+            checkAndTrashDirectionCards(window.sourceColumnWrapper);
+        }
+        window.sourceColumnWrapper = null;
+    }
 }
             
         function dropToDeckZone(ev) {
@@ -3848,21 +3861,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 });
-
-// ★追加：全カードのドラッグ移動完了時（dragend）またはドロップ先の処理で元の列をチェック
+    
+// ★追加：全カードのドラッグ移動完了時（dragend）に元の列をチェック
 document.addEventListener('dragend', function(ev) {
-    // ドラッグされたカードが属していた列（.slot-column-wrapper など）を取得
-    const card = ev.target;
-    if (card && card.classList.contains('game-card')) {
-        // カードの「以前の親要素（または現在の移動元）」の列枠を探す
-        const columnWrapper = card.closest('.slot-column-wrapper') || document.querySelector('.slot-column-wrapper:has(.layer-2:empty)');
-        
-        // 全列に対してレイヤー2が空になっていないかチェック
-        document.querySelectorAll('.slot-column-wrapper').forEach(col => {
-            checkAndTrashDirectionCards(col);
-        });
+    // 1. ドラッグ移動元（sourceColumnWrapper）が記録されている場合はそれを優先チェック
+    if (window.sourceColumnWrapper) {
+        checkAndTrashDirectionCards(window.sourceColumnWrapper);
+        window.sourceColumnWrapper = null;
     }
-});
+
+    // 2. 予備として全列に対してレイヤー2が空になっていないかチェック
+    document.querySelectorAll('.slot-column-wrapper').forEach(col => {
+        checkAndTrashDirectionCards(col);
+    });
 });
 
             let selectedTrashIndex = null;
