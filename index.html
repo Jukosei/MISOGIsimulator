@@ -836,11 +836,10 @@
     <div class="game-screen" id="gameScreen">
         <!-- 左パネル（ノイズ・トラッシュ） -->
         <div class="left-panel">
-            <div class="zone-box" id="voiNoiseZone" onclick="openVolNoiseModal()" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)" style="cursor: pointer;">
-                <div class="count-display" id="volNoiseCount">0</div>
-                <div class="zone-label">VOI.ノイズ（確認はクリック）</div>
-            </div>
-
+            <div class="zone-box" id="volNoiseZone" onclick="openVolNoiseModal()" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)" style="cursor: pointer; position: relative;">
+    <div class="count-display" id="volNoiseCount" style="position: relative; z-index: 1;">0</div>
+    <div class="zone-label" style="position: relative; z-index: 1;">VOLノイズ</div>
+</div>
             <div class="zone-box" id="trashZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)" onclick="openTrashModal()" style="cursor: pointer;">
                 <div class="count-display" id="trashCount">0</div>
                 <div class="zone-label">トラッシュ（確認はクリック）</div>
@@ -1724,18 +1723,31 @@ function updateVolNoiseUI() {
     let countEl = document.getElementById('volNoiseCount');
     if (countEl) countEl.innerText = count;
 
-    // 背景画像の切り替えと背景色の透過
     let volZoneEl = document.getElementById('volNoiseZone');
     if (volZoneEl) {
+        // 既存の裏面画像要素を取得、または作成
+        let bgImg = volZoneEl.querySelector('.vol-bg-image');
+        
         if (count > 0) {
-            volZoneEl.style.backgroundImage = "url('images/card_back.png')";
-            volZoneEl.style.backgroundColor = "transparent"; // ★背景色を透明化して画像を表示
-            volZoneEl.style.backgroundSize = "cover";
-            volZoneEl.style.backgroundPosition = "center";
-            volZoneEl.style.backgroundRepeat = "no-repeat";
+            if (!bgImg) {
+                bgImg = document.createElement('img');
+                bgImg.className = 'vol-bg-image';
+                bgImg.src = 'images/card_back.png';
+                bgImg.style.position = 'absolute';
+                bgImg.style.top = '0';
+                bgImg.style.left = '0';
+                bgImg.style.width = '100%';
+                bgImg.style.height = '100%';
+                bgImg.style.objectFit = 'cover';
+                bgImg.style.borderRadius = '6px';
+                bgImg.style.zIndex = '0'; // 文字の下に配置
+                bgImg.style.pointerEvents = 'none'; // ドラッグ＆ドロップを邪魔しない
+                volZoneEl.insertBefore(bgImg, volZoneEl.firstChild);
+            }
         } else {
-            volZoneEl.style.backgroundImage = "none";
-            volZoneEl.style.backgroundColor = "var(--panel-bg)"; // 0枚時は元の背景色に戻す
+            if (bgImg) {
+                bgImg.remove();
+            }
         }
     }
 }
