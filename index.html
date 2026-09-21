@@ -267,14 +267,18 @@
     box-sizing: border-box;
 }
 
-/* ★ 重なり順：カードがないときはレイヤー2を優先、カードがあるときだけレイヤー3を前面に */
+/* ★ 通常時（カードがない時）の重なり順：レイヤー2を優先 */
 .frame-layer.layer-1 { top: 0px; border: 2px dashed #1565c0; z-index: 10; opacity: 0.7; }
 .frame-layer.layer-2 { top: 70px; border: 2px dashed #f9a825; z-index: 20 !important; opacity: 1.0 !important; }
 .frame-layer.layer-3 { top: 140px; border: 2px dashed #6a1b9a; z-index: 5; opacity: 0.7; }
 
-.frame-layer.layer-active { pointer-events: auto !important; opacity: 1.0 !important; }
+/* 活性化（解放）されたレイヤー1・3 */
+.frame-layer.layer-active {
+    pointer-events: auto !important;
+    opacity: 1.0 !important;
+}
 
-/* レイヤー3にカードが1枚以上入ったら重なり順を持ち上げる */
+/* ★ レイヤー3にカードがある時だけレイヤー2より前に持ち上げる */
 .frame-layer.layer-3:has(.game-card),
 .frame-layer.layer-3.has-card {
     z-index: 30 !important;
@@ -288,24 +292,37 @@
     z-index: 100 !important;
 }
 
-/* 枠内のカード基本スタイル */
+/* 枠内に置かれたカードの基本位置 */
 .frame-layer .game-card {
     position: absolute;
     top: 0;
     left: 0;
     pointer-events: auto !important;
+}
+
+/* ★ レイヤー1（Mゾーン）：2枚重ね用の位置ずらし設定 */
+.frame-layer.layer-1 .game-card:nth-child(1) {
+    top: 0px;
+    z-index: 101 !important;
+}
+.frame-layer.layer-1 .game-card:nth-child(2) {
+    top: 20px;               /* 2枚目を20px下にズラして表示 */
+    z-index: 102 !important; /* 2枚目を手前に表示 */
+}
+
+/* レイヤー2（Aゾーン）のカード表示順 */
+.frame-layer.layer-2 .game-card {
     z-index: 200 !important;
 }
 
-/* ★ レイヤー3：2枚重ね用のスタック位置調整 */
+/* ★ レイヤー3（Sゾーン）：2枚重ね用の位置ずらし設定 */
 .frame-layer.layer-3 .game-card:nth-child(1) {
     top: 0px;
-    z-index: 201 !important;
+    z-index: 301 !important;
 }
-
 .frame-layer.layer-3 .game-card:nth-child(2) {
-    top: 20px; /* 2枚目のカードを20px下にズラして重なりを見せる */
-    z-index: 202 !important; /* 2枚目を手前に表示 */
+    top: 20px;               /* 2枚目を20px下にズラして表示 */
+    z-index: 302 !important; /* 2枚目を手前に表示 */
 }
         
 .direction-placeholder {
