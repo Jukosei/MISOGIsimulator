@@ -193,18 +193,19 @@
             border-color: #fff;
         }
 
-        .center-panel {
+        /* 中央パネル：縦方向に隙間なく引き伸ばす */
+.center-panel {
     display: flex;
     flex-direction: column;
     height: 100%;
     gap: 12px;
     flex: 1;
     width: 100%;
-    /* 最大幅制限を解除して画面全体に広げる */
     max-width: none;
     margin: 0;
+    box-sizing: border-box;
 }
-
+        
 .field-section-box {
     background-color: var(--panel-bg);
     border: 1px solid var(--border-color);
@@ -347,9 +348,10 @@
     color: #fff;
     border-color: var(--btn-accent);
 }
-
+        
 .hand-area {
-    min-height: 140px;
+    flex: 1; /* 余った下の空間をすべて埋める */
+    min-height: 160px;
     background-color: var(--panel-bg);
     border: 1px solid var(--border-color);
     border-radius: 6px;
@@ -360,6 +362,7 @@
     gap: 10px;
     align-content: flex-start;
     touch-action: auto;
+    overflow-y: auto; /* カードが増えた場合はスクロール */
 }
 
         .game-card {
@@ -851,9 +854,9 @@
                     <div class="direction-placeholder" id="dir-slot-4" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event,4)"></div>
                 </div>
             </div>
-
+            
             <!-- 3. 手札エリア -->
-            <div class="hand-area" id="handarea" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToHand(event)"></div>
+            <div class="hand-area" id="handArea" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToHand(event)"></div>
 
         </div><!-- /center-panel -->
 
