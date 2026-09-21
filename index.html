@@ -84,10 +84,11 @@
 
         .deck-code-area {
     width: 100%;
-    max-width: 600px; /* ★好みの最大幅に設定（例: 500px, 600px, 800px） */
+    max-width: 500px; /* ★中央に綺麗に配置するための幅 */
     display: flex;
     flex-direction: column;
-    align-items: center; /* ★中央揃えに設定 */
+    align-items: center; /* ★中央揃え */
+    justify-content: center;
 }
 
         .label-text {
@@ -99,17 +100,16 @@
         }
 
         textarea {
-    width: 100%;
-    min-width: 350px; /* ★横幅の最小サイズを指定 */
+    width: 100% !important; /* ★100%いっぱいに広げる */
     height: 160px;
     background-color: var(--panel-bg);
     border: 1px solid var(--border-color);
     border-radius: 6px;
     color: #ffffff;
-    padding: 15px;
-    font-size: 14px; /* テキストが見やすくなるよう微調整 */
-    box-sizing: border-box; /* パディングを含めた幅計算 */
-    resize: vertical; /* ユーザーが縦方向のみリサイズ可能に設定 */
+    padding: 10px;
+    font-size: 14px;
+    box-sizing: border-box;
+    resize: vertical;
 }
 
         .clear-btn {
@@ -821,15 +821,19 @@
         </div>
         <div class="input-section">
             <div class="deck-code-area" id="areaPlayer1">
-                <div class="label-text" id="labelPlayer1">プレイヤー1のデッキ</div>
-                <div class="textarea-container"><textarea id="deckInput1" oninput="saveDeckInputs()"></textarea></div>
-                <button class="clear-btn" onclick="clearInput(1)">クリア</button>
-            </div>
-            <div class="deck-code-area" id="areaPlayer2">
-                <div class="label-text">プレイヤー2のデッキ</div>
-                <div class="textarea-container"><textarea id="deckInput2" oninput="saveDeckInputs()"></textarea></div>
-                <button class="clear-btn" onclick="clearInput(2)">クリア</button>
-            </div>
+    <div class="label-text" id="labelPlayer1">プレイヤー1のデッキ</div>
+    <div class="textarea-container" style="width: 100%; display: flex; justify-content: center;">
+        <textarea id="deckInput1" oninput="saveDeckInputs()" style="width: 400px !important; min-width: 400px; height: 160px; font-size: 14px; box-sizing: border-box;"></textarea>
+    </div>
+    <button class="clear-btn" onclick="clearInput(1)">クリア</button>
+</div>
+<div class="deck-code-area" id="areaPlayer2">
+    <div class="label-text">プレイヤー2のデッキ</div>
+    <div class="textarea-container" style="width: 100%; display: flex; justify-content: center;">
+        <textarea id="deckInput2" oninput="saveDeckInputs()" style="width: 400px !important; min-width: 400px; height: 160px; font-size: 14px; box-sizing: border-box;"></textarea>
+    </div>
+    <button class="clear-btn" onclick="clearInput(2)">クリア</button>
+</div>
         </div>
         <button class="start-btn" onclick="startGame()">ゲーム開始</button>
     </div>
