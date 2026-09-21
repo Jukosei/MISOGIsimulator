@@ -2060,7 +2060,6 @@ function dropToSpecificFrame(ev, colIndex, layerNum) {
     let jsonText = ev.dataTransfer.getData('application/json');
     let data = null;
 
-    // 1. JSONデータの安全なパース処理を追加
     try {
         if (jsonText) data = JSON.parse(jsonText);
         else if (dataText && dataText.startsWith('{')) data = JSON.parse(dataText);
@@ -2069,58 +2068,56 @@ function dropToSpecificFrame(ev, colIndex, layerNum) {
     // カードの型（ハイフン前）が D かどうか判定するヘルパー関数
     const isDCard = (cardInput) => {
         if (!cardInput) return false;
-
         let codeStr = '';
         if (typeof cardInput === 'string') {
             codeStr = cardInput;
         } else if (typeof cardInput === 'object') {
             codeStr = cardInput.suffix || cardInput.name || cardInput.code || '';
         }
-
         const prefix = codeStr.trim().split('-')[0].toUpperCase();
         return prefix === 'D' || prefix.endsWith('D');
     };
 
-    // 2. 山札確認モーダル（deck-view-card）からのドロップ受け取り処理
+    // 1. 山札確認モーダルからのドロップ受け取り処理
     if (data && data.type === 'deck-view-card') {
         if (typeof deckViewCards !== 'undefined' && data.viewIndex !== undefined) {
             let cardObj = deckViewCards[data.viewIndex];
 
-            // 条件チェック (Dカード以外は配置をキャンセル)
+            // ディレクション枠へ置く場合のみ D カードかチェック
             if (cardObj && !isDCard(cardObj)) {
+                console.log("【配置不可】ディレクション枠にはDカードしか置けません");
                 return;
             }
 
             cardObj = deckViewCards.splice(data.viewIndex, 1)[0];
             if (typeof renderDeckViewCards === 'function') renderDeckViewCards();
 
+            let targetZone = ev.currentTarget;
             if (cardObj && typeof createGameCardToHand === 'function') {
-                let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
-                if (targetZone) {
-                    createGameCardToHand(cardObj.name, cardObj.imagePath);
-                }
+                createGameCardToHand(cardObj.name, cardObj.imagePath);
+                let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
+                if (genCard) targetZone.appendChild(genCard);
             }
             return;
         }
     }
 
-    // 3. サーチ・トラッシュモーダルからのドラッグ処理
+    // 2. サーチ・トラッシュモーダルからのドラッグ処理
     if (dataText === 'search-drag') {
         let rawIdx = ev.dataTransfer.getData('search-index');
         let idx = parseInt(rawIdx);
-
-        let targetList = (currentSearchType === 'deck') 
-            ? virtualDeck 
+        let targetList = (currentSearchType === 'deck')
+            ? virtualDeck
             : ((currentSearchType === 'noise') ? volNoiseCards : trashCards);
 
-        let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
+        let targetZone = ev.currentTarget;
         let existingCard = targetZone.querySelector('.game-card');
 
         if (!existingCard && !isNaN(idx) && targetList[idx]) {
             let cardObj = targetList[idx];
 
-            // 条件チェック (Dカード以外は配置をキャンセル)
             if (cardObj && !isDCard(cardObj)) {
+                console.log("【配置不可】ディレクション枠にはDカードしか置けません");
                 return;
             }
 
@@ -2128,14 +2125,7 @@ function dropToSpecificFrame(ev, colIndex, layerNum) {
             createGameCardToHand(cardObj.name, cardObj.imagePath);
 
             let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-            let isLayer2 = targetZone.classList.contains('layer-2');
-
-            if (genCard) {
-                if (isLayer2) {
-                    genCard.classList.add('card-rotate-horizontal');
-                }
-                targetZone.appendChild(genCard);
-            }
+            if (genCard) targetZone.appendChild(genCard);
 
             if (document.getElementById('deckCount')) document.getElementById('deckCount').innerText = virtualDeck.length;
             if (document.getElementById('volNoiseCount')) document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
@@ -2146,16 +2136,16 @@ function dropToSpecificFrame(ev, colIndex, layerNum) {
         return;
     }
 
-    // 4. トラッシュゾーン（アイコン）からのドラッグ処理
+    // 3. トラッシュゾーンからのドラッグ処理
     if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
-        let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
+        let targetZone = ev.currentTarget;
         let existingCard = targetZone.querySelector('.game-card');
 
         if (!existingCard) {
             let cardObj = trashCards[trashCards.length - 1];
 
-            // 条件チェック (Dカード以外は配置をキャンセル)
             if (cardObj && !isDCard(cardObj)) {
+                console.log("【配置不可】ディレクション枠にはDカードしか置けません");
                 return;
             }
 
@@ -2163,34 +2153,28 @@ function dropToSpecificFrame(ev, colIndex, layerNum) {
             createGameCardToHand(cardObj.name, cardObj.imagePath);
 
             let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
-            if (genCard) {
-                if (targetZone.classList.contains('layer-2')) {
-                    genCard.classList.add('card-rotate-horizontal');
-                }
-                targetZone.appendChild(genCard);
-            }
+            if (genCard) targetZone.appendChild(genCard);
+
             updateTrashUI();
         }
         return;
     }
 
-    // 5. 通常のカード移動（手札や他エリアから）
+    // 4. 通常のカード移動（手札エリアからのドラッグ）
     if (dataText) {
         let n = document.getElementById(dataText);
-        let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
+        let targetZone = ev.currentTarget;
         let existingCard = targetZone.querySelector('.game-card');
 
         if (n && !existingCard) {
             let cardName = n.getAttribute('data-cardname') || n.getAttribute('data-cardcode') || n.innerText || '';
 
-            // 条件チェック (Dカード以外は配置をキャンセル)
+            // ★ ディレクションエリア（Dゾーン）へ置く時のみ Dカードチェック
             if (!isDCard(cardName)) {
-                return; // ここで中断されるため、カードは元の場所にとどまります
+                console.log("【配置不可】ディレクション枠にはDカードしか置けません");
+                return;
             }
 
-            if (targetZone.classList.contains('layer-2')) {
-                n.classList.add('card-rotate-horizontal');
-            }
             targetZone.appendChild(n);
         }
     }
