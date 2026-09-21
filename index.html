@@ -802,6 +802,29 @@
     display: block;
     margin: 0 auto 4px auto;
 }
+
+/* トラッシュエリア内のカードは絶対配置を解除し、元の位置に戻す */
+#trashZone .game-card,
+.trash-zone .game-card,
+#trash-area .game-card {
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    margin: 0 !important;
+    z-index: auto !important;
+    transform: none !important; /* 横回転の解除 */
+}
+
+/* トラッシュエリア自体の並び設定（必要に応じて調整） */
+#trashZone,
+.trash-zone,
+#trash-area {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: flex-start !important;
+    align-content: flex-start !important;
+    gap: 4px !important;
+}
         
     </style>
 </head>
@@ -3858,6 +3881,16 @@ document.addEventListener('dragend', function(ev) {
 });
 
             let selectedTrashIndex = null;
+
+            directionCards.forEach(card => {
+    trashZone.appendChild(card);
+    
+    // インラインスタイルのクリア
+    card.removeAttribute('style');
+    
+    // 回転やレイヤー専用クラスを削除
+    card.classList.remove('card-rotate-horizontal');
+});
             
 // --- 関数のグローバル公開 (onclick対応) ---
 if (typeof selectMode === 'function') window.selectMode = selectMode;
