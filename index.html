@@ -267,23 +267,19 @@
     box-sizing: border-box;
 }
 
-/* ★ 親枠の重なり順（枠線・空枠の基準） */
-.frame-layer.layer-1 { top: 0px; border: 2px dashed #1565c0; z-index: 1; opacity: 0.7; }
-.frame-layer.layer-2 { top: 70px; border: 2px dashed #f9a825; z-index: 2; opacity: 1.0 !important; }
-.frame-layer.layer-3 { top: 140px; border: 2px dashed #6a1b9a; z-index: 3; opacity: 0.7; }
+/* ★ 親枠の重なり順（レイヤー3を最手前にして表示を上に重ねる） */
+.frame-layer.layer-1 { top: 0px; border: 2px dashed #1565c0; z-index: 10; opacity: 0.7; }
+.frame-layer.layer-2 { top: 70px; border: 2px dashed #f9a825; z-index: 20; opacity: 1.0 !important; }
+.frame-layer.layer-3 { top: 140px; border: 2px dashed #6a1b9a; z-index: 30; opacity: 0.7; }
 
-/* 空枠のドロップ受け取り設定（カードが無い場所のドラッグ反応用） */
+/* 活性化枠の当たり判定 */
 .frame-layer.layer-2,
 .frame-layer.layer-active {
     pointer-events: auto !important;
     opacity: 1.0 !important;
 }
-.frame-layer.layer-1:not(.layer-active),
-.frame-layer.layer-3:not(.layer-active) {
-    pointer-events: none !important;
-}
 
-/* ステージ枠（Layer 1, 2, 3）専用：点線ハイライト */
+/* 点線ハイライト */
 .frame-layer.drag-over {
     background-color: rgba(255, 255, 255, 0.1) !important;
     border: 2px dashed #ffffff !important;
@@ -291,10 +287,23 @@
     z-index: 100 !important;
 }
 
-/* ★ 枠内に置かれた「カード本体」のみの表示順制御 */
+/* 枠内に置かれたカード要素の共通 */
 .frame-layer .game-card {
     position: relative;
-    pointer-events: auto !important; /* カード本体は常にクリック・ドラッグ可能 */
+}
+
+/* ★ レイヤー2のカード：クリック・再ドラッグを有効化 */
+.frame-layer.layer-2 .game-card {
+    pointer-events: auto !important;
+    z-index: 200 !important;
+}
+
+/* ★ レイヤー1・3のカード：クリックを完全無効化（判定を下のレイヤー2へ透過させる） */
+.frame-layer.layer-1 .game-card,
+.frame-layer.layer-3 .game-card,
+.frame-layer.layer-1 .game-card *,
+.frame-layer.layer-3 .game-card * {
+    pointer-events: none !important; /* クリックやドラッグイベントを無視して直下へ透過 */
 }
 
 /* 下のレイヤーに置かれたカードほど手前に表示（レイヤー3のカードが最手前） */
