@@ -267,21 +267,17 @@
     box-sizing: border-box;
 }
 
-/* ★ 通常時（カードがない時）の重なり順：レイヤー2をレイヤー3より手前に配置 */
+/* ★ 重なり順：カードがないときはレイヤー2を優先、カードがあるときだけレイヤー3を前面に */
 .frame-layer.layer-1 { top: 0px; border: 2px dashed #1565c0; z-index: 10; opacity: 0.7; }
 .frame-layer.layer-2 { top: 70px; border: 2px dashed #f9a825; z-index: 20 !important; opacity: 1.0 !important; }
 .frame-layer.layer-3 { top: 140px; border: 2px dashed #6a1b9a; z-index: 5; opacity: 0.7; }
 
-/* 活性化枠設定 */
-.frame-layer.layer-active {
-    pointer-events: auto !important;
-    opacity: 1.0 !important;
-}
+.frame-layer.layer-active { pointer-events: auto !important; opacity: 1.0 !important; }
 
-/* ★ レイヤー3にカードが置かれたとき（.has-card または子要素に .game-card がある時）だけレイヤー2より前に出す */
+/* レイヤー3にカードが1枚以上入ったら重なり順を持ち上げる */
 .frame-layer.layer-3:has(.game-card),
 .frame-layer.layer-3.has-card {
-    z-index: 30 !important; /* カードがある時だけレイヤー2(z-index:20)の上に重ねる */
+    z-index: 30 !important;
 }
 
 /* 点線ハイライト */
@@ -292,11 +288,24 @@
     z-index: 100 !important;
 }
 
-/* 枠内に置かれたカード要素の基本設定 */
+/* 枠内のカード基本スタイル */
 .frame-layer .game-card {
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
     pointer-events: auto !important;
     z-index: 200 !important;
+}
+
+/* ★ レイヤー3：2枚重ね用のスタック位置調整 */
+.frame-layer.layer-3 .game-card:nth-child(1) {
+    top: 0px;
+    z-index: 201 !important;
+}
+
+.frame-layer.layer-3 .game-card:nth-child(2) {
+    top: 20px; /* 2枚目のカードを20px下にズラして重なりを見せる */
+    z-index: 202 !important; /* 2枚目を手前に表示 */
 }
         
 .direction-placeholder {
@@ -313,15 +322,37 @@
     background-color: rgba(198, 40, 40, 0.1);
 }
 
-.frame-layer .game-card, .direction-placeholder .game-card {
+/* 枠内のカード基本スタイル */
+.frame-layer .game-card {
     position: absolute;
     top: 0;
     left: 0;
-    margin: 0;
-    width: 100%;
-    height: 100%;
+    pointer-events: auto !important;
+    z-index: 200 !important;
 }
 
+/* ★ レイヤー1：2枚重ね用のスタック位置調整 */
+.frame-layer.layer-1 .game-card:nth-child(1) {
+    top: 0px;
+    z-index: 201 !important;
+}
+
+.frame-layer.layer-1 .game-card:nth-child(2) {
+    top: 20px; /* 2枚目を20px下にずらして重なりを表示 */
+    z-index: 202 !important; /* 2枚目を手前に表示 */
+}
+
+/* ★ レイヤー3：2枚重ね用のスタック位置調整 */
+.frame-layer.layer-3 .game-card:nth-child(1) {
+    top: 0px;
+    z-index: 201 !important;
+}
+
+.frame-layer.layer-3 .game-card:nth-child(2) {
+    top: 20px;
+    z-index: 202 !important;
+}
+        
 .slot-tag-btn {
     background-color: #222;
     color: #aaa;
@@ -1973,8 +2004,10 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
 
     let targetFrame = ev.currentTarget;
 
-    // すでにカードが置かれている場合は重複配置を防ぐ
-    if (targetFrame.querySelector('.game-card')) return;
+    // レイヤー1と3は2枚まで、レイヤー2は1枚まで配置可能
+    const existingCards = targetFrame.querySelectorAll('.game-card');
+    const maxAllowed = (targetLayer === 1 || targetLayer === 3) ? 2 : 1;
+    if (existingCards.length >= maxAllowed) return;
 
     let dataText = ev.dataTransfer.getData('text/plain');
     let jsonText = ev.dataTransfer.getData('application/json');
