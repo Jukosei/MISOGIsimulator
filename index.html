@@ -1402,30 +1402,34 @@ function showToast(text) {
     ev.dataTransfer.effectAllowed = 'move';
 }
 
-            // レイヤー2が空になった際、レイヤー1・3のカードをトラッシュへ移動する処理
+            // 以前提示した関数を修正
 function checkAndTrashDirectionCards(columnWrapper) {
     if (!columnWrapper) return;
 
-    // 列内のレイヤー2カードを取得
-    const layer2 = columnWrapper.querySelector('.layer-2, [data-layer="2"]');
+    // 列の中のレイヤー2内のカードを取得
+    const layer2 = columnWrapper.querySelector('.layer-2');
     const layer2Cards = layer2 ? layer2.querySelectorAll('.game-card') : [];
 
-    // レイヤー2にカードが無くなった場合
+    // レイヤー2が空になった場合
     if (layer2Cards.length === 0) {
+        // トラッシュエリアを取得（ID等は環境に合わせてください）
         const trashZone = document.getElementById('trashZone') || document.querySelector('.trash-zone') || document.getElementById('trash-area');
         if (!trashZone) return;
 
-        // 残っているレイヤー1・3のカードを取得
+        // レイヤー1と3のカードを取得してトラッシュへ移動
         const directionCards = columnWrapper.querySelectorAll('.layer-1 .game-card, .layer-3 .game-card, [data-layer="1"] .game-card, [data-layer="3"] .game-card');
         
         directionCards.forEach(card => {
             trashZone.appendChild(card);
-            // スタイルと回転のリセット
-            card.style.position = '';
-            card.style.top = '';
-            card.style.left = '';
-            card.style.zIndex = '';
-            card.classList.remove('card-rotate-horizontal');
+            
+            // ==========================================
+            // ★ここを修正（追加）：スタイルを完全にリセットする
+            // ==========================================
+            // card.style.top = ''; の代わりに style 属性全体を削除してクリア
+            card.removeAttribute('style');
+
+            // 必要であれば、トラッシュ用のクラスを付与するなどの処理を入れる
+            // card.classList.add('in-trash'); 
         });
     }
 }
