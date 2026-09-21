@@ -2004,7 +2004,16 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
 
     let targetFrame = ev.currentTarget;
 
-    // レイヤー1と3は2枚まで、レイヤー2は1枚まで配置可能
+    // ★ レイヤー1または3に置く場合、同じ列のレイヤー2にカードが置かれているかチェック
+    if (targetLayer === 1 || targetLayer === 3) {
+        const parentColumn = targetFrame.closest('.slot-column-wrapper') || targetFrame.parentElement;
+        const layer2Frame = parentColumn ? parentColumn.querySelector('.layer-2') : null;
+        if (!layer2Frame || !layer2Frame.querySelector('.game-card')) {
+            return;
+        }
+    }
+
+    // 枚数上限チェック（レイヤー1・3は2枚、レイヤー2は1枚）
     const existingCards = targetFrame.querySelectorAll('.game-card');
     const maxAllowed = (targetLayer === 1 || targetLayer === 3) ? 2 : 1;
     if (existingCards.length >= maxAllowed) return;
