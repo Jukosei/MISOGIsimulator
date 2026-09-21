@@ -298,23 +298,27 @@
 .frame-layer.layer-active {
     pointer-events: auto !important;
     opacity: 1.0 !important;
-    z-index: 10 !important; /* レイヤー2およびカード(z-index: 200)より必ず後ろにする */
+    z-index: 10 !important;
 }
 
-/* ステージ枠（Layer 1, 2, 3）専用：控えめな点線ハイライト */
+/* ステージ枠（Layer 1, 2, 3）専用：点線ハイライト */
 .frame-layer.drag-over {
-    background-color: rgba(255, 255, 255, 0.1) !important; /* ほんのり薄い背景 */
-    border: 2px dashed #ffffff !important;               /* 白の点線枠 */
-    box-shadow: none !important;                         /* 強烈な発光エフェクトをカット */
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border: 2px dashed #ffffff !important;
+    box-shadow: none !important;
     z-index: 100 !important;
 }
 
-/* ★ レイヤー内・レイヤー外問わず、すべてのカード要素を最前面に持ち上げる */
-.frame-layer.game-card {
+/* 枠内に置かれたカード要素の基本設定 */
+.frame-layer .game-card {
     position: relative;
-    z-index: 200 !important; /* 枠線(z-index: 10)より常に手前にしてクリックを維持 */
     pointer-events: auto !important;
 }
+
+/* ★ レイヤーごとのカード重なり順制御（下が手前に表示される設定） */
+.frame-layer.layer-1 .game-card { z-index: 201 !important; }
+.frame-layer.layer-2 .game-card { z-index: 202 !important; }
+.frame-layer.layer-3 .game-card { z-index: 203 !important; } /* レイヤー3のカードを一番前に表示 */
         
 .direction-placeholder {
     width: var(--card-width);
