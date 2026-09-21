@@ -193,20 +193,18 @@
             border-color: #fff;
         }
 
-        /* 中央パネル：全体の横幅を適度に絞って隙間を詰める */
+        /* 中央パネル：画面全体の幅をしっかり使う */
 .center-panel {
     display: flex;
     flex-direction: column;
     height: 100%;
     gap: 12px;
     flex: 1;
-    width: 92%; /* 100%から少し絞ることで枠同士の距離を縮める */
-    max-width: 1000px; /* 広がりすぎないように最大幅を指定 */
-    margin: 0 auto; /* 中央寄せ */
+    width: 100%;
+    max-width: none;
+    margin: 0;
     box-sizing: border-box;
 }
-
-
         
 .field-section-box {
     background-color: var(--panel-bg);
@@ -226,10 +224,11 @@
     flex: none;
 }
 
-        /* 枠を並べる行：左右の間隔を均等かつ狭める */
+        /* ゾーンを並べる行：中央寄せて列同士の間隔（gap）だけを縮める */
 .field-row {
     display: flex;
-    justify-content: space-around; /* 左右に広がりすぎず均等配置 */
+    justify-content: center; /* 中央に寄せつつ */
+    gap: 16px;              /* 列同士の間隔を16pxに固定（数値で調整可能） */
     align-items: flex-start;
     width: 100%;
     margin: 0 auto;
