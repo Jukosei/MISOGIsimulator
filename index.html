@@ -802,29 +802,6 @@
     display: block;
     margin: 0 auto 4px auto;
 }
-
-/* トラッシュエリア内のカードは絶対配置を解除し、元の位置に戻す */
-#trashZone .game-card,
-.trash-zone .game-card,
-#trash-area .game-card {
-    position: relative !important;
-    top: 0 !important;
-    left: 0 !important;
-    margin: 0 !important;
-    z-index: auto !important;
-    transform: none !important; /* 横回転の解除 */
-}
-
-/* トラッシュエリア自体の並び設定（必要に応じて調整） */
-#trashZone,
-.trash-zone,
-#trash-area {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    align-items: flex-start !important;
-    align-content: flex-start !important;
-    gap: 4px !important;
-}
         
     </style>
 </head>
@@ -1425,38 +1402,45 @@ function showToast(text) {
     ev.dataTransfer.effectAllowed = 'move';
 }
 
-            // 以前提示した関数を修正
+            // レイヤー2が空になった際、レイヤー1・3のカードをトラッシュ（trashCards配列）へ移動する関数
 function checkAndTrashDirectionCards(columnWrapper) {
     if (!columnWrapper) return;
 
-    // 列の中のレイヤー2内のカードを取得
-    const layer2 = columnWrapper.querySelector('.layer-2');
+    // 列内のレイヤー2カードを取得
+    const layer2 = columnWrapper.querySelector('.layer-2, [data-layer="2"]');
     const layer2Cards = layer2 ? layer2.querySelectorAll('.game-card') : [];
 
-    // レイヤー2が空になった場合
+    // レイヤー2にカードが存在しない（空になった）場合
     if (layer2Cards.length === 0) {
-        // トラッシュエリアを取得（ID等は環境に合わせてください）
-        const trashZone = document.getElementById('trashZone') || document.querySelector('.trash-zone') || document.getElementById('trash-area');
-        if (!trashZone) return;
-
-        // レイヤー1と3のカードを取得してトラッシュへ移動
+        // レイヤー1と3に残っているカードを取得
         const directionCards = columnWrapper.querySelectorAll('.layer-1 .game-card, .layer-3 .game-card, [data-layer="1"] .game-card, [data-layer="3"] .game-card');
         
-        directionCards.forEach(card => {
-            trashZone.appendChild(card);
-            
-            // ==========================================
-            // ★ここを修正（追加）：スタイルを完全にリセットする
-            // ==========================================
-            // card.style.top = ''; の代わりに style 属性全体を削除してクリア
-            card.removeAttribute('style');
+        if (directionCards.length === 0) return;
 
-            // 必要であれば、トラッシュ用のクラスを付与するなどの処理を入れる
-            // card.classList.add('in-trash'); 
+        directionCards.forEach(card => {
+            // カード情報（名前・画像パス）をDOMのdata属性またはdatasetから取得
+            const cardName = card.getAttribute('data-cardname') || card.dataset.cardname || '';
+            const imagePath = card.getAttribute('data-imagepath') || card.dataset.imagepath || card.src || '';
+
+            // 1. システムのトラッシュ管理配列(trashCards)へ追加
+            if (typeof trashCards !== 'undefined' && Array.isArray(trashCards)) {
+                trashCards.push({
+                    name: cardName,
+                    imagePath: imagePath
+                });
+            }
+
+            // 2. フィールド上からカード要素を削除
+            card.remove();
         });
+
+        // 3. トラッシュ領域の表示（枚数カウント等）を公式関数で更新
+        if (typeof updateTrashUI === 'function') {
+            updateTrashUI();
+        }
     }
 }
-
+            
 function setupTrashAreaEvents() {
             let el = document.getElementById('trashZone');
             el.setAttribute('draggable', 'true');
