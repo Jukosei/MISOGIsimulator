@@ -1537,6 +1537,7 @@ let selectedTrashIndices = new Set();
 
     updateTrashModalButtons();
 }
+            
 // ボタンの活性/非活性状態を更新
 function updateTrashModalButtons() {
     const count = selectedTrashIndices.size;
@@ -2190,6 +2191,41 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
             // ★ レイヤー1および3は常に縦向き固定（横回転を強制解除＆クリック回転無効化）
             cardElementToAppend.classList.remove('card-rotate-horizontal');
             cardElementToAppend.onclick = null;
+        }
+    }
+}
+
+            // 指定された列(columnWrapper)のレイヤー1とレイヤー3にあるカードをトラッシュへ移動する関数
+function checkAndTrashDirectionCards(columnWrapper) {
+    // 列要素内のレイヤー2のカードを取得
+    const layer2 = columnWrapper.querySelector('.layer-2, .frame-layer-2');
+    const layer2Cards = layer2 ? layer2.querySelectorAll('.game-card') : [];
+
+    // レイヤー2にカードが存在しない場合（手札等へ移動して空になった場合）
+    if (layer2Cards.length === 0) {
+        // トラッシュエリアを取得（要素のIDやクラス名に合わせて調整してください）
+        const trashArea = document.querySelector('#trash-area, .trash-zone');
+
+        if (!trashArea) return;
+
+        // レイヤー1とレイヤー3からカードを取得
+        const directionCards = columnWrapper.querySelectorAll('.layer-1 .game-card, .frame-layer-1 .game-card, .layer-3 .game-card, .frame-layer-3 .game-card');
+
+        // 残っているカードを全てトラッシュエリアに移動
+        directionCards.forEach(card => {
+            // トラッシュ追加ロジック（そのままDOMを移動する場合）
+            trashArea.appendChild(card);
+            
+            // カードのスタイルをリセット（重ね合わせ等のCSSを消去）
+            card.style.position = '';
+            card.style.top = '';
+            card.style.left = '';
+            card.style.zIndex = '';
+        });
+
+        // トラッシュ枚数などの画面表示更新処理があればここで実行
+        if (typeof updateTrashCount === 'function') {
+            updateTrashCount();
         }
     }
 }
@@ -3779,22 +3815,37 @@ window.closeDeckView = closeDeckView;
     // --- ドラッグアンドドロップ設定 ---
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.layer-2').forEach(zone => {
-        zone.ondragover = function(ev) { ev.preventDefault(); };
-        zone.ondragenter = function(ev) {
-            ev.preventDefault();
-            let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
-            if (targetZone) targetZone.classList.add('drag-over');
-        };
-        zone.ondragleave = function(ev) {
-            let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
-            if (targetZone) targetZone.classList.remove('drag-over');
-        };
-        zone.ondrop = function(ev) {
-            if (typeof dropToDirection === 'function') {
-                dropToDirection(ev);
-            }
-        };
-    });
+    zone.ondragover = function(ev) { ev.preventDefault(); };
+    zone.ondragenter = function(ev) {
+        ev.preventDefault();
+        let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
+        if (targetZone) targetZone.classList.add('drag-over');
+    };
+    zone.ondragleave = function(ev) {
+        let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
+        if (targetZone) targetZone.classList.remove('drag-over');
+    };
+    zone.ondrop = function(ev) {
+        if (typeof dropToDirection === 'function') {
+            dropToDirection(ev);
+        }
+    };
+});
+
+// ★追加：全カードのドラッグ移動完了時（dragend）またはドロップ先の処理で元の列をチェック
+document.addEventListener('dragend', function(ev) {
+    // ドラッグされたカードが属していた列（.slot-column-wrapper など）を取得
+    const card = ev.target;
+    if (card && card.classList.contains('game-card')) {
+        // カードの「以前の親要素（または現在の移動元）」の列枠を探す
+        const columnWrapper = card.closest('.slot-column-wrapper') || document.querySelector('.slot-column-wrapper:has(.layer-2:empty)');
+        
+        // 全列に対してレイヤー2が空になっていないかチェック
+        document.querySelectorAll('.slot-column-wrapper').forEach(col => {
+            checkAndTrashDirectionCards(col);
+        });
+    }
+});
 });
 
             let selectedTrashIndex = null;
