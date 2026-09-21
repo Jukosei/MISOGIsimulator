@@ -294,22 +294,27 @@
     opacity: 0.7;
 }
 
-/* 解放されたレイヤー1・3（レイヤー2の空枠より手前に出してドロップ判定を全面確保） */
+/* 解放されたレイヤー1・3 */
 .frame-layer.layer-active {
     pointer-events: auto !important;
     opacity: 1.0 !important;
-    z-index: 30 !important; 
+    z-index: 10 !important; /* レイヤー2およびカード(z-index: 200)より必ず後ろにする */
 }
 
-/* ドラッグホバー中の枠（カードを持ち上げたドラッグ時のみ最前面へ） */
+/* ★ ステージ枠（Layer 1, 2, 3）専用：ドラッグホバー時の薄い白発光ハイライト */
 .frame-layer.drag-over {
-    z-index: 100 !important;
+    background-color: rgba(255, 255, 255, 0.25) !important; /* 薄い白色の背景 */
+    border-color: #ffffff !important;                      /* 枠線を白に */
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.8),         /* 外側の白発光 */
+                inset 0 0 10px rgba(255, 255, 255, 0.5) !important; /* 内側の白発光 */
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+    z-index: 100 !important;                               /* ホバー中の枠を最前面へ持ち上げる */
 }
 
-/* ★ 枠内に置かれたカード要素（枠線よりも必ず手前に出してクリック操作を最優先） */
-.frame-layer .game-card {
+/* ★ レイヤー内・レイヤー外問わず、すべてのカード要素を最前面に持ち上げる */
+.frame-layer.game-card {
     position: relative;
-    z-index: 200 !important; 
+    z-index: 200 !important; /* 枠線(z-index: 10)より常に手前にしてクリックを維持 */
     pointer-events: auto !important;
 }
         
