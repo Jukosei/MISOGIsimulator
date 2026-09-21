@@ -1402,6 +1402,34 @@ function showToast(text) {
     ev.dataTransfer.effectAllowed = 'move';
 }
 
+            // レイヤー2が空になった際、レイヤー1・3のカードをトラッシュへ移動する処理
+function checkAndTrashDirectionCards(columnWrapper) {
+    if (!columnWrapper) return;
+
+    // 列内のレイヤー2カードを取得
+    const layer2 = columnWrapper.querySelector('.layer-2, [data-layer="2"]');
+    const layer2Cards = layer2 ? layer2.querySelectorAll('.game-card') : [];
+
+    // レイヤー2にカードが無くなった場合
+    if (layer2Cards.length === 0) {
+        const trashZone = document.getElementById('trashZone') || document.querySelector('.trash-zone') || document.getElementById('trash-area');
+        if (!trashZone) return;
+
+        // 残っているレイヤー1・3のカードを取得
+        const directionCards = columnWrapper.querySelectorAll('.layer-1 .game-card, .layer-3 .game-card, [data-layer="1"] .game-card, [data-layer="3"] .game-card');
+        
+        directionCards.forEach(card => {
+            trashZone.appendChild(card);
+            // スタイルと回転のリセット
+            card.style.position = '';
+            card.style.top = '';
+            card.style.left = '';
+            card.style.zIndex = '';
+            card.classList.remove('card-rotate-horizontal');
+        });
+    }
+}
+
 function setupTrashAreaEvents() {
             let el = document.getElementById('trashZone');
             el.setAttribute('draggable', 'true');
@@ -1704,13 +1732,17 @@ function updateVolNoiseUI() {
     n.setAttribute('data-imagepath', e);
 
     // ★ ドラッグ開始処理
-n.ondragstart = function(ev) {
-    window.draggedElement = n; // グローバル変数にドラッグ中の要素を保持
-    if (ev.dataTransfer) {
-        ev.dataTransfer.setData('text/plain', n.id);
-        ev.dataTransfer.effectAllowed = 'move';
-    }
-};
+        n.ondragstart = function(ev) {
+            window.draggedElement = n; // グローバル変数にドラッグ中の要素を保持
+            
+            // ★追加: 移動前にカードが属していた「列」を覚えておく
+            window.sourceColumnWrapper = n.closest('.slot-column-wrapper');
+
+            if (ev.dataTransfer) {
+                ev.dataTransfer.setData('text/plain', n.id);
+                ev.dataTransfer.effectAllowed = 'move';
+            }
+        };
 
     // ★ クリック時の処理（黄色ゾーンは90°回転、ディレクションエリアは暗転）
     n.onclick = function(ev) {
@@ -2161,6 +2193,8 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
         cardElementToAppend.setAttribute('draggable', 'true');
         cardElementToAppend.ondragstart = function(e) {
             e.dataTransfer.setData('text/plain', cardElementToAppend.id);
+            // ★追加：ドラッグ開始時に移動元の列要素を覚えておく
+            window.sourceColumnWrapper = cardElementToAppend.closest('.slot-column-wrapper');
         };
 
         // レイヤーごとの回転制御
@@ -2192,41 +2226,12 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
             cardElementToAppend.classList.remove('card-rotate-horizontal');
             cardElementToAppend.onclick = null;
         }
+
+        // ★追加：移動元のレイヤー2が空になったかチェックしてトラッシュへ送る
+    if (window.sourceColumnWrapper) {
+        checkAndTrashDirectionCards(window.sourceColumnWrapper);
+        window.sourceColumnWrapper = null; // リセット
     }
-}
-
-            // 指定された列(columnWrapper)のレイヤー1とレイヤー3にあるカードをトラッシュへ移動する関数
-function checkAndTrashDirectionCards(columnWrapper) {
-    // 列要素内のレイヤー2のカードを取得
-    const layer2 = columnWrapper.querySelector('.layer-2, .frame-layer-2');
-    const layer2Cards = layer2 ? layer2.querySelectorAll('.game-card') : [];
-
-    // レイヤー2にカードが存在しない場合（手札等へ移動して空になった場合）
-    if (layer2Cards.length === 0) {
-        // トラッシュエリアを取得（要素のIDやクラス名に合わせて調整してください）
-        const trashArea = document.querySelector('#trash-area, .trash-zone');
-
-        if (!trashArea) return;
-
-        // レイヤー1とレイヤー3からカードを取得
-        const directionCards = columnWrapper.querySelectorAll('.layer-1 .game-card, .frame-layer-1 .game-card, .layer-3 .game-card, .frame-layer-3 .game-card');
-
-        // 残っているカードを全てトラッシュエリアに移動
-        directionCards.forEach(card => {
-            // トラッシュ追加ロジック（そのままDOMを移動する場合）
-            trashArea.appendChild(card);
-            
-            // カードのスタイルをリセット（重ね合わせ等のCSSを消去）
-            card.style.position = '';
-            card.style.top = '';
-            card.style.left = '';
-            card.style.zIndex = '';
-        });
-
-        // トラッシュ枚数などの画面表示更新処理があればここで実行
-        if (typeof updateTrashCount === 'function') {
-            updateTrashCount();
-        }
     }
 }
             
