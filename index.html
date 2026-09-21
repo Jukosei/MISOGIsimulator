@@ -1720,7 +1720,8 @@ function updateVolNoiseUI() {
     if (volZoneEl) {
         if (count > 0) {
             volZoneEl.style.backgroundImage = "url('images/card_back.png')";
-            volZoneEl.style.backgroundSize = "cover";
+            volZoneEl.style.backgroundSize = "contain";       // 全体が入るように拡大縮小
+            volZoneEl.style.backgroundRepeat = "no-repeat";   // 繰り返しを防止
             volZoneEl.style.backgroundPosition = "center";
         } else {
             volZoneEl.style.backgroundImage = "none";
