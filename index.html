@@ -267,7 +267,8 @@
     box-sizing: border-box;
 }
 
-/* 1. 通常時：レイヤー1と3は非活性、レイヤー2は常に操作可能 */
+/* レイヤーごとの基本配置と重なり順（z-index）の指定 */
+
 .frame-layer.layer-1 {
     top: 0px;
     border: 2px dashed #1565c0;
@@ -279,7 +280,7 @@
 .frame-layer.layer-2 {
     top: 70px;
     border: 2px dashed #f9a825;
-    z-index: 20 !important;
+    z-index: 20; /* レイヤー2の基本の重なり順 */
     opacity: 1.0 !important;
     pointer-events: auto !important;
 }
@@ -287,18 +288,18 @@
 .frame-layer.layer-3 {
     top: 140px;
     border: 2px dashed #6a1b9a;
-    z-index: 5;
+    z-index: 30; /* ★ここを20より大きい数値（30など）に変更します */
     opacity: 0.3;
     pointer-events: none;
 }
 
-/* 2. 条件付き活性化：レイヤー2にカード (.game-card) が置かれたら1と3を有効化 */
+/* レイヤー2にカードがある場合のみ、レイヤー1と3を活性化 */
 .slot-column-wrapper:has(.layer-2 .game-card) .layer-1,
 .slot-column-wrapper:has(.layer-2 .game-card) .layer-3 {
     opacity: 1.0 !important;
     pointer-events: auto !important;
 }
-
+        
 /* 点線ハイライト */
 .frame-layer.drag-over {
     background-color: rgba(255, 255, 255, 0.1) !important;
