@@ -280,7 +280,7 @@
 .frame-layer.layer-2 { 
     top: 70px; 
     border: 2px dashed #f9a825; 
-    z-index: 50 !important; /* 基本の高さ */
+    z-index: 20 !important; 
     pointer-events: auto !important;
     opacity: 1.0 !important;
 }
@@ -294,24 +294,25 @@
     opacity: 0.7;
 }
 
-/* ★ 解放されたレイヤー1・3（レイヤー2より低く設定してクリック阻害を防ぐ） */
+/* 解放されたレイヤー1・3（レイヤー2の空枠より手前に出してドロップ判定を全面確保） */
 .frame-layer.layer-active {
     pointer-events: auto !important;
     opacity: 1.0 !important;
-    z-index: 10 !important; /* レイヤー2(z-index: 50)より下にする */
+    z-index: 30 !important; 
 }
 
-/* ★ 枠の中にカードが存在する場合、そのカード要素を最前面へ持ち上げる */
+/* ドラッグホバー中の枠（カードを持ち上げたドラッグ時のみ最前面へ） */
+.frame-layer.drag-over {
+    z-index: 100 !important;
+}
+
+/* ★ 枠内に置かれたカード要素（枠線よりも必ず手前に出してクリック操作を最優先） */
 .frame-layer .game-card {
     position: relative;
-    z-index: 200 !important; /* 透明枠よりも前に出して確実にクリック可能にする */
+    z-index: 200 !important; 
     pointer-events: auto !important;
 }
-
-.frame-layer.drag-over {
-    background-color: rgba(255, 255, 255, 0.08);
-}
-
+        
 .direction-placeholder {
     width: var(--card-width);
     height: var(--card-height);
