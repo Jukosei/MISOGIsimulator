@@ -506,8 +506,12 @@
     z-index: 10000;
 }
 
-        .deck-count { font-size: 64px; font-weight: bold; }
-        .deck-label { font-size: 10px; color: #888; margin-top: 4px; }
+        .deck-count{
+        font-size: 36px;
+            font-weight: bold;
+            text-shadow: 0px 0px 4px #000, 0px 0px 4px #000;
+        }
+        .deck-label { font-size: 12px; color: #888; margin-top: 4px; }
 
         .counter-panel {
             width: 140px;
@@ -1713,16 +1717,24 @@ function updateDeckUI() {
 // VOLノイズUI更新
 function updateVolNoiseUI() {
     let count = volNoiseCards ? volNoiseCards.length : 0;
+    
+    // カウント表示の更新
     let countEl = document.getElementById('volNoiseCount');
     if (countEl) countEl.innerText = count;
 
+    // 背景画像の切り替えとスタイルの強制適用
     let volZoneEl = document.getElementById('volNoiseZone');
     if (volZoneEl) {
         if (count > 0) {
             volZoneEl.style.backgroundImage = "url('images/card_back.png')";
-            volZoneEl.style.backgroundSize = "contain";       // 全体が入るように拡大縮小
-            volZoneEl.style.backgroundRepeat = "no-repeat";   // 繰り返しを防止
+            volZoneEl.style.backgroundSize = "contain";
+            volZoneEl.style.backgroundRepeat = "no-repeat";
             volZoneEl.style.backgroundPosition = "center";
+            
+            // 子要素（文字表示部）が背景画像を遮らないよう背景色を透明に設定
+            Array.from(volZoneEl.children).forEach(child => {
+                child.style.backgroundColor = "transparent";
+            });
         } else {
             volZoneEl.style.backgroundImage = "none";
         }
