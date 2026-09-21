@@ -314,6 +314,7 @@
     width: var(--card-width);
     height: var(--card-height);
     border: 2px dashed #c62828;
+    z-index: 2;
     border-radius: 6px;
     box-sizing: border-box;
     position: relative;
@@ -2224,6 +2225,16 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
     if (dataText) {
         let n = document.getElementById(dataText);
         let targetZone = ev.currentTarget;
+
+        // ★ 防御コード：ドロップ先がステージ枠（layer-2等）だった場合は dropToDirection の処理をスキップ
+        if (targetZone.classList.contains('frame-layer') || targetZone.classList.contains('layer-2')) {
+            // ステージ側関数へリダイレクト
+            let col = targetZone.getAttribute('data-col') || 0;
+            let layer = targetZone.getAttribute('data-layer') || 2;
+            dropToSpecificFrame(ev, parseInt(col), parseInt(layer));
+            return;
+        }
+
         let existingCard = targetZone.querySelector('.game-card');
 
         if (n && !existingCard) {
