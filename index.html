@@ -2328,9 +2328,35 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
     else if (dataText) {
         let a = document.getElementById(dataText);
         if (a) {
+            // ★ 移動前の親要素（レイヤー枠）を保持
+            let parentFrame = a.parentElement;
+
             a.classList.remove('card-rotate-horizontal'); // 回転解除
             a.classList.remove('card-dimmed');            // 薄暗さ解除
             document.getElementById('handArea').appendChild(a);
+
+            // ★ もし移動元が Layer 2 で、カードが無くなった場合は Layer 1・3 を非活性化
+            if (parentFrame && parentFrame.classList.contains('layer-2')) {
+                let cardInLayer2 = parentFrame.querySelector('.game-card');
+
+                if (!cardInLayer2) {
+                    let columnWrapper = parentFrame.closest('.slot-column-wrapper');
+                    let layer1 = null;
+                    let layer3 = null;
+
+                    if (columnWrapper) {
+                        layer1 = columnWrapper.querySelector('.layer-1');
+                        layer3 = columnWrapper.querySelector('.layer-3');
+                    } else {
+                        let colIndex = parentFrame.getAttribute('data-col');
+                        layer1 = document.getElementById(`frame-${colIndex}-1`);
+                        layer3 = document.getElementById(`frame-${colIndex}-3`);
+                    }
+
+                    if (layer1) layer1.classList.remove('layer-active');
+                    if (layer3) layer3.classList.remove('layer-active');
+                }
+            }
         }
     }
 }
