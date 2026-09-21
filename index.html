@@ -267,21 +267,18 @@
     box-sizing: border-box;
 }
 
-/* ★ 通常時（カードがない時）の重なり順：レイヤー2を優先 */
-.frame-layer.layer-1 { top: 0px; border: 2px dashed #1565c0; z-index: 10; opacity: 0.7; }
-.frame-layer.layer-2 { top: 70px; border: 2px dashed #f9a825; z-index: 20 !important; opacity: 1.0 !important; }
-.frame-layer.layer-3 { top: 140px; border: 2px dashed #6a1b9a; z-index: 5; opacity: 0.7; }
-
-/* 活性化（解放）されたレイヤー1・3 */
-.frame-layer.layer-active {
-    pointer-events: auto !important;
-    opacity: 1.0 !important;
+/* デフォルトではレイヤー1とレイヤー3の操作・ドロップを無効化 */
+.frame-layer-1,
+.frame-layer-3 {
+    pointer-events: none;
+    opacity: 0.5; /* 非活性状態の見た目（お好みで調整） */
 }
 
-/* ★ レイヤー3にカードがある時だけレイヤー2より前に持ち上げる */
-.frame-layer.layer-3:has(.game-card),
-.frame-layer.layer-3.has-card {
-    z-index: 30 !important;
+/* レイヤー2にカードがある場合のみ、レイヤー1とレイヤー3を活性化 */
+.slot-column-wrapper:has(.frame-layer-2 .game-card) .frame-layer-1,
+.slot-column-wrapper:has(.frame-layer-2 .game-card) .frame-layer-3 {
+    pointer-events: auto;
+    opacity: 1.0;
 }
 
 /* 点線ハイライト */
