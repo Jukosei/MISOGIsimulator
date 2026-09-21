@@ -301,14 +301,12 @@
     z-index: 10 !important; /* レイヤー2およびカード(z-index: 200)より必ず後ろにする */
 }
 
-/* ★ ステージ枠（Layer 1, 2, 3）専用：ドラッグホバー時の薄い白発光ハイライト */
+/* ステージ枠（Layer 1, 2, 3）専用：控えめな点線ハイライト */
 .frame-layer.drag-over {
-    background-color: rgba(255, 255, 255, 0.25) !important; /* 薄い白色の背景 */
-    border-color: #ffffff !important;                      /* 枠線を白に */
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.8),         /* 外側の白発光 */
-                inset 0 0 10px rgba(255, 255, 255, 0.5) !important; /* 内側の白発光 */
-    transition: background-color 0.15s ease, box-shadow 0.15s ease;
-    z-index: 100 !important;                               /* ホバー中の枠を最前面へ持ち上げる */
+    background-color: rgba(255, 255, 255, 0.1) !important; /* ほんのり薄い背景 */
+    border: 2px dashed #ffffff !important;               /* 白の点線枠 */
+    box-shadow: none !important;                         /* 強烈な発光エフェクトをカット */
+    z-index: 100 !important;
 }
 
 /* ★ レイヤー内・レイヤー外問わず、すべてのカード要素を最前面に持ち上げる */
