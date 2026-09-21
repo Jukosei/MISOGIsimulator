@@ -272,16 +272,17 @@
     top: 0px; 
     border: 2px dashed #1565c0; 
     z-index: 1; 
-    pointer-events: none;
+    pointer-events: none; /* 初期状態はドロップ反応オフ */
     opacity: 0.7;
 }
 
-/* レイヤー2 (Aゾーン: 中央・最前面) */
+/* レイヤー2 (Aゾーン: 中央・初期ドロップ対象) */
 .frame-layer.layer-2 { 
     top: 70px; 
     border: 2px dashed #f9a825; 
-    z-index: 10; 
-    pointer-events: auto;
+    z-index: 100 !important; /* 一番手前に配置してマウス判定を最優先にする */
+    pointer-events: auto !important; /* ドロップ判定を強制的に有効化 */
+    opacity: 1.0 !important;
 }
 
 /* レイヤー3 (Sゾーン: 一番下) */
@@ -289,14 +290,15 @@
     top: 140px; 
     border: 2px dashed #6a1b9a; 
     z-index: 2; 
-    pointer-events: none;
+    pointer-events: none; /* 初期状態はドロップ反応オフ */
     opacity: 0.7;
 }
 
-/* レイヤー2にカードが置かれた後に1・3を開放 */
+/* レイヤー2にカードが置かれた後に有効化されたレイヤー1・3 */
 .frame-layer.layer-active {
     pointer-events: auto !important;
     opacity: 1.0 !important;
+    z-index: 101 !important;
 }
 
 /* カード配置後のクリック受付 */
