@@ -2321,11 +2321,12 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
             let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
             if (genCard) targetZone.appendChild(genCard);
 
-            if (document.getElementById('deckCount')) document.getElementById('deckCount').innerText = virtualDeck.length;
-            if (document.getElementById('volNoiseCount')) document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+           if (document.getElementById('deckCount')) document.getElementById('deckCount').innerText = virtualDeck.length;
+           if (document.getElementById('volNoiseCount')) document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
 
-            updateTrashUI();
-            renderSearchList();
+updateVolNoiseUI(); // ★ここに追加（山札画像やカウントをまとめて正しく再描画）
+updateTrashUI();
+renderSearchList();
         }
         return;
     }
