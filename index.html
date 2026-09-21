@@ -267,46 +267,20 @@
     box-sizing: border-box;
 }
 
-/* ★ 親枠自体の重なり順を「レイヤー1 < レイヤー2 < レイヤー3」にしてレイヤー3を一番手前に配置 */
+/* ★ 親枠の重なり順（枠線・空枠の基準） */
+.frame-layer.layer-1 { top: 0px; border: 2px dashed #1565c0; z-index: 1; opacity: 0.7; }
+.frame-layer.layer-2 { top: 70px; border: 2px dashed #f9a825; z-index: 2; opacity: 1.0 !important; }
+.frame-layer.layer-3 { top: 140px; border: 2px dashed #6a1b9a; z-index: 3; opacity: 0.7; }
 
-/* レイヤー1 (Mゾーン: 一番上) */
-.frame-layer.layer-1 { 
-    top: 0px; 
-    border: 2px dashed #1565c0; 
-    z-index: 10 !important; 
-    pointer-events: none;
-    opacity: 0.7;
-}
-
-/* レイヤー2 (Aゾーン: 中央) */
-.frame-layer.layer-2 { 
-    top: 70px; 
-    border: 2px dashed #f9a825; 
-    z-index: 20 !important; 
+/* 空枠のドロップ受け取り設定（カードが無い場所のドラッグ反応用） */
+.frame-layer.layer-2,
+.frame-layer.layer-active {
     pointer-events: auto !important;
     opacity: 1.0 !important;
 }
-
-/* レイヤー3 (Sゾーン: 一番下) */
-.frame-layer.layer-3 { 
-    top: 140px; 
-    border: 2px dashed #6a1b9a; 
-    z-index: 30 !important; /* レイヤー2(z-index: 20)より確実に手前に表示 */
-    pointer-events: none;
-    opacity: 0.7;
-}
-
-/* 解放されたレイヤー1・3 */
-.frame-layer.layer-1.layer-active {
-    pointer-events: auto !important;
-    opacity: 1.0 !important;
-    z-index: 15 !important;
-}
-
-.frame-layer.layer-3.layer-active {
-    pointer-events: auto !important;
-    opacity: 1.0 !important;
-    z-index: 35 !important; /* 活性化時もレイヤー2より常に上に配置 */
+.frame-layer.layer-1:not(.layer-active),
+.frame-layer.layer-3:not(.layer-active) {
+    pointer-events: none !important;
 }
 
 /* ステージ枠（Layer 1, 2, 3）専用：点線ハイライト */
@@ -317,13 +291,16 @@
     z-index: 100 !important;
 }
 
-/* 枠内に置かれたカード要素の設定 */
+/* ★ 枠内に置かれた「カード本体」のみの表示順制御 */
 .frame-layer .game-card {
     position: relative;
-    z-index: 200 !important;
-    pointer-events: auto !important;
+    pointer-events: auto !important; /* カード本体は常にクリック・ドラッグ可能 */
 }
 
+/* 下のレイヤーに置かれたカードほど手前に表示（レイヤー3のカードが最手前） */
+.frame-layer.layer-1 .game-card { z-index: 100 !important; }
+.frame-layer.layer-2 .game-card { z-index: 200 !important; }
+.frame-layer.layer-3 .game-card { z-index: 300 !important; } /* レイヤー2のカードより手前に表示 */
 /* ★ レイヤーごとのカード重なり順制御（下が手前に表示される設定） */
 .frame-layer.layer-1 .game-card { z-index: 201 !important; }
 .frame-layer.layer-2 .game-card { z-index: 202 !important; }
