@@ -157,22 +157,24 @@
         }
 
         .zone-box {
-            background-color: var(--panel-bg);
-            border: 2px dashed #444;
-            border-radius: 6px;
-            width: 150px;
-            height: 225px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            box-sizing: border-box;
-            position: relative;
-            cursor: pointer;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
+    background-color: var(--panel-bg);
+    border: 2px dashed #444;
+    border-radius: 6px;
+    width: 150px;
+    height: 225px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    position: relative;
+    cursor: pointer;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    /* 背景画像設定時に前面に綺麗に出すための調整 */
+    z-index: 1;
+}
 
         .zone-box .count-display {
             font-size: 36px;
@@ -1722,21 +1724,18 @@ function updateVolNoiseUI() {
     let countEl = document.getElementById('volNoiseCount');
     if (countEl) countEl.innerText = count;
 
-    // 背景画像の切り替えとスタイルの強制適用
+    // 背景画像の切り替えと背景色の透過
     let volZoneEl = document.getElementById('volNoiseZone');
     if (volZoneEl) {
         if (count > 0) {
             volZoneEl.style.backgroundImage = "url('images/card_back.png')";
-            volZoneEl.style.backgroundSize = "contain";
-            volZoneEl.style.backgroundRepeat = "no-repeat";
+            volZoneEl.style.backgroundColor = "transparent"; // ★背景色を透明化して画像を表示
+            volZoneEl.style.backgroundSize = "cover";
             volZoneEl.style.backgroundPosition = "center";
-            
-            // 子要素（文字表示部）が背景画像を遮らないよう背景色を透明に設定
-            Array.from(volZoneEl.children).forEach(child => {
-                child.style.backgroundColor = "transparent";
-            });
+            volZoneEl.style.backgroundRepeat = "no-repeat";
         } else {
             volZoneEl.style.backgroundImage = "none";
+            volZoneEl.style.backgroundColor = "var(--panel-bg)"; // 0枚時は元の背景色に戻す
         }
     }
 }
