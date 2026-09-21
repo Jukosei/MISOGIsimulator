@@ -193,77 +193,64 @@
             border-color: #fff;
         }
 
-        .temporary-btn-green {
-            width: 100%;
-            background-color: var(--btn-green);
-            color: white;
-            font-size: 12px;
-            font-weight: bold;
-            border: none;
-            padding: 10px 0;
-            border-radius: 6px;
-            cursor: pointer;
-            text-align: center;
-            margin: auto 0;
-        }
-
         .center-panel {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            gap: 12px;
-            flex: 1;
-        }
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 12px;
+    flex: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+}
 
-        .field-section-box {
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 15px 20px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-        }
+.field-section-box {
+    background-color: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 12px 16px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
 
-        .stage-box {
-            flex: 6.4;
-            margin-bottom: 20px;
-        }
+.stage-box {
+    flex: none;
+}
 
-        .direction-box {
-            flex: 2.8;
-        }
+.direction-box {
+    flex: none;
+}
 
-        .field-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            width: 100%;
-            max-width: 900px;
-            margin: 0 auto;
-        }
+.field-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+    margin: 0 auto;
+}
 
-        .row-label {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
+.row-label {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
 
-        .slot-column-wrapper {
+.slot-column-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
-    gap: 8px;
+    gap: 6px;
 }
 
-/* 3枚のカード枠を縦に綺麗に重ねる基準 */
+/* 3枚のカード枠を縦に広げて重ねる基準 */
 .stage-placeholder-stack {
     position: relative !important;
     width: var(--card-width);
-    height: 252px;
-    margin-top: -6px;
+    height: 320px;
+    margin-top: -2px;
 }
 
 /* 各フレームレイヤーの共通指定 */
@@ -282,12 +269,12 @@
     border: 2px dashed #1565c0; 
     z-index: 1; 
     pointer-events: none;
-    opacity: 0.6;
+    opacity: 0.7;
 }
 
 /* レイヤー2 (Aゾーン: 中央・最前面) */
 .frame-layer.layer-2 { 
-    top: 84px; 
+    top: 105px; 
     border: 2px dashed #f9a825; 
     z-index: 10; 
     pointer-events: auto;
@@ -295,11 +282,11 @@
 
 /* レイヤー3 (Sゾーン: 一番下) */
 .frame-layer.layer-3 { 
-    top: 168px; 
+    top: 210px; 
     border: 2px dashed #6a1b9a; 
     z-index: 2; 
     pointer-events: none;
-    opacity: 0.6;
+    opacity: 0.7;
 }
 
 /* レイヤー2にカードが置かれた後に1・3を開放 */
@@ -308,70 +295,69 @@
     opacity: 1.0 !important;
 }
 
-/* カードが配置された後は、枠内のカードが正常にドラッグ・クリックできるようにする */
+/* カード配置後のクリック受付 */
 .frame-layer .game-card {
     pointer-events: auto;
 }
 
-        .frame-layer.drag-over {
-            background-color: rgba(255, 255, 255, 0.08);
-        }
+.frame-layer.drag-over {
+    background-color: rgba(255, 255, 255, 0.08);
+}
 
-        .direction-placeholder {
-            width: var(--card-width);
-            height: var(--card-height);
-            border: 2px dashed #c62828;
-            border-radius: 6px;
-            box-sizing: border-box;
-            position: relative;
-        }
+.direction-placeholder {
+    width: var(--card-width);
+    height: var(--card-height);
+    border: 2px dashed #c62828;
+    border-radius: 6px;
+    box-sizing: border-box;
+    position: relative;
+}
 
-        .direction-placeholder.drag-over {
-            background-color: rgba(198, 40, 40, 0.1);
-        }
+.direction-placeholder.drag-over {
+    background-color: rgba(198, 40, 40, 0.1);
+}
 
-        .frame-layer .game-card, .direction-placeholder .game-card {
-            position: absolute;
-            top: 0;
-            left: 0;
-            margin: 0;
-            width: 100%;
-            height: 100%;
-        }
+.frame-layer .game-card, .direction-placeholder .game-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
 
-        .slot-tag-btn {
-            background-color: #222;
-            color: #aaa;
-            font-size: 11px;
-            border: 1px solid #444;
-            padding: 4px 14px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: bold;
-            z-index: 20;
-        }
+.slot-tag-btn {
+    background-color: #222;
+    color: #aaa;
+    font-size: 11px;
+    border: 1px solid #444;
+    padding: 3px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: bold;
+    z-index: 20;
+}
 
-        .slot-tag-btn.selecting {
-            background-color: var(--btn-accent);
-            color: #fff;
-            border-color: var(--btn-accent);
-        }
+.slot-tag-btn.selecting {
+    background-color: var(--btn-accent);
+    color: #fff;
+    border-color: var(--btn-accent);
+}
 
-        .hand-area {
-            flex: 2.8;
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 12px;
-            box-sizing: border-box;
-            overflow-y: auto;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-content: flex-start;
-            touch-action: auto;
-        }
+.hand-area {
+    min-height: 140px;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 12px;
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-content: flex-start;
+    touch-action: auto;
+}
 
         .game-card {
             width: var(--card-width);
@@ -780,75 +766,69 @@
     <div class="game-screen" id="gameScreen">
         <div class="left-panel">
             <div class="zone-box" id="volNoiseZone" onclick="openVolNoiseModal()" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)" style="cursor: pointer;">
-    <div class="count-display" id="volNoiseCount">0</div>
-    <div class="zone-label">VOLノイズ（確認はクリック）</div>
-</div>     
-            
-            <div class="zone-box" id="trashZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)">
-                <div class="count-display" id="trashCount">0</div>
-                <div class="zone-label">トラッシュ (確認はクリック)</div>
-            </div>
-        </div>
-
+                <!-- 中央パネル（メインゲームフィールド） -->
         <div class="center-panel">
+
+            <!-- 1. ステージエリア -->
             <div class="field-section-box stage-box">
-    <div class="row-label">ステージ</div>
-    <div class="field-row">
+                <div class="row-label">ステージ</div>
+                <div class="field-row">
 
-        <!-- 列 0 -->
-        <div class="slot-column-wrapper">
-            <button class="slot-tag-btn" id="change-btn-0" onclick="clickChangeBtn(0)">チェンジ</button>
-            <div class="stage-placeholder-stack">
-                <div class="frame-layer layer-1" id="frame-0-1" data-type="stage" data-col="0" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,0,1)"></div>
-                <div class="frame-layer layer-2" id="frame-0-2" data-type="stage" data-col="0" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,0,2)"></div>
-                <div class="frame-layer layer-3" id="frame-0-3" data-type="stage" data-col="0" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,0,3)"></div>
+                    <!-- 列 0 -->
+                    <div class="slot-column-wrapper">
+                        <button class="slot-tag-btn" id="change-btn-0" onclick="clickChangeBtn(0)">チェンジ</button>
+                        <div class="stage-placeholder-stack">
+                            <div class="frame-layer layer-1" id="frame-0-1" data-type="stage" data-col="0" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,0,1)"></div>
+                            <div class="frame-layer layer-2" id="frame-0-2" data-type="stage" data-col="0" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,0,2)"></div>
+                            <div class="frame-layer layer-3" id="frame-0-3" data-type="stage" data-col="0" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,0,3)"></div>
+                        </div>
+                    </div>
+
+                    <!-- 列 1 -->
+                    <div class="slot-column-wrapper">
+                        <button class="slot-tag-btn" id="change-btn-1" onclick="clickChangeBtn(1)">チェンジ</button>
+                        <div class="stage-placeholder-stack">
+                            <div class="frame-layer layer-1" id="frame-1-1" data-type="stage" data-col="1" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,1,1)"></div>
+                            <div class="frame-layer layer-2" id="frame-1-2" data-type="stage" data-col="1" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,1,2)"></div>
+                            <div class="frame-layer layer-3" id="frame-1-3" data-type="stage" data-col="1" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,1,3)"></div>
+                        </div>
+                    </div>
+
+                    <!-- 列 2 -->
+                    <div class="slot-column-wrapper">
+                        <button class="slot-tag-btn" id="change-btn-2" onclick="clickChangeBtn(2)">チェンジ</button>
+                        <div class="stage-placeholder-stack">
+                            <div class="frame-layer layer-1" id="frame-2-1" data-type="stage" data-col="2" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,2,1)"></div>
+                            <div class="frame-layer layer-2" id="frame-2-2" data-type="stage" data-col="2" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,2,2)"></div>
+                            <div class="frame-layer layer-3" id="frame-2-3" data-type="stage" data-col="2" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,2,3)"></div>
+                        </div>
+                    </div>
+
+                    <!-- 列 3 -->
+                    <div class="slot-column-wrapper">
+                        <button class="slot-tag-btn" id="change-btn-3" onclick="clickChangeBtn(3)">チェンジ</button>
+                        <div class="stage-placeholder-stack">
+                            <div class="frame-layer layer-1" id="frame-3-1" data-type="stage" data-col="3" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,3,1)"></div>
+                            <div class="frame-layer layer-2" id="frame-3-2" data-type="stage" data-col="3" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,3,2)"></div>
+                            <div class="frame-layer layer-3" id="frame-3-3" data-type="stage" data-col="3" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,3,3)"></div>
+                        </div>
+                    </div>
+
+                    <!-- 列 4 -->
+                    <div class="slot-column-wrapper">
+                        <button class="slot-tag-btn" id="change-btn-4" onclick="clickChangeBtn(4)">チェンジ</button>
+                        <div class="stage-placeholder-stack">
+                            <div class="frame-layer layer-1" id="frame-4-1" data-type="stage" data-col="4" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,4,1)"></div>
+                            <div class="frame-layer layer-2" id="frame-4-2" data-type="stage" data-col="4" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,4,2)"></div>
+                            <div class="frame-layer layer-3" id="frame-4-3" data-type="stage" data-col="4" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,4,3)"></div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
-        </div>
 
-        <!-- 列 1 -->
-        <div class="slot-column-wrapper">
-            <button class="slot-tag-btn" id="change-btn-1" onclick="clickChangeBtn(1)">チェンジ</button>
-            <div class="stage-placeholder-stack">
-                <div class="frame-layer layer-1" id="frame-1-1" data-type="stage" data-col="1" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,1,1)"></div>
-                <div class="frame-layer layer-2" id="frame-1-2" data-type="stage" data-col="1" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,1,2)"></div>
-                <div class="frame-layer layer-3" id="frame-1-3" data-type="stage" data-col="1" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,1,3)"></div>
-            </div>
-        </div>
-
-        <!-- 列 2 -->
-        <div class="slot-column-wrapper">
-            <button class="slot-tag-btn" id="change-btn-2" onclick="clickChangeBtn(2)">チェンジ</button>
-            <div class="stage-placeholder-stack">
-                <div class="frame-layer layer-1" id="frame-2-1" data-type="stage" data-col="2" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,2,1)"></div>
-                <div class="frame-layer layer-2" id="frame-2-2" data-type="stage" data-col="2" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,2,2)"></div>
-                <div class="frame-layer layer-3" id="frame-2-3" data-type="stage" data-col="2" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,2,3)"></div>
-            </div>
-        </div>
-
-        <!-- 列 3 -->
-        <div class="slot-column-wrapper">
-            <button class="slot-tag-btn" id="change-btn-3" onclick="clickChangeBtn(3)">チェンジ</button>
-            <div class="stage-placeholder-stack">
-                <div class="frame-layer layer-1" id="frame-3-1" data-type="stage" data-col="3" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,3,1)"></div>
-                <div class="frame-layer layer-2" id="frame-3-2" data-type="stage" data-col="3" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,3,2)"></div>
-                <div class="frame-layer layer-3" id="frame-3-3" data-type="stage" data-col="3" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,3,3)"></div>
-            </div>
-        </div>
-
-        <!-- 列 4 -->
-        <div class="slot-column-wrapper">
-            <button class="slot-tag-btn" id="change-btn-4" onclick="clickChangeBtn(4)">チェンジ</button>
-            <div class="stage-placeholder-stack">
-                <div class="frame-layer layer-1" id="frame-4-1" data-type="stage" data-col="4" data-layer="1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,4,1)"></div>
-                <div class="frame-layer layer-2" id="frame-4-2" data-type="stage" data-col="4" data-layer="2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,4,2)"></div>
-                <div class="frame-layer layer-3" id="frame-4-3" data-type="stage" data-col="4" data-layer="3" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToSpecificFrame(event,4,3)"></div>
-            </div>
-        </div>
-
-    </div>
-</div>
-            
-            </div><div class="field-section-box direction-box">
+            <!-- 2. ディレクションエリア -->
+            <div class="field-section-box direction-box">
                 <div class="field-row">
                     <div class="direction-placeholder" id="dir-slot-0" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event,0)"></div>
                     <div class="direction-placeholder" id="dir-slot-1" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event,1)"></div>
@@ -857,8 +837,11 @@
                     <div class="direction-placeholder" id="dir-slot-4" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToDirection(event,4)"></div>
                 </div>
             </div>
-            <div class="hand-area" id="handArea" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToHand(event)"></div>
-        </div>
+
+            <!-- 3. 手札エリア -->
+            <div class="hand-area" id="handarea" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToHand(event)"></div>
+
+        </div><!-- /center-panel -->
 
         <div class="control-panel">
             <button class="control-btn" onclick="resetGameBtn()">リセット</button>
