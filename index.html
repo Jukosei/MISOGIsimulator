@@ -267,18 +267,18 @@
     box-sizing: border-box;
 }
 
-/* デフォルトではレイヤー1とレイヤー3の操作・ドロップを無効化 */
+/* デフォルト（レイヤー2にカードがない時）: レイヤー1と3の操作を無効化 */
 .frame-layer-1,
 .frame-layer-3 {
-    pointer-events: none;
-    opacity: 0.5; /* 非活性状態の見た目（お好みで調整） */
+    pointer-events: none !important;
+    opacity: 0.3 !important; /* 0にすると消えてしまうため0.3〜0.5程度にします */
 }
 
-/* レイヤー2にカードがある場合のみ、レイヤー1とレイヤー3を活性化 */
+/* レイヤー2にカード（.game-card）が存在する時: レイヤー1と3を活性化 */
 .slot-column-wrapper:has(.frame-layer-2 .game-card) .frame-layer-1,
 .slot-column-wrapper:has(.frame-layer-2 .game-card) .frame-layer-3 {
-    pointer-events: auto;
-    opacity: 1.0;
+    pointer-events: auto !important;
+    opacity: 1.0 !important;
 }
 
 /* 点線ハイライト */
