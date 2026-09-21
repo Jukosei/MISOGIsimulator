@@ -2088,7 +2088,7 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
         }
     }
 
-    // ★ カードをレイヤー枠へ配置し、属性・回転・イベントを再付与
+    // ★ カードをレイヤー枠へ配置し、属性・回転・イベントを設定
     if (cardElementToAppend) {
         targetFrame.appendChild(cardElementToAppend);
 
@@ -2098,15 +2098,15 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
             e.dataTransfer.setData('text/plain', cardElementToAppend.id);
         };
 
-        // クリックでの回転切り替えイベントを確保
-        cardElementToAppend.onclick = function(e) {
-            e.stopPropagation();
-            this.classList.toggle('card-rotate-horizontal');
-        };
-
-        // ★ レイヤー2 (Aゾーン) に置かれた場合は自動で横回転
+        // レイヤーごとの回転制御
         if (targetLayer === 2) {
+            // ★ レイヤー2 (Aゾーン) のみ横回転を付与＆クリックで回転切り替え可能
             cardElementToAppend.classList.add('card-rotate-horizontal');
+            
+            cardElementToAppend.onclick = function(e) {
+                e.stopPropagation();
+                this.classList.toggle('card-rotate-horizontal');
+            };
 
             // 同一列の Layer 1(M) ・ Layer 3(S) を解放
             let columnWrapper = targetFrame.closest('.slot-column-wrapper');
@@ -2123,8 +2123,9 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
                 if (frame3) frame3.classList.add('layer-active');
             }
         } else {
-            // レイヤー1や3に置く場合は初期の横回転を解除（縦向き）
+            // ★ レイヤー1および3は常に縦向き固定（横回転を強制解除＆クリック回転無効化）
             cardElementToAppend.classList.remove('card-rotate-horizontal');
+            cardElementToAppend.onclick = null;
         }
     }
 }
