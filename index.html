@@ -1977,79 +1977,139 @@ function confirmDeckReturn(position) {
     closeDeckReturnModal();
 }
 
-function dropToSpecificFrame(ev, colIndex, layerNum) {
+function dropToSpecificFrame(ev, colIndex, targetLayer) {
     ev.preventDefault();
-    if (ev.stopPropagation) ev.stopPropagation();
+    ev.currentTarget.classList.remove('drag-over');
 
-    if (ev.currentTarget && ev.currentTarget.classList) {
-        ev.currentTarget.classList.remove('drag-over');
-    }
+    let targetFrame = ev.currentTarget;
 
-    // 要素の取得
-    let dataText = ev.dataTransfer ? ev.dataTransfer.getData('text/plain') : '';
-    let draggedElement = (dataText ? document.getElementById(dataText) : null) || window.draggedElement;
+    // すでにカードが置かれている場合は重複配置を防ぐ
+    if (targetFrame.querySelector('.game-card')) return;
 
-    if (!draggedElement) {
-        console.warn("[DropError] ドラッグ対象のカード要素が見つかりません。");
-        return;
-    }
+    let dataText = ev.dataTransfer.getData('text/plain');
+    let jsonText = ev.dataTransfer.getData('application/json');
+    let data = null;
 
-    // 属性の取得（data-cardcode を優先）
-    let rawCode = draggedElement.getAttribute('data-cardcode') 
-                || draggedElement.getAttribute('data-cardname') 
-                || '';
+    try {
+        if (jsonText) data = JSON.parse(jsonText);
+        else if (dataText && dataText.startsWith('{')) data = JSON.parse(dataText);
+    } catch (e) {}
 
-    const targetLayer = Number(layerNum);
-
-    // ★ カードタイプの抽出ロジック（デバッグ用ログ付き）
-    const getCardType = (codeStr) => {
-        if (!codeStr) return '';
-        let clean = String(codeStr).trim().toUpperCase();
-        
-        // "JA-8" や "HA-2" などからハイフン前のグループを取得 ("JA")
-        let parts = clean.split('-');
-        let prefix = parts[0];
-        
-        // プレフィックスの最後の1文字を取得 ("JA" -> "A")
-        let typeChar = prefix.length > 0 ? prefix.charAt(prefix.length - 1) : '';
-        
-        console.log(`[CardTypeCheck] 取得生のコード: "${codeStr}" | 解析プレフィックス: "${prefix}" | 判定タイプ: "${typeChar}"`);
-        return typeChar;
+    // ★ カードのプレフィックス（ハイフン前の文字 A/M/S/D）を取得する関数
+    const getCardType = (cardInput) => {
+        if (!cardInput) return '';
+        let codeStr = '';
+        if (typeof cardInput === 'string') {
+            codeStr = cardInput;
+        } else if (typeof cardInput === 'object') {
+            codeStr = cardInput.suffix || cardInput.name || cardInput.code || '';
+        }
+        return codeStr.trim().split('-')[0].toUpperCase();
     };
 
-    let detectedType = getCardType(rawCode);
+    // ★ レイヤーと許容カードタイプの対応マップ
+    // Layer 1 = Mカード, Layer 2 = Aカード, Layer 3 = Sカード
+    const requiredTypes = { 1: 'M', 2: 'A', 3: 'S' };
+    const expectedType = requiredTypes[targetLayer];
 
-    // ★ レイヤー判定
-    let isValid = false;
-    if (targetLayer === 1 && detectedType === 'M') isValid = true;
-    if (targetLayer === 2 && detectedType === 'A') isValid = true;
-    if (targetLayer === 3 && detectedType === 'S') isValid = true;
+    let cardObjForCheck = null;
+    let cardElementToAppend = null;
 
-    if (!isValid) {
-        console.warn(`[配置不可] レイヤー ${targetLayer} に対し、判定タイプ "${detectedType}" (元データ: "${rawCode}") は配置できません。`);
-        return;
+    // 1. 山札確認モーダルからのドロップ
+    if (data && data.type === 'deck-view-card') {
+        if (typeof deckViewCards !== 'undefined' && data.viewIndex !== undefined) {
+            let cardObj = deckViewCards[data.viewIndex];
+            if (cardObj && expectedType && !getCardType(cardObj).endsWith(expectedType)) {
+                console.log(`【配置不可】Layer ${targetLayer} には ${expectedType} カードしか置けません`);
+                return;
+            }
+
+            cardObj = deckViewCards.splice(data.viewIndex, 1)[0];
+            if (typeof renderDeckViewCards === 'function') renderDeckViewCards();
+
+            if (cardObj && typeof createGameCardToHand === 'function') {
+                createGameCardToHand(cardObj.name, cardObj.imagePath);
+                cardElementToAppend = document.getElementById(`card-id-${cardIdCounter - 1}`);
+            }
+        }
+    }
+    // 2. サーチ・ノイズ・山札モーダルからのドロップ
+    else if (dataText === 'search-drag') {
+        let rawIdx = ev.dataTransfer.getData('search-index');
+        let idx = parseInt(rawIdx);
+        let targetList = (currentSearchType === 'deck')
+            ? virtualDeck
+            : ((currentSearchType === 'noise') ? volNoiseCards : trashCards);
+
+        if (!isNaN(idx) && targetList[idx]) {
+            let cardObj = targetList[idx];
+            if (cardObj && expectedType && !getCardType(cardObj).endsWith(expectedType)) {
+                console.log(`【配置不可】Layer ${targetLayer} には ${expectedType} カードしか置けません`);
+                return;
+            }
+
+            cardObj = targetList.splice(idx, 1)[0];
+            createGameCardToHand(cardObj.name, cardObj.imagePath);
+            cardElementToAppend = document.getElementById(`card-id-${cardIdCounter - 1}`);
+
+            if (document.getElementById('deckCount')) document.getElementById('deckCount').innerText = virtualDeck.length;
+            if (document.getElementById('volNoiseCount')) document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+
+            updateTrashUI();
+            renderSearchList();
+        }
+    }
+    // 3. トラッシュゾーンからのドロップ
+    else if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
+        let cardObj = trashCards[trashCards.length - 1];
+        if (cardObj && expectedType && !getCardType(cardObj).endsWith(expectedType)) {
+            console.log(`【配置不可】Layer ${targetLayer} には ${expectedType} カードしか置けません`);
+            return;
+        }
+
+        cardObj = trashCards.pop();
+        createGameCardToHand(cardObj.name, cardObj.imagePath);
+        cardElementToAppend = document.getElementById(`card-id-${cardIdCounter - 1}`);
+        updateTrashUI();
+    }
+    // 4. 手札・他ゾーンからの通常ドラッグ
+    else if (dataText) {
+        let n = document.getElementById(dataText);
+        if (n) {
+            let cardName = n.getAttribute('data-cardname') || n.getAttribute('data-cardcode') || n.innerText || '';
+            let cardType = getCardType(cardName);
+
+            // プレフィックス判定（例: OA-1 -> A, BS-2 -> S, MA-3 -> A など末尾の種別にも対応）
+            if (expectedType && !cardType.endsWith(expectedType)) {
+                console.log(`【配置不可】Layer ${targetLayer} には ${expectedType} カードしか置けません (ドラッグされた型: ${cardType})`);
+                return;
+            }
+
+            cardElementToAppend = n;
+        }
     }
 
-    // 配置処理
-    if (targetLayer === 2) {
-        draggedElement.classList.add('card-rotate-horizontal');
-    } else {
-        draggedElement.classList.remove('card-rotate-horizontal');
+    // 要素をレイヤー枠へ移動・解放処理
+    if (cardElementToAppend) {
+        targetFrame.appendChild(cardElementToAppend);
+
+        // ★ Layer 2 (Aゾーン) にAカードが正しく置かれた場合のみ、上下の Layer 1(M)・Layer 3(S) を解放
+        if (targetLayer === 2) {
+            let columnWrapper = targetFrame.closest('.slot-column-wrapper');
+            if (columnWrapper) {
+                let layer1 = columnWrapper.querySelector('.layer-1');
+                let layer3 = columnWrapper.querySelector('.layer-3');
+
+                if (layer1) layer1.classList.add('layer-active');
+                if (layer3) layer3.classList.add('layer-active');
+            } else {
+                let frame1 = document.getElementById(`frame-${colIndex}-1`);
+                let frame3 = document.getElementById(`frame-${colIndex}-3`);
+                if (frame1) frame1.classList.add('layer-active');
+                if (frame3) frame3.classList.add('layer-active');
+            }
+        }
     }
-
-    ev.currentTarget.appendChild(draggedElement);
-
-    // ★ レイヤー2にカードが置かれた場合、レイヤー1と3を開放（CSSクラス追加）
-    if (targetLayer === 2) {
-        let frame1 = document.getElementById(`frame-${colIndex}-1`);
-        let frame3 = document.getElementById(`frame-${colIndex}-3`);
-
-        if (frame1) frame1.classList.add('layer-active');
-        if (frame3) frame3.classList.add('layer-active');
-        console.log(`[解放成功] 列 ${colIndex} のレイヤー1および3が解放されました。`);
-    }
-
-    window.draggedElement = null;
 }
             
        function dropToDirection(ev, slotIdx) {
