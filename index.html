@@ -199,9 +199,10 @@
     height: 100%;
     gap: 12px;
     flex: 1;
-    max-width: 900px;
-    margin: 0 auto;
     width: 100%;
+    /* 最大幅制限を解除して画面全体に広げる */
+    max-width: none;
+    margin: 0;
 }
 
 .field-section-box {
@@ -222,12 +223,14 @@
     flex: none;
 }
 
-.field-row {
+        .field-row {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     width: 100%;
-    margin: 0 auto;
+    /* 最大幅制限を解除して枠の間隔を均等に広げる */
+    max-width: none;
+    margin: 0;
 }
 
 .row-label {
