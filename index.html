@@ -3845,23 +3845,23 @@ window.closeDeckView = closeDeckView;
     // --- ドラッグアンドドロップ設定 ---
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.layer-2').forEach(zone => {
-    zone.ondragover = function(ev) { ev.preventDefault(); };
-    zone.ondragenter = function(ev) {
-        ev.preventDefault();
-        let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
-        if (targetZone) targetZone.classList.add('drag-over');
-    };
-    zone.ondragleave = function(ev) {
-        let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
-        if (targetZone) targetZone.classList.remove('drag-over');
-    };
-    zone.ondrop = function(ev) {
-        if (typeof dropToDirection === 'function') {
-            dropToDirection(ev);
-        }
-    };
+        zone.ondragover = function(ev) { ev.preventDefault(); };
+        zone.ondragenter = function(ev) {
+            ev.preventDefault();
+            let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
+            if (targetZone) targetZone.classList.add('drag-over');
+        };
+        zone.ondragleave = function(ev) {
+            let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
+            if (targetZone) targetZone.classList.remove('drag-over');
+        };
+        zone.ondrop = function(ev) {
+            if (typeof dropToDirection === 'function') {
+                dropToDirection(ev);
+            }
+        };
+    });
 });
-}
     
 // ★追加：全カードのドラッグ移動完了時（dragend）に元の列をチェック
 document.addEventListener('dragend', function(ev) {
