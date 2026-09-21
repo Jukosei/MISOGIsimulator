@@ -267,18 +267,36 @@
     box-sizing: border-box;
 }
 
-/* デフォルト（レイヤー2にカードがない時）: レイヤー1と3の操作を無効化 */
-.frame-layer-1,
-.frame-layer-3 {
-    pointer-events: none !important;
-    opacity: 0.3 !important; /* 0にすると消えてしまうため0.3〜0.5程度にします */
+/* 1. 通常時：レイヤー1と3は非活性、レイヤー2は常に操作可能 */
+.frame-layer.layer-1 {
+    top: 0px;
+    border: 2px dashed #1565c0;
+    z-index: 10;
+    opacity: 0.3;
+    pointer-events: none;
 }
 
-/* レイヤー2にカード（.game-card）が存在する時: レイヤー1と3を活性化 */
-.slot-column-wrapper:has(.frame-layer-2 .game-card) .frame-layer-1,
-.slot-column-wrapper:has(.frame-layer-2 .game-card) .frame-layer-3 {
-    pointer-events: auto !important;
+.frame-layer.layer-2 {
+    top: 70px;
+    border: 2px dashed #f9a825;
+    z-index: 20 !important;
     opacity: 1.0 !important;
+    pointer-events: auto !important;
+}
+
+.frame-layer.layer-3 {
+    top: 140px;
+    border: 2px dashed #6a1b9a;
+    z-index: 5;
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+/* 2. 条件付き活性化：レイヤー2にカード (.game-card) が置かれたら1と3を有効化 */
+.slot-column-wrapper:has(.layer-2 .game-card) .layer-1,
+.slot-column-wrapper:has(.layer-2 .game-card) .layer-3 {
+    opacity: 1.0 !important;
+    pointer-events: auto !important;
 }
 
 /* 点線ハイライト */
