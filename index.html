@@ -2833,57 +2833,60 @@ function closeVolNoiseModal() {
     showToast('SHUFFLE');
 }
 
-            // ★ VOLノイズからサーチ専用 (モーダル展開)
+            // ★ VOLノイズからサーチ専用（モーダル内のカードを表面画像で表示・テキストなし）
 function openVolNoiseSearchModal() {
-    let modalEl = document.getElementById('volNoiseSearchModal');
-    let listContainer = document.getElementById('volNoiseGridContainer');
+    let modalEl = document.getElementById('volNoiseViewModal');
+    let listContainer = document.getElementById('volNoiseCardContainer');
 
-    if (!listContainer) return;
+    if (listContainer) {
+        listContainer.innerHTML = '';
 
-    listContainer.innerHTML = '';
+        if (!volNoiseCards || volNoiseCards.length === 0) {
+            listContainer.innerHTML = '<p style="color:#ccc; text-align:center; padding: 20px;">VOLノイズはありません</p>';
+        } else {
+            volNoiseCards.forEach((card, index) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'modal-card-item';
+                cardEl.style.cursor = 'pointer';
 
-    if (!volNoiseCards || volNoiseCards.length === 0) {
-        listContainer.innerHTML = '<p style="color:#aaa; text-align:center; padding: 20px;">VOLノイズはありません</p>';
-    } else {
-        volNoiseCards.forEach((card, index) => {
-            const cardEl = document.createElement('div');
-            cardEl.className = 'modal-card-item';
-            cardEl.style.cursor = 'pointer';
-
-            // 画像パスの取得（表画像を優先）
-            let cardImgSrc = 'images/card_back.png';
-            if (typeof card === 'string') {
-                cardImgSrc = card;
-            } else if (card) {
-                cardImgSrc = card.image || card.img || card.src || (card.code ? `images/${card.code}.png` : 'images/card_back.png');
-            }
-
-            // 画像のみを表示（テキストなし）
-            cardEl.innerHTML = `
-                <div style="width: 120px; height: 168px; border-radius: 6px; overflow: hidden; border: 1px solid #555;">
-                    <img src="${cardImgSrc}" alt="card" style="width: 100%; height: 100%; object-fit: cover;">
-                </div>
-            `;
-
-            // クリックで手札へ移動しモーダルを閉じる
-            cardEl.onclick = function(e) {
-                e.stopPropagation();
-                if (typeof drawVolNoiseToHand === 'function') {
-                    drawVolNoiseToHand(index);
+                // 画像パスの取得（表側画像を優先）
+                let cardImgSrc = 'images/card_back.png';
+                if (typeof card === 'string') {
+                    cardImgSrc = card;
+                } else if (card) {
+                    cardImgSrc = card.image || card.img || card.src || (card.code ? `images/${card.code}.png` : 'images/card_back.png');
                 }
-                closeVolNoiseSearchModal();
-            };
 
-            listContainer.appendChild(cardEl);
-        });
+                // 表側画像のみ表示（テキストは完全カット）
+                cardEl.innerHTML = `
+                    <div style="width: 120px; height: 180px; border-radius: 6px; overflow: hidden; border: 1px solid #555;">
+                        <img src="${cardImgSrc}" alt="カード" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                `;
+
+                // カードクリックで手札移動してモーダルを閉じる
+                cardEl.onclick = function(e) {
+                    e.stopPropagation();
+                    if (typeof drawVolNoiseToHand === 'function') {
+                        drawVolNoiseToHand(index);
+                    }
+                    if (typeof closeVolNoiseModal === 'function') {
+                        closeVolNoiseModal();
+                    }
+                };
+
+                listContainer.appendChild(cardEl);
+            });
+        }
     }
 
-    // モーダルの表示
     if (modalEl) {
         modalEl.style.display = 'flex';
+
+        // 画面外（背景）をクリックしたときに閉じる
         modalEl.onclick = function(e) {
-            if (e.target === modalEl) {
-                closeVolNoiseSearchModal();
+            if (e.target === modalEl && typeof closeVolNoiseModal === 'function') {
+                closeVolNoiseModal();
             }
         };
     }
