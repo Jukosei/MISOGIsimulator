@@ -861,8 +861,8 @@
                 </div>
                 
                 <!-- 右側パネルとサイズ感・見た目を統一したボタン2つ -->
-                <button class="control-btn" id="btnVolShuffle" onclick="shuffleVolNoise()" style="width: 100%; min-height: 32px; font-size: 12px; font-weight: bold; padding: 6px 4px; box-sizing: border-box;">VOLノイズシャッフル</button>
-                <button class="control-btn" id="btnVolSearch" onclick="searchVolNoise()" style="width: 100%; min-height: 32px; font-size: 12px; font-weight: bold; padding: 6px 4px; box-sizing: border-box;">VOLノイズからサーチ</button>
+                <button class="control-btn" id="btnVolShuffle" onclick="shuffleVolNoise()" style="width: 100%; min-height: 48px; font-size: 12px; font-weight: bold; padding: 6px 4px; box-sizing: border-box;">VOLノイズシャッフル</button>
+                <button class="control-btn" id="btnVolSearch" onclick="searchVolNoise()" style="width: 100%; min-height: 48px; font-size: 12px; font-weight: bold; padding: 6px 4px; box-sizing: border-box;">VOLノイズからサーチ</button>
             </div>
 
             <!-- トラッシュ枠 -->
@@ -2830,6 +2830,16 @@ function closeVolNoiseModal() {
         [virtualDeck[t], virtualDeck[e]] = [virtualDeck[e], virtualDeck[t]];
     }
     showToast('SHUFFLE');
+}
+
+            // ★ VOLノイズからサーチ（モーダル表示）
+function searchVolNoise() {
+    // 既存のVOLノイズ用モーダル表示関数を呼び出し
+    if (typeof openVolNoiseModal === 'function') {
+        openVolNoiseModal();
+    } else {
+        console.error("openVolNoiseModal 関数が見つかりません。");
+    }
 }
 
             // ★ VOLノイズのカードをシャッフルする処理
