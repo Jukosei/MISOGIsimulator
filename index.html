@@ -813,33 +813,40 @@
     </style>
 </head>
 <body>
-    <div class="menu-container" id="menuScreen" style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; padding-top: 60px; box-sizing: border-box;">
-    <div class="title" style="margin-bottom: 20px;">禊</div>
-    <div class="mode-selection" style="margin-bottom: 20px;">
-        <button class="mode-btn active" id="btn1Deck" onclick="selectMode(1)">1デッキモード</button>
-        <button class="mode-btn" id="btn2Deck" onclick="selectMode(2)">2デッキモード</button>
+    <div class="menu-container" id="menuScreen" style="display: flex; flex-direction: column; align-items: center; height: 100vh; padding: 40px 0 50px 0; box-sizing: border-box; justify-content: space-between;">
+    <!-- 上部固定グループ（タイトル＋モード切り替え） -->
+    <div style="display: flex; flex-direction: column; align-items: center;">
+        <div class="title" style="margin-bottom: 20px;">禊</div>
+        <div class="mode-selection">
+            <button class="mode-btn active" id="btn1Deck" onclick="selectMode(1)">1デッキモード</button>
+            <button class="mode-btn" id="btn2Deck" onclick="selectMode(2)">2デッキモード</button>
+        </div>
     </div>
     
-    <div class="input-section" style="width: 100% !important; max-width: 100% !important; display: flex; flex-direction: column !important; align-items: center; gap: 8px; margin: 0 auto;">
+    <!-- 中央入力セクション（上下の余白を有効活用） -->
+    <div class="input-section" style="width: 100% !important; max-width: 100% !important; flex: 1; display: flex; flex-direction: column !important; align-items: center; justify-content: space-evenly; padding: 20px 0; box-sizing: border-box;">
         <!-- プレイヤー1 -->
         <div class="deck-code-area" id="areaPlayer1" style="width: 1500px !important; max-width: 90% !important; display: flex; flex-direction: column; align-items: flex-start;">
-            <div class="label-text" id="labelPlayer1" style="margin-bottom: 4px; font-size: 18px; font-weight: bold; align-self: center;">プレイヤー1のデッキ</div>
+            <div class="label-text" id="labelPlayer1" style="margin-bottom: 6px; font-size: 18px; font-weight: bold; align-self: center;">プレイヤー1のデッキ</div>
             <div class="textarea-container" style="width: 100%;">
-                <textarea id="deckInput1" oninput="saveDeckInputs()" style="width: 100% !important; height: 90px !important; font-size: 20px; padding: 8px; box-sizing: border-box; resize: vertical;"></textarea>
+                <textarea id="deckInput1" oninput="saveDeckInputs()" style="width: 100% !important; height: 90px !important; font-size: 16px; padding: 8px; box-sizing: border-box; resize: vertical;"></textarea>
             </div>
-            <button class="clear-btn" onclick="clearInput(1)" style="margin-top: 4px; padding: 6px 16px; font-size: 14px; font-weight: bold; align-self: flex-start; cursor: pointer;">クリア</button>
+            <button class="clear-btn" onclick="clearInput(1)" style="margin-top: 4px; padding: 10px 30px; font-size: 14px; font-weight: bold; align-self: flex-start; cursor: pointer;">クリア</button>
         </div>
         <!-- プレイヤー2 -->
         <div class="deck-code-area" id="areaPlayer2" style="width: 1500px !important; max-width: 90% !important; display: flex; flex-direction: column; align-items: flex-start;">
-            <div class="label-text" style="margin-bottom: 4px; font-size: 18px; font-weight: bold; align-self: center;">プレイヤー2のデッキ</div>
+            <div class="label-text" style="margin-bottom: 6px; font-size: 18px; font-weight: bold; align-self: center;">プレイヤー2のデッキ</div>
             <div class="textarea-container" style="width: 100%;">
-                <textarea id="deckInput2" oninput="saveDeckInputs()" style="width: 100% !important; height: 90px !important; font-size: 20px; padding: 8px; box-sizing: border-box; resize: vertical;"></textarea>
+                <textarea id="deckInput2" oninput="saveDeckInputs()" style="width: 100% !important; height: 90px !important; font-size: 16px; padding: 8px; box-sizing: border-box; resize: vertical;"></textarea>
             </div>
-            <button class="clear-btn" onclick="clearInput(2)" style="margin-top: 4px; padding: 6px 16px; font-size: 14px; font-weight: bold; align-self: flex-start; cursor: pointer;">クリア</button>
+            <button class="clear-btn" onclick="clearInput(2)" style="margin-top: 4px; padding: 10px 30px; font-size: 14px; font-weight: bold; align-self: flex-start; cursor: pointer;">クリア</button>
         </div>
     </div>
 
-    <button class="start-btn" onclick="startGame()" style="margin-top: 15px;">ゲーム開始</button>
+    <!-- 下部固定グループ（ゲーム開始ボタン） -->
+    <div>
+        <button class="start-btn" onclick="startGame()">ゲーム開始</button>
+    </div>
 </div>
 
     <div class="game-screen" id="gameScreen">
@@ -1172,7 +1179,7 @@
     const menuScr = document.getElementById('menuScreen');
     if (menuScr) {
     menuScr.style.flexDirection = 'column';
-    menuScr.style.justifyContent = 'flex-start';
+    menuScr.style.justifyContent = 'space-between';
     menuScr.style.display = 'flex';
 }
 
