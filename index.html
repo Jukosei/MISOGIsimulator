@@ -850,26 +850,28 @@
 </div>
 
     <div class="game-screen" id="gameScreen">
-        <!-- 左パネル（幅を右パネルと同等の約100px〜120px程度に固定指定） -->
-        <div class="left-panel" style="width: 110px !important; flex-shrink: 0;">
+        <!-- 左パネル（右パネルと同じ width: 170px に統一） -->
+        <div class="left-panel" style="width: 170px; flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; box-sizing: border-box; height: 100%;">
+            
             <!-- VOLノイズ枠 ＋ ボタン2つのまとめグループ -->
-            <div style="display: flex; flex-direction: column; gap: 6px; width: 100%;">
+            <div style="display: flex; flex-direction: column; gap: 6px; width: 100%; flex: 1; min-height: 0;">
                 <!-- VOLノイズ枠 -->
-                <div class="zone-box" id="volNoiseZone" onclick="openVolNoiseModal()" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)" style="cursor: pointer; position: relative;">
-                    <div class="count-display" id="volNoiseCount" style="position: relative; z-index: 1;">0</div>
-                    <div class="zone-label" style="position: relative; z-index: 1;">VOLノイズ</div>
+                <div class="zone-box" id="volNoiseZone" onclick="openVolNoiseModal()" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)" style="cursor: pointer; position: relative; width: 100%; flex: 1; min-height: 80px; max-height: 140px; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div class="count-display" id="volNoiseCount" style="position: relative; z-index: 2; font-size: 22px; font-weight: bold; text-shadow: 0 0 4px #000;">0</div>
+                    <div class="zone-label" style="position: relative; z-index: 2; font-size: 12px; text-shadow: 0 0 4px #000;">VOLノイズ</div>
                 </div>
                 
-                <!-- 右側ボタンと同等のフォントサイズ（12px）＆高さしっかり確保 -->
-                <button class="control-btn" id="btnVolShuffle" onclick="shuffleVolNoise()" style="width: 100%; min-height: 38px; font-size: 12px; font-weight: bold; padding: 6px 2px; white-space: normal; line-height: 1.2;">VOLノイズシャッフル</button>
-                <button class="control-btn" id="btnVolSearch" onclick="openVolNoiseSearchModal()" style="width: 100%; min-height: 38px; font-size: 12px; font-weight: bold; padding: 6px 2px; white-space: normal; line-height: 1.2;">VOLノイズからサーチ</button>
+                <!-- 右側ボタンと完全に一致させたボタン2つ -->
+                <button class="control-btn" id="btnVolShuffle" onclick="shuffleVolNoise()" style="width: 100%; box-sizing: border-box;">VOLノイズシャッフル</button>
+                <button class="control-btn" id="btnVolSearch" onclick="openVolNoiseSearchModal()" style="width: 100%; box-sizing: border-box;">VOLノイズからサーチ</button>
             </div>
 
             <!-- トラッシュ枠 -->
-            <div class="zone-box" id="trashZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)" onclick="openTrashModal()" style="cursor: pointer;">
-                <div class="count-display" id="trashCount">0</div>
-                <div class="zone-label">トラッシュ</div>
+            <div class="zone-box" id="trashZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)" onclick="openTrashModal()" style="cursor: pointer; width: 100%; flex: 1; min-height: 80px; max-height: 140px; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div class="count-display" id="trashCount" style="position: relative; z-index: 2; font-size: 22px; font-weight: bold;">0</div>
+                <div class="zone-label" style="position: relative; z-index: 2; font-size: 12px;">トラッシュ</div>
             </div>
+
         </div>
         
         <!-- 中央パネル（メインゲームフィールド） -->
