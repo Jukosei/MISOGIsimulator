@@ -813,32 +813,34 @@
     </style>
 </head>
 <body>
-    <div class="menu-container" id="menuScreen">
-        <div class="title">禊</div>
-        <div class="mode-selection">
-            <button class="mode-btn" id="btn1Deck" onclick="selectMode(1)">1デッキモード</button>
-            <button class="mode-btn active" id="btn2Deck" onclick="selectMode(2)">2デッキモード</button>
-        </div>
-        <div class="input-section" style="width: 100% !important; max-width: 100% !important; display: flex; flex-direction: column !important; align-items: center; gap: 10px; margin: 0 auto;">
-    <!-- プレイヤー1 -->
-    <div class="deck-code-area" id="areaPlayer1" style="width: 1500px !important; max-width: 90% !important; display: flex; flex-direction: column; align-items: flex-start;">
-        <div class="label-text" id="labelPlayer1" style="margin-bottom: 6px; font-size: 20px; font-weight: bold; align-self: center;">プレイヤー1のデッキ</div>
-        <div class="textarea-container" style="width: 100%;">
-            <textarea id="deckInput1" oninput="saveDeckInputs()" style="width: 100% !important; height: 120px !important; font-size: 18px; padding: 8px; box-sizing: border-box; resize: vertical;"></textarea>
-        </div>
-        <button class="clear-btn" onclick="clearInput(1)" style="margin-top: 6px; padding: 8px 20px; font-size: 15px; font-weight: bold; align-self: flex-start; cursor: pointer;">クリア</button>
+    <div class="menu-container" id="menuScreen" style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; padding-top: 60px; box-sizing: border-box;">
+    <div class="title" style="margin-bottom: 20px;">禊</div>
+    <div class="mode-selection" style="margin-bottom: 20px;">
+        <button class="mode-btn active" id="btn1Deck" onclick="selectMode(1)">1デッキモード</button>
+        <button class="mode-btn" id="btn2Deck" onclick="selectMode(2)">2デッキモード</button>
     </div>
-    <!-- プレイヤー2 -->
-    <div class="deck-code-area" id="areaPlayer2" style="width: 1500px !important; max-width: 90% !important; display: flex; flex-direction: column; align-items: flex-start;">
-        <div class="label-text" style="margin-bottom: 6px; font-size: 20px; font-weight: bold; align-self: center;">プレイヤー2のデッキ</div>
-        <div class="textarea-container" style="width: 100%;">
-            <textarea id="deckInput2" oninput="saveDeckInputs()" style="width: 100% !important; height: 120px !important; font-size: 18px; padding: 8px; box-sizing: border-box; resize: vertical;"></textarea>
+    
+    <div class="input-section" style="width: 100% !important; max-width: 100% !important; display: flex; flex-direction: column !important; align-items: center; gap: 8px; margin: 0 auto;">
+        <!-- プレイヤー1 -->
+        <div class="deck-code-area" id="areaPlayer1" style="width: 1500px !important; max-width: 90% !important; display: flex; flex-direction: column; align-items: flex-start;">
+            <div class="label-text" id="labelPlayer1" style="margin-bottom: 4px; font-size: 18px; font-weight: bold; align-self: center;">プレイヤー1のデッキ</div>
+            <div class="textarea-container" style="width: 100%;">
+                <textarea id="deckInput1" oninput="saveDeckInputs()" style="width: 100% !important; height: 90px !important; font-size: 20px; padding: 8px; box-sizing: border-box; resize: vertical;"></textarea>
+            </div>
+            <button class="clear-btn" onclick="clearInput(1)" style="margin-top: 4px; padding: 6px 16px; font-size: 14px; font-weight: bold; align-self: flex-start; cursor: pointer;">クリア</button>
         </div>
-        <button class="clear-btn" onclick="clearInput(2)" style="margin-top: 6px; padding: 8px 20px; font-size: 15px; font-weight: bold; align-self: flex-start; cursor: pointer;">クリア</button>
+        <!-- プレイヤー2 -->
+        <div class="deck-code-area" id="areaPlayer2" style="width: 1500px !important; max-width: 90% !important; display: flex; flex-direction: column; align-items: flex-start;">
+            <div class="label-text" style="margin-bottom: 4px; font-size: 18px; font-weight: bold; align-self: center;">プレイヤー2のデッキ</div>
+            <div class="textarea-container" style="width: 100%;">
+                <textarea id="deckInput2" oninput="saveDeckInputs()" style="width: 100% !important; height: 90px !important; font-size: 20px; padding: 8px; box-sizing: border-box; resize: vertical;"></textarea>
+            </div>
+            <button class="clear-btn" onclick="clearInput(2)" style="margin-top: 4px; padding: 6px 16px; font-size: 14px; font-weight: bold; align-self: flex-start; cursor: pointer;">クリア</button>
+        </div>
     </div>
+
+    <button class="start-btn" onclick="startGame()" style="margin-top: 15px;">ゲーム開始</button>
 </div>
-        <button class="start-btn" onclick="startGame()">ゲーム開始</button>
-    </div>
 
     <div class="game-screen" id="gameScreen">
         <!-- 左パネル（ノイズ・トラッシュ） -->
@@ -1169,9 +1171,10 @@
 
     const menuScr = document.getElementById('menuScreen');
     if (menuScr) {
-        menuScr.style.flexDirection = 'column';
-        menuScr.style.display = 'flex';
-    }
+    menuScr.style.flexDirection = 'column';
+    menuScr.style.justifyContent = 'flex-start';
+    menuScr.style.display = 'flex';
+}
 
     if (typeof selectMode === 'function') {
         selectMode(parseInt(localStorage.getItem('misogi_mode')) || 1);
