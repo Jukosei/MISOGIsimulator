@@ -2833,51 +2833,52 @@ function closeVolNoiseModal() {
     showToast('SHUFFLE');
 }
 
-            // ★ VOLノイズからサーチ専用（表側画像を表示）
+            // ★ VOLノイズからサーチ専用 (表画像優先表示)
 function openVolNoiseSearchModal() {
-    let modalEl = document.getElementById('volNoiseViewModal');
-    let listContainer = document.getElementById('volNoiseCardContainer');
+    let modalEl = document.getElementById('volNoiseSearchModal');
+    let listContainer = document.getElementById('volNoiseGridContainer');
 
-    if (listContainer) {
-        listContainer.innerHTML = '';
+    if (!listContainer) return;
 
-        if (!volNoiseCards || volNoiseCards.length === 0) {
-            listContainer.innerHTML = '<p style="color:#ccc; text-align:center; padding: 20px;">VOLノイズはありません</p>';
-        } else {
-            volNoiseCards.forEach((card, index) => {
-                const cardEl = document.createElement('div');
-                cardEl.className = 'modal-card-item';
-                cardEl.style.cursor = 'pointer';
+    listContainer.innerHTML = '';
 
-                // 画像パスの取得（文字列の場合、オブジェクトの場合の双方に対応）
-                let cardImgSrc = 'images/card_back.png';
-                if (typeof card === 'string') {
-                    cardImgSrc = card;
-                } else if (card) {
-                    cardImgSrc = card.image || card.img || card.src || (card.code ? `images/${card.code}.png` : 'images/card_back.png');
+    if (!volNoiseCards || volNoiseCards.length === 0) {
+        listContainer.innerHTML = '<p style="color:#aaa; text-align:center; padding: 20px;">VOLノイズはありません</p>';
+    } else {
+        volNoiseCards.forEach((card, index) => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'modal-card-item';
+            cardEl.style.cursor = 'pointer';
+
+            // 画像パスの取得（表画像を優先して取得）
+            let cardImgSrc = 'images/card_back.png';
+            if (typeof card === 'string') {
+                cardImgSrc = card;
+            } else if (card) {
+                // card.image -> card.img -> card.src -> images/${card.code}.png の順で探す
+                cardImgSrc = card.image || card.img || card.src || (card.code ? `images/${card.code}.png` : 'images/card_back.png');
+            }
+
+            // 画像のみを表示（テキスト表示は完全に削除）
+            cardEl.innerHTML = `
+                <div style="width: 120px; height: 168px; border-radius: 6px; overflow: hidden; border: 1px solid #555;">
+                    <img src="${cardImgSrc}" alt="card" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            `;
+
+            // クリックで手札へ移動
+            cardEl.onclick = function(e) {
+                e.stopPropagation();
+                if (typeof drawVolNoiseToHand === 'function') {
+                    drawVolNoiseToHand(index);
                 }
+                if (typeof closeVolNoiseModal === 'function') {
+                    closeVolNoiseModal();
+                }
+            };
 
-                cardEl.innerHTML = `
-                    <div style="width: 120px; height: 180px; border-radius: 6px; overflow: hidden; border: 1px solid #555;">
-                        <img src="${cardImgSrc}" alt="${card.name || 'card'}" style="width: 100%; height: 100%; object-fit: cover;">
-                    </div>
-                    <div style="text-align:center; font-size:12px; margin-top:4px; color:#fff;">${card.name || card.code || (index + 1) + '枚目'}</div>
-                `;
-
-                // クリックで手札へ移動
-                cardEl.onclick = function(e) {
-                    e.stopPropagation();
-                    if (typeof drawVolNoiseToHand === 'function') {
-                        drawVolNoiseToHand(index);
-                    }
-                    if (typeof closeVolNoiseModal === 'function') {
-                        closeVolNoiseModal();
-                    }
-                };
-
-                listContainer.appendChild(cardEl);
-            });
-        }
+            listContainer.appendChild(cardEl);
+        });
     }
 
     if (modalEl) {
