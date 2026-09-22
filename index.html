@@ -852,18 +852,21 @@
     <div class="game-screen" id="gameScreen">
         <!-- 左パネル（ノイズ・トラッシュ） -->
         <div class="left-panel">
-            <!-- VOLノイズ枠 -->
-            <div class="zone-box" id="volNoiseZone" onclick="openVolNoiseModal()" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)" style="cursor: pointer; position: relative;">
-                <div class="count-display" id="volNoiseCount" style="position: relative; z-index: 1;">0</div>
-                <div class="zone-label" style="position: relative; z-index: 1;">VOLノイズ</div>
+            <!-- VOLノイズ枠 ＋ ボタン2つのまとめグループ -->
+            <div style="display: flex; flex-direction: column; gap: 6px; width: 100%;">
+                <!-- VOLノイズ枠 -->
+                <div class="zone-box" id="volNoiseZone" onclick="openVolNoiseModal()" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)" style="cursor: pointer; position: relative;">
+                    <div class="count-display" id="volNoiseCount" style="position: relative; z-index: 1;">0</div>
+                    <div class="zone-label" style="position: relative; z-index: 1;">VOLノイズ</div>
+                </div>
+                
+                <!-- 右側パネルとサイズ感・見た目を統一したボタン2つ -->
+                <button class="control-btn" id="btnVolShuffle" onclick="shuffleVolNoise()" style="width: 100%; min-height: 32px; font-size: 12px; font-weight: bold; padding: 6px 4px; box-sizing: border-box;">VOLノイズシャッフル</button>
+                <button class="control-btn" id="btnVolSearch" onclick="searchVolNoise()" style="width: 100%; min-height: 32px; font-size: 12px; font-weight: bold; padding: 6px 4px; box-sizing: border-box;">VOLノイズからサーチ</button>
             </div>
-            
-            <!-- VOLノイズボタン2つ（VOLノイズ枠の外・下に配置） -->
-            <button class="control-btn" id="btnVolShuffle" onclick="shuffleVolNoise()" style="width: 100%; font-size: 11px; padding: 4px 2px; margin-top: 4px;">VOLノイズシャッフル</button>
-            <button class="control-btn" id="btnVolSearch" onclick="searchVolNoise()" style="width: 100%; font-size: 11px; padding: 4px 2px; margin-top: 2px;">VOLノイズからサーチ</button>
 
             <!-- トラッシュ枠 -->
-            <div class="zone-box" id="trashZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)" onclick="openTrashModal()" style="cursor: pointer; margin-top: 8px;">
+            <div class="zone-box" id="trashZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)" onclick="openTrashModal()" style="cursor: pointer;">
                 <div class="count-display" id="trashCount">0</div>
                 <div class="zone-label">トラッシュ</div>
             </div>
