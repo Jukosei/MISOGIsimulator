@@ -1236,6 +1236,29 @@ document.addEventListener('DOMContentLoaded', () => {
     if (savedDeck2 && input2) input2.value = savedDeck2;
 });
 
+            // 偏りを排除した共通の強力なシャッフル関数
+function shuffleArray(array) {
+    if (!Array.isArray(array) || array.length <= 1) return array;
+
+    const getRandomInt = (max) => {
+        if (window.crypto && window.crypto.getRandomValues) {
+            const randomBuffer = new Uint32Array(1);
+            window.crypto.getRandomValues(randomBuffer);
+            return randomBuffer[0] % max;
+        }
+        return Math.floor(Math.random() * max);
+    };
+
+    // 7重シャッフル
+    for (let round = 0; round < 7; round++) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = getRandomInt(i + 1);
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+    return array;
+}
+
             // ゲーム開始時・再スタート時の状態リセット処理
 function startGame() {
     // ★ 1. 盤面（ステージ・ディレクション・チェンジ・スロット等）のカード要素をすべて削除
@@ -1326,13 +1349,8 @@ function startGame() {
         }
     });
     
-    // シャッフル処理
-    for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-    }
-
-    virtualDeck = a;
+   // シャッフル処理
+virtualDeck = shuffleArray(a);
 
     // ★ 11. 手札の消去と初期ドロー
     let handArea = document.getElementById('handArea');
@@ -1649,13 +1667,10 @@ function actionTrashToDeckAndShuffle() {
     if (!cards) return;
 
     if (typeof virtualDeck !== 'undefined') {
-        virtualDeck.push(...cards);
-        // 山札全体をシャッフル
-        for (let i = virtualDeck.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [virtualDeck[i], virtualDeck[j]] = [virtualDeck[j], virtualDeck[i]];
+            virtualDeck.push(...cards);
+            // 山札全体をシャッフル
+            shuffleArray(virtualDeck);
         }
-    }
 
     finishTrashAction(`${cards.length}枚のカードを山札に戻してシャッフルしました`);
 }
@@ -2145,10 +2160,10 @@ function confirmDeckReturn(position) {
         virtualDeck.push(card);    // 末尾（下）に追加
     } else if (position === 'shuffle') {
         virtualDeck.push(card);
-        // Fisher-Yates シャッフル
-        for (let i = virtualDeck.length - 1; i > 0; i--) {
-            let j = Math.floor(Math.random() * (i + 1));
-            [virtualDeck[i], virtualDeck[j]] = [virtualDeck[j], virtualDeck[i]];
+        if (typeof virtualDeck !== 'undefined') {
+            virtualDeck.push(...cards);
+            // 山札全体をシャッフル
+            shuffleArray(virtualDeck);
         }
     }
 
@@ -2872,10 +2887,11 @@ function closeVolNoiseModal() {
 
         function shuffleDeckBtn() {
     if (virtualDeck.length === 0) return showToast('山札が空です');
-    for (let t = virtualDeck.length - 1; t > 0; t--) {
-        let e = Math.floor(Math.random() * (t + 1));
-        [virtualDeck[t], virtualDeck[e]] = [virtualDeck[e], virtualDeck[t]];
-    }
+    if (typeof virtualDeck !== 'undefined') {
+            virtualDeck.push(...cards);
+            // 山札全体をシャッフル
+            shuffleArray(virtualDeck);
+        }
     showToast('SHUFFLE');
 }
 
@@ -2967,8 +2983,8 @@ function closeVolNoiseSearchModal() {
             // ★ VOLノイズのカードをシャッフルする処理
 function shuffleVolNoise() {
     const volZone = document.getElementById('volNoiseZone');
-    
-    // 1. グローバル配列（volNoiseCards または volCards）のシャッフル
+
+    // 1. グローバル配列 (volNoiseCards または volCards) のシャッフル
     let targetArray = null;
     if (typeof volNoiseCards !== 'undefined' && Array.isArray(volNoiseCards)) {
         targetArray = volNoiseCards;
@@ -2977,12 +2993,9 @@ function shuffleVolNoise() {
     }
 
     if (targetArray && targetArray.length > 1) {
-        for (let i = targetArray.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [targetArray[i], targetArray[j]] = [targetArray[j], targetArray[i]];
-        }
+        // 配列自体を強力にシャッフル
+        shuffleArray(targetArray);
     }
-
     // 2. volNoiseZone 内のカード要素（DOM）のシャッフル
     if (volZone) {
         // 子要素の中からカード要素（.card クラスまたは count-display/zone-label 以外の要素）を抽出
@@ -2990,12 +3003,10 @@ function shuffleVolNoise() {
             el.id !== 'volNoiseCount' && !el.classList.contains('zone-label') && !el.classList.contains('count-display')
         );
 
-        if (cardElements.length > 1) {
-            for (let i = cardElements.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                volZone.appendChild(cardElements[j]);
-            }
-        }
+        if (targetArray && targetArray.length > 1) {
+        // 配列自体を強力にシャッフル
+        shuffleArray(targetArray);
+    }
     }
 
     if (typeof showToast === 'function') {
@@ -3024,9 +3035,9 @@ function shuffleVolNoise() {
     });
 
     // 2. 山札をシャッフル
-    for (let i = virtualDeck.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
-        [virtualDeck[i], virtualDeck[j]] = [virtualDeck[j], virtualDeck[i]];
+    if (targetArray && targetArray.length > 1) {
+        // 配列自体を強力にシャッフル
+        shuffleArray(targetArray);
     }
 
     // 3. 各UIの更新と通知表示
@@ -3096,9 +3107,9 @@ window.randomHandDiscard = randomHandDiscard;
     });
 
     // 2. 山札をシャッフル
-    for (let a = virtualDeck.length - 1; a > 0; a--) {
-        let n = Math.floor(Math.random() * (a + 1));
-        [virtualDeck[a], virtualDeck[n]] = [virtualDeck[n], virtualDeck[a]];
+    if (targetArray && targetArray.length > 1) {
+        // 配列自体を強力にシャッフル
+        shuffleArray(targetArray);
     }
 
     // 3. 山札から固定で7枚ドロー
@@ -3340,10 +3351,9 @@ function nextTime() {
         imagePath: card.getAttribute('data-imagepath')
     }));
 
-    // フィッシャー–イェーツ法でランダムシャッフル
-    for (let i = remainingData.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [remainingData[i], remainingData[j]] = [remainingData[j], remainingData[i]];
+    if (targetArray && targetArray.length > 1) {
+        // 配列自体を強力にシャッフル
+        shuffleArray(targetArray);
     }
 
     // シャッフルしたカードを山札の一番下（ボトム＝配列の末尾）へ追加
@@ -3483,10 +3493,7 @@ window.nextTime = nextTime;
                 createGameCardToHand(cut.name, cut.imagePath);
 
                 if (currentSearchType === 'deck') {
-                    for (let t = virtualDeck.length - 1; t > 0; t--) {
-                        let e = Math.floor(Math.random() * (t + 1));
-                        [virtualDeck[t], virtualDeck[e]] = [virtualDeck[e], virtualDeck[t]];
-                    }
+                    shuffleArray(virtualDeck);
                     showToast('SHUFFLE');
                 }
 
@@ -3534,13 +3541,10 @@ window.nextTime = nextTime;
     let t = (currentSearchType === 'deck') ? virtualDeck : ((currentSearchType === 'noise') ? volNoiseCards : trashCards);
     
     // 山札（deck）からサーチしていた場合のみ自動シャッフルを実施
-    if (t && t.length > 0 && currentSearchType === 'deck') {
-        for (let e = t.length - 1; e > 0; e--) {
-            let a = Math.floor(Math.random() * (e + 1));
-            [t[e], t[a]] = [t[a], t[e]];
-        }
-        showToast('SHUFFLE');
-    }
+    if (currentSearchType === 'deck') {
+                    shuffleArray(virtualDeck);
+                    showToast('SHUFFLE');
+                }
     
     isSearchOpen = false;
     let overlay = document.getElementById('searchOverlay');
@@ -3989,13 +3993,10 @@ function closeDeckView(actionType) {
             // モーダル内のカードを山札の一番下（末尾）に戻す
             virtualDeck.push(...deckViewCards);
         } else if (actionType === 'shuffleBottom') {
-            // 残ったカード内だけでシャッフルしてからボトムへ追加
-            for (let i = deckViewCards.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [deckViewCards[i], deckViewCards[j]] = [deckViewCards[j], deckViewCards[i]];
+                // 残ったカードだけシャッフルしてからボトムへ追加
+                shuffleArray(deckViewCards);
+                virtualDeck.push(...deckViewCards);
             }
-            virtualDeck.push(...deckViewCards);
-        }
     }
 
     deckViewCards = [];
