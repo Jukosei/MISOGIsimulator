@@ -2832,7 +2832,7 @@ function closeVolNoiseModal() {
     showToast('SHUFFLE');
 }
 
-            // ★ VOLノイズからサーチ専用（カードの表側を表示して選択）
+            // ★ VOLノイズからサーチ専用（表側画像を表示）
 function openVolNoiseSearchModal() {
     let modalEl = document.getElementById('volNoiseViewModal');
     let listContainer = document.getElementById('volNoiseCardContainer');
@@ -2848,14 +2848,19 @@ function openVolNoiseSearchModal() {
                 cardEl.className = 'modal-card-item';
                 cardEl.style.cursor = 'pointer';
 
-                // カードの表側画像（card.image または card.img）を表示
-                const cardImgSrc = card.image || card.img || 'images/card_back.png';
+                // 画像パスの取得（文字列の場合、オブジェクトの場合の双方に対応）
+                let cardImgSrc = 'images/card_back.png';
+                if (typeof card === 'string') {
+                    cardImgSrc = card;
+                } else if (card) {
+                    cardImgSrc = card.image || card.img || card.src || (card.code ? `images/${card.code}.png` : 'images/card_back.png');
+                }
 
                 cardEl.innerHTML = `
                     <div style="width: 120px; height: 180px; border-radius: 6px; overflow: hidden; border: 1px solid #555;">
                         <img src="${cardImgSrc}" alt="${card.name || 'card'}" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
-                    <div style="text-align:center; font-size:12px; margin-top:4px; color:#fff;">${card.name || (index + 1) + '枚目'}</div>
+                    <div style="text-align:center; font-size:12px; margin-top:4px; color:#fff;">${card.name || card.code || (index + 1) + '枚目'}</div>
                 `;
 
                 // クリックで手札へ移動
@@ -2883,7 +2888,7 @@ function openVolNoiseSearchModal() {
         };
     }
 }
-
+            
             // ★ VOLノイズのカードをシャッフルする処理
 function shuffleVolNoise() {
     const volZone = document.getElementById('volNoiseZone');
