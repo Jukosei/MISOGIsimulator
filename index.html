@@ -855,6 +855,8 @@
             <div class="zone-box" id="volNoiseZone" onclick="openVolNoiseModal()" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)" style="cursor: pointer; position: relative;">
     <div class="count-display" id="volNoiseCount" style="position: relative; z-index: 1;">0</div>
     <div class="zone-label" style="position: relative; z-index: 1;">VOLノイズ</div>
+    <button class="control-btn" id="btnVolShuffle" onclick="shuffleVolNoise()" style="width: 100%; font-size: 11px; padding: 4px 2px;">VOLノイズシャッフル</button>
+    <button class="control-btn" id="btnVolSearch" onclick="searchVolNoise()" style="width: 100%; font-size: 11px; padding: 4px 2px;">VOLノイズからサーチ</button>
 </div>
             <div class="zone-box" id="trashZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)" onclick="openTrashModal()" style="cursor: pointer;">
                 <div class="count-display" id="trashCount">0</div>
@@ -943,8 +945,6 @@
             <button class="control-btn" onclick="resetGameBtn()">リセット</button>
             <button class="control-btn" onclick="mulliganBtn()">マリガン</button>
             <button class="control-btn" onclick="rollDice()">ダイスを振る</button>
-            <button class="control-btn" onclick="shuffleVolNoise()">VOLノイズシャッフル</button>
-            <button class="control-btn" onclick="openSearchModal('noise')">VOLノイズからサーチ</button>
             <button class="control-btn" onclick="randomHandDiscard()">ランダムハンデス</button>
             <button class="control-btn" onclick="returnAllHandToDeckBtn()">手札を全て山札へ</button>
             <button class="control-btn" onclick="shuffleDeckBtn()">山札シャッフル</button>
