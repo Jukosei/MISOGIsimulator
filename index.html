@@ -1941,29 +1941,39 @@ function updateVolNoiseUI() {
         // ★ ドロップ元の列コンテナ（.slot-column-wrapper）を事前に取得
         let sourceWrapper = dragTarget.closest('.slot-column-wrapper');
 
+        if (a.closest('.deck-zone')) {
+        let cName = dragTarget.getAttribute('data-cardname');
+        let imgP = dragTarget.getAttribute('data-imagepath');
+        
+        // ★ 1. ドロップ元の列コンテナとカード要素自体を事前に保持
+        let sourceWrapper = dragTarget.closest('.slot-column-wrapper');
+        let targetEl = dragTarget;
+
         openActionMenu(`カード「${cName}」の戻し先`, [
             { label: "山札の一番上に戻す", value: "top" },
             { label: "山札の一番下に戻す", value: "bottom" }
         ], function(choice) {
-            // --- 既存の山札へ戻す処理（例: choice === "top" で virtualDeck.unshift 等） ---
-            
-            // 1. ドラッグしていたカード要素を画面から削除
-            if (dragTarget) {
-                dragTarget.remove();
+            // --- (山札配列への追加処理があればここに記述) ---
+
+            // ★ 2. 保持しておいたカード要素を確実に画面（DOM）から削除
+            if (targetEl) {
+                targetEl.remove();
             }
 
-            // 2. ★ レイヤー2が空になったかチェックし、レイヤー1・3をトラッシュへ送る
+            // ★ 3. レイヤー2が空になったか判定し、レイヤー1・3をトラッシュへ送る
             if (sourceWrapper && typeof checkAndTrashDirectionCards === 'function') {
                 checkAndTrashDirectionCards(sourceWrapper);
             }
 
+            // ★ 4. UIの更新
             if (typeof updateDeckUI === 'function') updateDeckUI();
+            if (typeof updateTrashUI === 'function') updateTrashUI();
         });
 
         dragTarget = null;
         return;
     }
-
+                    
                 let n = a.closest('.frame-layer');
                 if (n && n.hasAttribute('data-layer')) {
                     executeCardPlacement(dragTarget, n, parseInt(n.getAttribute('data-layer')));
