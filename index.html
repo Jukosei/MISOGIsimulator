@@ -1935,16 +1935,34 @@ function updateVolNoiseUI() {
                 }
 
                 if (a.closest('.deck-zone')) {
-                    let cName = dragTarget.getAttribute('data-cardname');
-                    let imgP = dragTarget.getAttribute('data-imagepath');
-                    pendingActionData = { name: cName, imagePath: imgP, elementId: dragTarget.id, fromHand: true };
-                    openActionMenu(`カード「${cName}」の戻し先`, [
-                        { label: "山札の一番上に戻す", value: "top" },
-                        { label: "山札の一番下に戻す", value: "bottom" }
-                    ], handleDeckReturnChoice);
-                    dragTarget = null;
-                    return;
-                }
+        let cName = dragTarget.getAttribute('data-cardname');
+        let imgP = dragTarget.getAttribute('data-imagepath');
+        
+        // ★ ドロップ元の列コンテナ（.slot-column-wrapper）を事前に取得
+        let sourceWrapper = dragTarget.closest('.slot-column-wrapper');
+
+        openActionMenu(`カード「${cName}」の戻し先`, [
+            { label: "山札の一番上に戻す", value: "top" },
+            { label: "山札の一番下に戻す", value: "bottom" }
+        ], function(choice) {
+            // --- 既存の山札へ戻す処理（例: choice === "top" で virtualDeck.unshift 等） ---
+            
+            // 1. ドラッグしていたカード要素を画面から削除
+            if (dragTarget) {
+                dragTarget.remove();
+            }
+
+            // 2. ★ レイヤー2が空になったかチェックし、レイヤー1・3をトラッシュへ送る
+            if (sourceWrapper && typeof checkAndTrashDirectionCards === 'function') {
+                checkAndTrashDirectionCards(sourceWrapper);
+            }
+
+            if (typeof updateDeckUI === 'function') updateDeckUI();
+        });
+
+        dragTarget = null;
+        return;
+    }
 
                 let n = a.closest('.frame-layer');
                 if (n && n.hasAttribute('data-layer')) {
@@ -2699,17 +2717,34 @@ function dropToVolNoise(ev) {
         return;
     }
 
-    // フィールドや手札からのドロップ
+    // 3. フィールドや手札からのドロップ
     if (dataText && dataText !== 'search-drag') {
         let a = document.getElementById(dataText);
         if (a) {
             let cName = a.getAttribute('data-cardname');
             let imgP = a.getAttribute('data-imagepath');
-            pendingActionData = { name: cName, imagePath: imgP, elementId: a.id, fromHand: true };
+            
+            // ★ ドロップ元の列コンテナ（.slot-column-wrapper）を取得
+            let sourceWrapper = a.closest('.slot-column-wrapper');
+
             openActionMenu(`カード「${cName}」の戻し先`, [
                 { label: "山札の一番上に戻す", value: "top" },
                 { label: "山札の一番下に戻す", value: "bottom" }
-            ], handleDeckReturnChoice);
+            ], function(choice) {
+                // --- 既存の山札へ戻す処理 ---
+
+                // 1. カード要素を削除
+                a.remove();
+
+                // 2. ★ レイヤー2が空になったかチェックし、レイヤー1・3をトラッシュへ送る
+                if (sourceWrapper && typeof checkAndTrashDirectionCards === 'function') {
+                    checkAndTrashDirectionCards(sourceWrapper);
+                }
+
+                if (typeof updateDeckUI === 'function') updateDeckUI();
+            });
+
+            return;
         }
     }
 }
