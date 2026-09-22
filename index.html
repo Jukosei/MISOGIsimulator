@@ -3107,10 +3107,10 @@ window.randomHandDiscard = randomHandDiscard;
     });
 
     // 2. 山札をシャッフル
-    if (targetArray && targetArray.length > 1) {
-        // 配列自体を強力にシャッフル
-        shuffleArray(targetArray);
-    }
+if (typeof virtualDeck !== 'undefined' && virtualDeck.length > 1) {
+    // 山札自体を強力にシャッフル
+    shuffleArray(virtualDeck);
+}
 
     // 3. 山札から固定で7枚ドロー
     let r = Math.min(7, virtualDeck.length);
@@ -3351,10 +3351,10 @@ function nextTime() {
         imagePath: card.getAttribute('data-imagepath')
     }));
 
-    if (targetArray && targetArray.length > 1) {
-        // 配列自体を強力にシャッフル
-        shuffleArray(targetArray);
-    }
+    if (remainingData && remainingData.length > 1) {
+    // 配列自体を強力にシャッフル
+    shuffleArray(remainingData);
+}
 
     // シャッフルしたカードを山札の一番下（ボトム＝配列の末尾）へ追加
     if (typeof virtualDeck !== 'undefined') {
