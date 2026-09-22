@@ -850,15 +850,15 @@
 </div>
 
     <div class="game-screen" id="gameScreen">
-        <!-- 左パネル（150px×225pxのサイズを強制固定） -->
+        <!-- 左パネル -->
         <div class="left-panel" style="width: 150px !important; min-width: 150px !important; flex-shrink: 0 !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; height: 100% !important; box-sizing: border-box !important;">
             
             <!-- VOLノイズ枠 ＋ ボタン2つ -->
             <div style="display: flex; flex-direction: column; gap: 6px; width: 100%;">
-                <!-- VOLノイズ枠（150px × 225px 強制指定） -->
-                <div class="zone-box" id="volNoiseZone" onclick="openVolNoiseModal()" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)" style="width: 150px !important; height: 225px !important; min-height: 225px !important; flex-shrink: 0 !important;">
-                    <div class="count-display" id="volNoiseCount">0</div>
-                    <div class="zone-label">VOLノイズ</div>
+                <!-- VOLノイズ枠（IDとカウント要素を確実に配置） -->
+                <div class="zone-box" id="volNoiseZone" onclick="openVolNoiseModal()" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)" style="width: 150px !important; height: 225px !important; min-height: 225px !important; position: relative !important; overflow: hidden !important;">
+                    <div class="count-display" id="volNoiseCount" style="position: relative; z-index: 10; font-size: 36px; font-weight: bold; text-shadow: 0 0 4px #000, 0 0 8px #000; color: #fff;">0</div>
+                    <div class="zone-label" style="position: relative; z-index: 10; font-size: 10px; text-shadow: 0 0 4px #000; color: #aaa;">VOLノイズ</div>
                 </div>
                 
                 <!-- ボタン2つ -->
@@ -866,10 +866,10 @@
                 <button class="control-btn" id="btnVolSearch" onclick="openVolNoiseSearchModal()" style="width: 100% !important; box-sizing: border-box !important;">VOLノイズからサーチ</button>
             </div>
 
-            <!-- トラッシュ枠（150px × 225px 強制指定） -->
-            <div class="zone-box" id="trashZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)" onclick="openTrashModal()" style="width: 150px !important; height: 225px !important; min-height: 225px !important; flex-shrink: 0 !important; margin-top: auto !important;">
-                <div class="count-display" id="trashCount">0</div>
-                <div class="zone-label">トラッシュ</div>
+            <!-- トラッシュ枠 -->
+            <div class="zone-box" id="trashZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)" onclick="openTrashModal()" style="width: 150px !important; height: 225px !important; min-height: 225px !important; position: relative !important; overflow: hidden !important; margin-top: auto !important;">
+                <div class="count-display" id="trashCount" style="position: relative; z-index: 10; font-size: 36px; font-weight: bold; text-shadow: 0 0 4px #000, 0 0 8px #000; color: #fff;">0</div>
+                <div class="zone-label" style="position: relative; z-index: 10; font-size: 10px; text-shadow: 0 0 4px #000; color: #aaa;">トラッシュ</div>
             </div>
         </div>
         
@@ -1744,10 +1744,10 @@ function updateDeckUI() {
     }
 }
 
-// VOLノイズUI更新
+            // VOLノイズUI更新
 function updateVolNoiseUI() {
     let count = volNoiseCards ? volNoiseCards.length : 0;
-    
+
     // カウント表示の更新
     let countEl = document.getElementById('volNoiseCount');
     if (countEl) countEl.innerText = count;
@@ -1756,7 +1756,7 @@ function updateVolNoiseUI() {
     if (volZoneEl) {
         // 既存の裏面画像要素を取得、または作成
         let bgImg = volZoneEl.querySelector('.vol-bg-image');
-        
+
         if (count > 0) {
             if (!bgImg) {
                 bgImg = document.createElement('img');
@@ -1769,9 +1769,9 @@ function updateVolNoiseUI() {
                 bgImg.style.height = '100%';
                 bgImg.style.objectFit = 'cover';
                 bgImg.style.borderRadius = '6px';
-                bgImg.style.zIndex = '0'; // 文字の下に配置
+                bgImg.style.zIndex = '1'; // ★背景画像は z-index: 1 に設定
                 bgImg.style.pointerEvents = 'none'; // ドラッグ＆ドロップを邪魔しない
-                volZoneEl.insertBefore(bgImg, volZoneEl.firstChild);
+                volZoneEl.appendChild(bgImg); // ★安全に追加
             }
         } else {
             if (bgImg) {
