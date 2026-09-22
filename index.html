@@ -821,20 +821,20 @@
         </div>
         <div class="input-section" style="width: 100% !important; max-width: 100% !important; display: flex; flex-direction: column !important; align-items: center; gap: 10px; margin: 0 auto;">
     <!-- プレイヤー1 -->
-    <div class="deck-code-area" id="areaPlayer1" style="width: 1000px !important; max-width: 90% !important; display: flex; flex-direction: column; align-items: flex-start;">
-        <div class="label-text" id="labelPlayer1" style="margin-bottom: 4px; font-size: 14px; align-self: center;">プレイヤー1のデッキ</div>
+    <div class="deck-code-area" id="areaPlayer1" style="width: 1500px !important; max-width: 90% !important; display: flex; flex-direction: column; align-items: flex-start;">
+        <div class="label-text" id="labelPlayer1" style="margin-bottom: 6px; font-size: 20px; font-weight: bold; align-self: center;">プレイヤー1のデッキ</div>
         <div class="textarea-container" style="width: 100%;">
             <textarea id="deckInput1" oninput="saveDeckInputs()" style="width: 100% !important; height: 120px !important; font-size: 18px; padding: 8px; box-sizing: border-box; resize: vertical;"></textarea>
         </div>
-        <button class="clear-btn" onclick="clearInput(1)" style="margin-top: 4px; padding: 4px 12px; font-size: 12px; align-self: flex-start;">クリア</button>
+        <button class="clear-btn" onclick="clearInput(1)" style="margin-top: 6px; padding: 8px 20px; font-size: 15px; font-weight: bold; align-self: flex-start; cursor: pointer;">クリア</button>
     </div>
     <!-- プレイヤー2 -->
-    <div class="deck-code-area" id="areaPlayer2" style="width: 1000px !important; max-width: 90% !important; display: flex; flex-direction: column; align-items: flex-start;">
-        <div class="label-text" style="margin-bottom: 4px; font-size: 14px; align-self: center;">プレイヤー2のデッキ</div>
+    <div class="deck-code-area" id="areaPlayer2" style="width: 1500px !important; max-width: 90% !important; display: flex; flex-direction: column; align-items: flex-start;">
+        <div class="label-text" style="margin-bottom: 6px; font-size: 20px; font-weight: bold; align-self: center;">プレイヤー2のデッキ</div>
         <div class="textarea-container" style="width: 100%;">
             <textarea id="deckInput2" oninput="saveDeckInputs()" style="width: 100% !important; height: 120px !important; font-size: 18px; padding: 8px; box-sizing: border-box; resize: vertical;"></textarea>
         </div>
-        <button class="clear-btn" onclick="clearInput(2)" style="margin-top: 4px; padding: 4px 12px; font-size: 12px; align-self: flex-start;">クリア</button>
+        <button class="clear-btn" onclick="clearInput(2)" style="margin-top: 6px; padding: 8px 20px; font-size: 15px; font-weight: bold; align-self: flex-start; cursor: pointer;">クリア</button>
     </div>
 </div>
         <button class="start-btn" onclick="startGame()">ゲーム開始</button>
@@ -1142,22 +1142,25 @@
     window.clearInput = clearInput;
             
             // --- モード選択関数 ---
-function selectMode(mode) {
-    localStorage.setItem('misogi_mode', mode);
-    const btn1 = document.getElementById('btn1Deck');
-    const btn2 = document.getElementById('btn2Deck');
-    const areaPlayer2 = document.getElementById('areaPlayer2');
+            function selectMode(mode) {
+        localStorage.setItem('misogi_mode', mode);
+        const btn1 = document.getElementById('btn1Deck');
+        const btn2 = document.getElementById('btn2Deck');
+        const areaPlayer2 = document.getElementById('areaPlayer2');
+        const labelPlayer1 = document.getElementById('labelPlayer1');
 
-    if (mode === 1) {
-        if (btn1) btn1.classList.add('active');
-        if (btn2) btn2.classList.remove('active');
-        if (areaPlayer2) areaPlayer2.style.display = 'none';
-    } else {
-        if (btn1) btn1.classList.remove('active');
-        if (btn2) btn2.classList.add('active');
-        if (areaPlayer2) areaPlayer2.style.display = 'block';
+        if (mode === 1) {
+            if (btn1) btn1.classList.add('active');
+            if (btn2) btn2.classList.remove('active');
+            if (areaPlayer2) areaPlayer2.style.display = 'none';
+            if (labelPlayer1) labelPlayer1.textContent = 'デッキリストを入力してください';
+        } else {
+            if (btn1) btn1.classList.remove('active');
+            if (btn2) btn2.classList.add('active');
+            if (areaPlayer2) areaPlayer2.style.display = 'flex';
+            if (labelPlayer1) labelPlayer1.textContent = 'プレイヤー1のデッキ';
+        }
     }
-}
             
             window.onload = function() {
     // 初期状態は確実にメニューを表示し、ゲーム画面を非表示にする
