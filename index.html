@@ -850,24 +850,24 @@
 </div>
 
     <div class="game-screen" id="gameScreen">
-        <!-- 左パネル（元々のCSS設計 150px × 225px を正しく適用） -->
-        <div class="left-panel">
+        <!-- 左パネル（150px×225pxのサイズを強制固定） -->
+        <div class="left-panel" style="width: 150px !important; min-width: 150px !important; flex-shrink: 0 !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; height: 100% !important; box-sizing: border-box !important;">
             
             <!-- VOLノイズ枠 ＋ ボタン2つ -->
             <div style="display: flex; flex-direction: column; gap: 6px; width: 100%;">
-                <!-- VOLノイズ枠 -->
-                <div class="zone-box" id="volNoiseZone" onclick="openVolNoiseModal()" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)">
+                <!-- VOLノイズ枠（150px × 225px 強制指定） -->
+                <div class="zone-box" id="volNoiseZone" onclick="openVolNoiseModal()" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToVolNoise(event)" style="width: 150px !important; height: 225px !important; min-height: 225px !important; flex-shrink: 0 !important;">
                     <div class="count-display" id="volNoiseCount">0</div>
                     <div class="zone-label">VOLノイズ</div>
                 </div>
                 
                 <!-- ボタン2つ -->
-                <button class="control-btn" id="btnVolShuffle" onclick="shuffleVolNoise()">VOLノイズシャッフル</button>
-                <button class="control-btn" id="btnVolSearch" onclick="openVolNoiseSearchModal()">VOLノイズからサーチ</button>
+                <button class="control-btn" id="btnVolShuffle" onclick="shuffleVolNoise()" style="width: 100% !important; box-sizing: border-box !important;">VOLノイズシャッフル</button>
+                <button class="control-btn" id="btnVolSearch" onclick="openVolNoiseSearchModal()" style="width: 100% !important; box-sizing: border-box !important;">VOLノイズからサーチ</button>
             </div>
 
-            <!-- トラッシュ枠 -->
-            <div class="zone-box" id="trashZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)" onclick="openTrashModal()">
+            <!-- トラッシュ枠（150px × 225px 強制指定） -->
+            <div class="zone-box" id="trashZone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropToTrash(event)" onclick="openTrashModal()" style="width: 150px !important; height: 225px !important; min-height: 225px !important; flex-shrink: 0 !important; margin-top: auto !important;">
                 <div class="count-display" id="trashCount">0</div>
                 <div class="zone-label">トラッシュ</div>
             </div>
