@@ -2780,29 +2780,34 @@ function dropToVolNoise(ev) {
     ev.dataTransfer.setData('text/plain', 'search-drag');
     ev.dataTransfer.setData('search-index', index);
 
-    // 2. ドラッグ中はモーダル自体を非表示にして下の盤面を見えるようにする
-    let modal = document.getElementById('trashModal') || document.getElementById('searchModal') || document.querySelector('.modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
+    // 2. モーダル本体・背景オーバーレイの両方を強制非表示（または透明化）にする
+    const modals = document.querySelectorAll('#trashModal, #searchModal, .modal, .modal-overlay, #searchOverlay');
+    modals.forEach(el => {
+        el.style.display = 'none';
+        el.style.visibility = 'hidden';
+    });
 }
 
 function onModalCardDragEnd(ev) {
-    // 3. ドラッグ完了（またはキャンセル）時、モーダルを閉じて画面表示を更新
+    // 3. ドラッグ完了（またはキャンセル）時の後置処理
     if (typeof closeSearchModal === 'function') {
         closeSearchModal();
-    } else {
-        let modal = document.getElementById('trashModal') || document.getElementById('searchModal') || document.querySelector('.modal');
-        if (modal) {
-            modal.style.display = 'none';
-        }
     }
+    if (typeof closeTrashModal === 'function') {
+        closeTrashModal();
+    }
+
+    // 念のためスタイルをリセット
+    const modals = document.querySelectorAll('#trashModal, #searchModal, .modal, .modal-overlay, #searchOverlay');
+    modals.forEach(el => {
+        el.style.visibility = 'visible';
+    });
     
     if (typeof updateTrashUI === 'function') {
         updateTrashUI();
     }
 }
-
+            
     function openVolNoiseModal() {
     let modalEl = document.getElementById('volNoiseViewModal');
     let listContainer = document.getElementById('volNoiseCardContainer');
