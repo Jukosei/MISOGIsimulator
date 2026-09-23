@@ -4009,16 +4009,6 @@ function renderDeckViewCards() {
     const modal = document.getElementById('deckViewModal');
     if (modal) modal.style.display = 'none';
 
-    deckViewCards = [];
-    isDeckViewOpen = false;
-
-    // 表示更新とモーダル非表示
-    const deckCountEl = document.getElementById('deckCount');
-    if (deckCountEl) deckCountEl.innerText = virtualDeck.length;
-
-    const modal = document.getElementById('deckViewModal');
-    if (modal) modal.style.display = 'none';
-
     if (typeof updateDeckViewButtonUI === 'function') updateDeckViewButtonUI();
 }
 
