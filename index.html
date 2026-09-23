@@ -3983,8 +3983,10 @@ function renderDeckViewCards() {
 function closeDeckView(actionType) {
     if (deckViewCards.length > 0) {
         if (actionType === 'shuffle') {
-            // モーダル内のカードを山札へ戻して全体シャッフル
-            virtualDeck.push(...deckViewCards);
+                // モーダル内のカードを山札へ戻して全体シャッフル
+                virtualDeck.push(...deckViewCards);
+                shuffleArray(virtualDeck);
+            }
             if (typeof shuffleDeckBtn === 'function') shuffleDeckBtn();
         } else if (actionType === 'top') {
             // ★ モーダル内のカードを山札の一番上（先頭）に戻す
