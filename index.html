@@ -2805,47 +2805,51 @@ function dropToVolNoise(ev) {
     }
 }
 
-            function onModalCardDragStart(ev, index) {
+            function onSearchCardDragStart(ev, index) {
     // 1. ドラッグするカードの識別データをセット
     ev.dataTransfer.setData('text/plain', 'search-drag');
     ev.dataTransfer.setData('search-index', index);
 
-    // 2. モーダルと背景オーバーレイの両方を完全透明化＆ドロップ判定を貫通させる
-    const overlay = document.getElementById('searchOverlay');
-    const modalBox = document.getElementById('searchModalEl');
-    const trashModal = document.getElementById('trashModal');
-
-    [overlay, modalBox, trashModal].forEach(el => {
+    // 2. モーダル全体および背景（trashModal, searchOverlay, searchModalEl）を即座に完全透明化＆ドロップ通過設定
+    const ids = ['trashModal', 'searchOverlay', 'searchModalEl'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
         if (el) {
             el.style.setProperty('opacity', '0', 'important');
             el.style.setProperty('pointer-events', 'none', 'important');
         }
     });
+
+    // class指定のモーダル要素も対象にする
+    document.querySelectorAll('.modal, .modal-overlay, .search-modal').forEach(el => {
+        el.style.setProperty('opacity', '0', 'important');
+        el.style.setProperty('pointer-events', 'none', 'important');
+    });
 }
 
-function onModalCardDragEnd(ev) {
-    // 3. ドラッグ終了時、透明度と判定を元に戻してモーダルを閉じる
-    const overlay = document.getElementById('searchOverlay');
-    const modalBox = document.getElementById('searchModalEl');
-    const trashModal = document.getElementById('trashModal');
+function onSearchCardDragEnd(ev) {
+    // 3. ドラッグ終了時（ドロップ時またはキャンセル時）にモーダルを完全に閉じる
+    if (typeof closeSearchModal === 'function') closeSearchModal();
+    if (typeof closeTrashModal === 'function') closeTrashModal();
 
-    [overlay, modalBox, trashModal].forEach(el => {
+    // 透明度と判定をリセット
+    const ids = ['trashModal', 'searchOverlay', 'searchModalEl'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
         if (el) {
             el.style.removeProperty('opacity');
             el.style.removeProperty('pointer-events');
+            el.style.display = 'none'; // 確実に非表示化
         }
     });
 
-    if (typeof closeSearchModal === 'function') {
-        closeSearchModal();
-    }
-    if (typeof closeTrashModal === 'function') {
-        closeTrashModal();
-    }
+    document.querySelectorAll('.modal, .modal-overlay, .search-modal').forEach(el => {
+        el.style.removeProperty('opacity');
+        el.style.removeProperty('pointer-events');
+        el.style.display = 'none';
+    });
 
-    if (typeof updateTrashUI === 'function') {
-        updateTrashUI();
-    }
+    if (typeof updateTrashUI === 'function') updateTrashUI();
 }
             
     function openVolNoiseModal() {
@@ -4014,20 +4018,61 @@ function renderDeckViewCards() {
         cardEl.style.borderRadius = '6px';
         cardEl.setAttribute('draggable', 'true');
 
-        // ドラッグ開始時に情報をセット
-        cardEl.ondragstart = function(ev) {
-            const cardData = {
-                type: 'deck-view-card',
-                name: card.name,
-                cardName: card.name,
-                imagePath: card.imagePath,
-                src: card.imagePath,
-                viewIndex: index
-            };
-            ev.dataTransfer.setData('text/plain', JSON.stringify(cardData));
-            ev.dataTransfer.setData('application/json', JSON.stringify(cardData));
-        };
+        // ドラッグ開始時：データをセットし、モーダル全体を完全透明＆通過状態にする
+            cardEl.ondragstart = function(ev) {
+                const cardData = {
+                    type: 'deck-view-card',
+                    name: card.name,
+                    cardName: card.name,
+                    imagePath: card.imagePath,
+                    src: card.imagePath,
+                    viewIndex: index,
+                    // ドロップ先が search-drag 等を参照している場合用の互換フラグ
+                    searchIndex: index
+                };
+                ev.dataTransfer.setData('text/plain', JSON.stringify(cardData));
+                ev.dataTransfer.setData('application/json', JSON.stringify(cardData));
+                ev.dataTransfer.setData('search-index', index);
 
+                // モーダル全体（黒背景・枠）を即座に完全透明化＆マウス判定を無効化（裏の盤面に置けるようにする）
+                const modalIds = ['trashModal', 'searchOverlay', 'searchModalEl', 'deckViewModal'];
+                modalIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.style.setProperty('opacity', '0', 'important');
+                        el.style.setProperty('pointer-events', 'none', 'important');
+                    }
+                });
+
+                document.querySelectorAll('.modal, .modal-overlay, .search-modal').forEach(el => {
+                    el.style.setProperty('opacity', '0', 'important');
+                    el.style.setProperty('pointer-events', 'none', 'important');
+                });
+            };
+
+            // ドラッグ終了時：モーダルを非表示にしてスタイルをリセットする
+            cardEl.ondragend = function(ev) {
+                const modalIds = ['trashModal', 'searchOverlay', 'searchModalEl', 'deckViewModal'];
+                modalIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.style.removeProperty('opacity');
+                        el.style.removeProperty('pointer-events');
+                        el.style.display = 'none';
+                    }
+                });
+
+                document.querySelectorAll('.modal, .modal-overlay, .search-modal').forEach(el => {
+                    el.style.removeProperty('opacity');
+                    el.style.removeProperty('pointer-events');
+                    el.style.display = 'none';
+                });
+
+                if (typeof closeSearchModal === 'function') closeSearchModal();
+                if (typeof closeTrashModal === 'function') closeTrashModal();
+                if (typeof updateTrashUI === 'function') updateTrashUI();
+            };
+        
         container.appendChild(cardEl);
     });
 }
