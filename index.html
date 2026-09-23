@@ -1612,34 +1612,50 @@ let selectedTrashIndices = new Set();
     }
 
     trashCards.forEach((card, index) => {
-        const cardEl = document.createElement('div');
-        cardEl.className = 'card-item';
-        cardEl.style.position = 'relative';
-        cardEl.style.cursor = 'pointer';
-        cardEl.style.borderRadius = '6px';
-        cardEl.style.transition = 'all 0.2s';
-        
-        const isSelected = selectedTrashIndices.has(index);
-        cardEl.style.border = isSelected ? '3px solid #00ffcc' : '1px solid #444';
-        cardEl.style.boxShadow = isSelected ? '0 0 10px #00ffcc' : 'none';
+    const cardEl = document.createElement('div');
+    cardEl.className = 'card-item';
+    cardEl.style.position = 'relative';
+    cardEl.style.cursor = 'pointer';
+    cardEl.style.borderRadius = '6px';
+    cardEl.style.transition = 'all 0.2s';
 
-        cardEl.innerHTML = `
-            <img src="${card.imagePath}" alt="${card.name}" style="width: 90px; height: auto; display: block; pointer-events: none;">
-            ${isSelected ? '<div style="position: absolute; top: 4px; right: 4px; background: #00ffcc; color: #000; font-weight: bold; width: 20px; height: 20px; border-radius: 50%; text-align: center; line-height: 20px; font-size: 12px;">✓</div>' : ''}
-        `;
+    // ★ 1. カード要素をドラッグ可能にする
+    cardEl.setAttribute('draggable', 'true');
 
-        cardEl.onclick = () => {
-            if (selectedTrashIndices.has(index)) {
-                selectedTrashIndices.delete(index);
-            } else {
-                selectedTrashIndices.add(index);
-            }
-            renderSearchModal();
-        };
-
-        container.appendChild(cardEl);
+    // ★ 2. ドラッグ開始時にモーダル透明化関数を呼び出す
+    cardEl.addEventListener('dragstart', (ev) => {
+        if (typeof onModalCardDragStart === 'function') {
+            onModalCardDragStart(ev, index);
+        }
     });
 
+    // ★ 3. ドラッグ終了（ドロップ・キャンセル）時にモーダル終了関数を呼び出す
+    cardEl.addEventListener('dragend', (ev) => {
+        if (typeof onModalCardDragEnd === 'function') {
+            onModalCardDragEnd(ev);
+        }
+    });
+
+    const isSelected = selectedTrashIndices.has(index);
+    cardEl.style.border = isSelected ? '3px solid #00ffcc' : '1px solid #444';
+    cardEl.style.boxShadow = isSelected ? '0 0 10px #00ffcc' : 'none';
+
+    cardEl.innerHTML = `
+        <img src="${card.imagePath}" alt="${card.name}" style="width: 90px; height: auto; display: block; pointer-events: none;">
+        ${isSelected ? '<div style="position: absolute; top: 4px; right: 4px; background: #00ffcc; color: #000; font-weight: bold; width: 20px; height: 20px; border-radius: 50%; text-align: center; line-height: 20px;">✓</div>' : ''}
+    `;
+
+    cardEl.onclick = () => {
+        if (selectedTrashIndices.has(index)) {
+            selectedTrashIndices.delete(index);
+        } else {
+            selectedTrashIndices.add(index);
+        }
+        renderSearchModal();
+    };
+
+    container.appendChild(cardEl);
+});
     updateTrashModalButtons();
 }
             
