@@ -1621,24 +1621,21 @@ let selectedTrashIndices = new Set();
             ev.dataTransfer.setData('application/json', JSON.stringify(cardData));
             ev.dataTransfer.setData('search-index', index);
 
-            // ① モーダルを閉じる関数をコール
-            if (typeof closeTrashModal === 'function') closeTrashModal();
-            if (typeof closeSearchModal === 'function') closeSearchModal();
+            // ドラッグ開始のイベントがブラウザに正しく認識された直後にモーダルを消去
+            setTimeout(() => {
+                if (typeof closeTrashModal === 'function') closeTrashModal();
+                if (typeof closeSearchModal === 'function') closeSearchModal();
 
-            // ② モーダル要素・オーバーレイを強制的に display = 'none' に変更
-            const modalIds = ['trashModal', 'searchOverlay', 'searchModalEl', 'trashModalEl', 'actionOverlay'];
-            modalIds.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
+                const modalIds = ['trashModal', 'searchOverlay', 'searchModalEl', 'trashModalEl', 'actionOverlay'];
+                modalIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'none';
+                });
+
+                document.querySelectorAll('.modal, .modal-overlay, .search-modal, .action-overlay').forEach(el => {
                     el.style.display = 'none';
-                    el.classList.add('hidden'); // hiddenクラス等があれば付与
-                }
-            });
-
-            // ③ クラス指定でモーダル系要素をすべてまとめて強制非表示
-            document.querySelectorAll('.modal, .modal-overlay, .search-modal, .action-overlay').forEach(el => {
-                el.style.display = 'none';
-            });
+                });
+            }, 10);
         });
 
         // ★ 3. ドラッグ終了時（ドロップ・キャンセル時）にUI更新
