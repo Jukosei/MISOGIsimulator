@@ -2810,36 +2810,37 @@ function dropToVolNoise(ev) {
     ev.dataTransfer.setData('text/plain', 'search-drag');
     ev.dataTransfer.setData('search-index', index);
 
-    // 2. トラッシュモーダル全体（trashModal）を完全透明化＆判定無効化
-    const targetModal = document.getElementById('trashModal') 
-                      || document.getElementById('searchOverlay') 
-                      || document.querySelector('.modal-overlay') 
-                      || document.querySelector('.modal');
+    // 2. モーダルと背景オーバーレイの両方を完全透明化＆ドロップ判定を貫通させる
+    const overlay = document.getElementById('searchOverlay');
+    const modalBox = document.getElementById('searchModalEl');
+    const trashModal = document.getElementById('trashModal');
 
-    if (targetModal) {
-        targetModal.style.opacity = '0';
-        targetModal.style.pointerEvents = 'none';
-    }
+    [overlay, modalBox, trashModal].forEach(el => {
+        if (el) {
+            el.style.setProperty('opacity', '0', 'important');
+            el.style.setProperty('pointer-events', 'none', 'important');
+        }
+    });
 }
 
 function onModalCardDragEnd(ev) {
-    // 3. ドラッグ終了時、モーダルの不透明度・判定を元に戻してからモーダルを非表示にする
-    const targetModal = document.getElementById('trashModal') 
-                      || document.getElementById('searchOverlay') 
-                      || document.querySelector('.modal-overlay') 
-                      || document.querySelector('.modal');
+    // 3. ドラッグ終了時、透明度と判定を元に戻してモーダルを閉じる
+    const overlay = document.getElementById('searchOverlay');
+    const modalBox = document.getElementById('searchModalEl');
+    const trashModal = document.getElementById('trashModal');
 
-    if (targetModal) {
-        targetModal.style.opacity = '1';
-        targetModal.style.pointerEvents = 'auto';
-        targetModal.style.display = 'none'; // ドロップ後は完全に消去
-    }
+    [overlay, modalBox, trashModal].forEach(el => {
+        if (el) {
+            el.style.removeProperty('opacity');
+            el.style.removeProperty('pointer-events');
+        }
+    });
 
-    if (typeof closeTrashModal === 'function') {
-        closeTrashModal();
-    }
     if (typeof closeSearchModal === 'function') {
         closeSearchModal();
+    }
+    if (typeof closeTrashModal === 'function') {
+        closeTrashModal();
     }
 
     if (typeof updateTrashUI === 'function') {
