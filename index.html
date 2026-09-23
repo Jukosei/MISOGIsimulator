@@ -2780,28 +2780,23 @@ function dropToVolNoise(ev) {
     ev.dataTransfer.setData('text/plain', 'search-drag');
     ev.dataTransfer.setData('search-index', index);
 
-    // 2. モーダル本体・背景オーバーレイの両方を強制非表示（または透明化）にする
-    const modals = document.querySelectorAll('#trashModal, #searchModal, .modal, .modal-overlay, #searchOverlay');
-    modals.forEach(el => {
-        el.style.display = 'none';
-        el.style.visibility = 'hidden';
-    });
+    // 2. 背景オーバーレイごと非表示にして下の盤面を見えるようにする
+    const overlay = document.getElementById('searchOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
 }
 
 function onModalCardDragEnd(ev) {
-    // 3. ドラッグ完了（またはキャンセル）時の後置処理
+    // 3. ドラッグ終了時、モーダルを閉じて表示を更新
     if (typeof closeSearchModal === 'function') {
         closeSearchModal();
+    } else {
+        const overlay = document.getElementById('searchOverlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
     }
-    if (typeof closeTrashModal === 'function') {
-        closeTrashModal();
-    }
-
-    // 念のためスタイルをリセット
-    const modals = document.querySelectorAll('#trashModal, #searchModal, .modal, .modal-overlay, #searchOverlay');
-    modals.forEach(el => {
-        el.style.visibility = 'visible';
-    });
     
     if (typeof updateTrashUI === 'function') {
         updateTrashUI();
