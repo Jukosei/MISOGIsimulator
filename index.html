@@ -4033,37 +4033,25 @@ function renderDeckViewCards() {
                 ev.dataTransfer.setData('application/json', JSON.stringify(cardData));
                 ev.dataTransfer.setData('search-index', index);
 
-                // ドラッグ開始の瞬間にモーダルを完全に閉じる（非表示にする）
+                // ドラッグ開始の瞬間にモーダルを閉じる
                 if (typeof closeSearchModal === 'function') closeSearchModal();
                 if (typeof closeTrashModal === 'function') closeTrashModal();
 
-                // 念のためモーダル要素を直接 display = 'none' にする
                 const modalIds = ['trashModal', 'searchOverlay', 'searchModalEl', 'deckViewModal'];
-                modalIds.forEach(id => {
+                modalIds.forEach(function(id) {
                     const el = document.getElementById(id);
                     if (el) el.style.display = 'none';
                 });
             };
 
-            // ドラッグ終了時（ドロップ完了またはキャンセル時）にUIを更新
+            // ドラッグ終了時：UIを更新
             cardEl.ondragend = function(ev) {
                 if (typeof updateTrashUI === 'function') updateTrashUI();
             };
 
-                document.querySelectorAll('.modal, .modal-overlay, .search-modal').forEach(el => {
-                    el.style.removeProperty('opacity');
-                    el.style.removeProperty('pointer-events');
-                    el.style.display = 'none';
-                });
-
-                if (typeof closeSearchModal === 'function') closeSearchModal();
-                if (typeof closeTrashModal === 'function') closeTrashModal();
-                if (typeof updateTrashUI === 'function') updateTrashUI();
-            };
-        
-        container.appendChild(cardEl);
-    });
-}
+            container.appendChild(cardEl);
+        });
+    }
 
             // ★ 3. 処理完了時のモーダルクローズ & 返却操作
             function closeDeckView(actionType) {
