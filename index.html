@@ -2962,12 +2962,20 @@ function closeVolNoiseModal() {
         }
 
         function shuffleDeckBtn() {
-    if (virtualDeck.length === 0) return showToast('山札が空です');
-    if (typeof virtualDeck !== 'undefined') {
-            virtualDeck.push(...cards);
-            // 山札全体をシャッフル
-            shuffleArray(virtualDeck);
-        }
+    if (typeof virtualDeck === 'undefined' || virtualDeck.length === 0) {
+        showToast('山札が空です');
+        return;
+    }
+
+    // 山札配列をシャッフル
+    shuffleArray(virtualDeck);
+
+    // 山札枚数表示の更新
+    const deckCountEl = document.getElementById('deckCount');
+    if (deckCountEl) {
+        deckCountEl.innerText = virtualDeck.length;
+    }
+
     showToast('SHUFFLE');
 }
 
