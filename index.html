@@ -2780,18 +2780,26 @@ function dropToVolNoise(ev) {
     ev.dataTransfer.setData('text/plain', 'search-drag');
     ev.dataTransfer.setData('search-index', index);
 
-    // 2. ドラッグ中だけモーダルの遮断判定をオフにする（背後の枠へドロップ可能にする）
+    // 2. ドラッグ中はモーダル自体を非表示にして下の盤面を見えるようにする
     let modal = document.getElementById('trashModal') || document.getElementById('searchModal') || document.querySelector('.modal');
     if (modal) {
-        modal.style.pointerEvents = 'none';
+        modal.style.display = 'none';
     }
 }
 
 function onModalCardDragEnd(ev) {
-    // 3. ドラッグが終わったら（ドロップ後・キャンセル後）、モーダルの操作を元に戻す
-    let modal = document.getElementById('trashModal') || document.getElementById('searchModal') || document.querySelector('.modal');
-    if (modal) {
-        modal.style.pointerEvents = 'auto';
+    // 3. ドラッグ完了（またはキャンセル）時、モーダルを閉じて画面表示を更新
+    if (typeof closeSearchModal === 'function') {
+        closeSearchModal();
+    } else {
+        let modal = document.getElementById('trashModal') || document.getElementById('searchModal') || document.querySelector('.modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+    
+    if (typeof updateTrashUI === 'function') {
+        updateTrashUI();
     }
 }
 
