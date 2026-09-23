@@ -1502,14 +1502,28 @@ function setupTrashAreaEvents() {
             };
 
             el.ondragstart = function(ev) {
-                if (trashCards.length === 0) { ev.preventDefault(); return; }
-                ev.dataTransfer.setData('text/plain', 'trash-zone-drag');
-                if (isSearchOpen) document.getElementById('searchOverlay').classList.add('dragging-mode');
-            };
+        if (trashCards.length === 0) { ev.preventDefault(); return; }
+        ev.dataTransfer.setData('text/plain', 'trash-zone-drag');
+        
+        // ★ ドラッグ開始時にモーダル要素（searchOverlay）を非表示にする
+        const overlay = document.getElementById('searchOverlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+    };
 
-            el.ondragend = function(ev) {
-                document.getElementById('searchOverlay').classList.remove('dragging-mode');
-            };
+    el.ondragend = function(ev) {
+        // ★ ドラッグ終了時にモーダルを閉じる
+        if (typeof closeSearchModal === 'function') {
+            closeSearchModal();
+        } else {
+            const overlay = document.getElementById('searchOverlay');
+            if (overlay) overlay.style.display = 'none';
+        }
+        if (typeof updateTrashUI === 'function') {
+            updateTrashUI();
+        }
+    };
 
             el.addEventListener('touchstart', function(ev) {
                 if (trashCards.length === 0) return;
