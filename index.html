@@ -785,22 +785,6 @@
     opacity: 1;
 }
 
-        /* ドラッグ中にオーバーレイ背景のクリック判定を透過させる */
-#searchOverlay.dragging-mode {
-    pointer-events: none !important;
-}
-
-/* モーダル内部のカード自体はドラッグ可能にする */
-#searchOverlay .game-card {
-    pointer-events: auto !important;
-}
-
-        /* ドラッグ中のみモーダル全体のマウス判定をオフにする */
-#searchOverlay.dragging-mode,
-.modal.dragging-mode {
-    pointer-events: none !important;
-}
-
         .counter-icon-img {
     width: 36px;
     height: 36px;
