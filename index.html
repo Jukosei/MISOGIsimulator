@@ -1620,21 +1620,40 @@ let selectedTrashIndices = new Set();
     cardEl.style.transition = 'all 0.2s';
 
     // ★ 1. カード要素をドラッグ可能にする
-    cardEl.setAttribute('draggable', 'true');
+        cardEl.setAttribute('draggable', 'true');
 
-    // ★ 2. ドラッグ開始時にモーダル透明化関数を呼び出す
-    cardEl.addEventListener('dragstart', (ev) => {
-        if (typeof onModalCardDragStart === 'function') {
-            onModalCardDragStart(ev, index);
-        }
-    });
+        // ★ 2. ドラッグ開始時にデータセット＆モーダル自体を即座に非表示にする
+        cardEl.addEventListener('dragstart', (ev) => {
+            const cardData = {
+                type: 'trash-card',
+                name: card.name,
+                cardName: card.name,
+                imagePath: card.imagePath,
+                src: card.imagePath,
+                trashIndex: index,
+                searchIndex: index
+            };
+            ev.dataTransfer.setData('text/plain', JSON.stringify(cardData));
+            ev.dataTransfer.setData('application/json', JSON.stringify(cardData));
+            ev.dataTransfer.setData('search-index', index);
 
-    // ★ 3. ドラッグ終了（ドロップ・キャンセル）時にモーダル終了関数を呼び出す
-    cardEl.addEventListener('dragend', (ev) => {
-        if (typeof onModalCardDragEnd === 'function') {
-            onModalCardDragEnd(ev);
-        }
-    });
+            // ドラッグ開始の瞬間にモーダルおよび背景オーバーレイを即座に閉じる
+            if (typeof closeTrashModal === 'function') closeTrashModal();
+            if (typeof closeSearchModal === 'function') closeSearchModal();
+
+            const modalIds = ['trashModal', 'searchOverlay', 'searchModalEl'];
+            modalIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+        });
+
+        // ★ 3. ドラッグ終了時（ドロップ・キャンセル時）にUI更新
+        cardEl.addEventListener('dragend', (ev) => {
+            if (typeof updateTrashUI === 'function') {
+                updateTrashUI();
+            }
+        });
 
     const isSelected = selectedTrashIndices.has(index);
     cardEl.style.border = isSelected ? '3px solid #00ffcc' : '1px solid #444';
@@ -4003,22 +4022,22 @@ function peekDeckToModal() {
 }
 
 // モーダル内のカード描画（ドラッグ＆ドロップ対応）
-function renderDeckViewCards() {
-    const container = document.getElementById('deckViewContainer');
-    if (!container) return;
-    container.innerHTML = '';
+    function renderDeckViewCards() {
+        const container = document.getElementById('deckViewContainer');
+        if (!container) return;
+        container.innerHTML = '';
 
-    deckViewCards.forEach((card, index) => {
-        const cardEl = document.createElement('div');
-        cardEl.className = 'card';
-        cardEl.style.width = '100px';
-        cardEl.style.height = '140px';
-        cardEl.style.backgroundImage = `url('${card.imagePath || card.image || card}')`;
-        cardEl.style.backgroundSize = 'cover';
-        cardEl.style.borderRadius = '6px';
-        cardEl.setAttribute('draggable', 'true');
+        deckViewCards.forEach((card, index) => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'card';
+            cardEl.style.width = '100px';
+            cardEl.style.height = '140px';
+            cardEl.style.backgroundImage = `url('${card.imagePath || card.image || card}')`;
+            cardEl.style.backgroundSize = 'cover';
+            cardEl.style.borderRadius = '6px';
+            cardEl.setAttribute('draggable', 'true');
 
-        // ドラッグ開始時：データをセットし、モーダルを即座に閉じる
+            // ドラッグ開始時に情報をセット
             cardEl.ondragstart = function(ev) {
                 const cardData = {
                     type: 'deck-view-card',
@@ -4026,33 +4045,16 @@ function renderDeckViewCards() {
                     cardName: card.name,
                     imagePath: card.imagePath,
                     src: card.imagePath,
-                    viewIndex: index,
-                    searchIndex: index
+                    viewIndex: index
                 };
                 ev.dataTransfer.setData('text/plain', JSON.stringify(cardData));
                 ev.dataTransfer.setData('application/json', JSON.stringify(cardData));
-                ev.dataTransfer.setData('search-index', index);
-
-                // ドラッグ開始の瞬間にモーダルを閉じる
-                if (typeof closeSearchModal === 'function') closeSearchModal();
-                if (typeof closeTrashModal === 'function') closeTrashModal();
-
-                const modalIds = ['trashModal', 'searchOverlay', 'searchModalEl', 'deckViewModal'];
-                modalIds.forEach(function(id) {
-                    const el = document.getElementById(id);
-                    if (el) el.style.display = 'none';
-                });
-            };
-
-            // ドラッグ終了時：UIを更新
-            cardEl.ondragend = function(ev) {
-                if (typeof updateTrashUI === 'function') updateTrashUI();
             };
 
             container.appendChild(cardEl);
         });
     }
-
+            
             // ★ 3. 処理完了時のモーダルクローズ & 返却操作
             function closeDeckView(actionType) {
     if (deckViewCards.length > 0) {
