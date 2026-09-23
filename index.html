@@ -3980,26 +3980,34 @@ function renderDeckViewCards() {
 }
 
             // ★ 3. 処理完了時のモーダルクローズ & 返却操作
-function closeDeckView(actionType) {
+            function closeDeckView(actionType) {
     if (deckViewCards.length > 0) {
         if (actionType === 'shuffle') {
-                // モーダル内のカードを山札へ戻して全体シャッフル
-                virtualDeck.push(...deckViewCards);
-                shuffleArray(virtualDeck);
-            }
-            if (typeof shuffleDeckBtn === 'function') shuffleDeckBtn();
+            // モーダル内のカードを山札へ戻して全体シャッフル
+            virtualDeck.push(...deckViewCards);
+            shuffleArray(virtualDeck);
         } else if (actionType === 'top') {
-            // ★ モーダル内のカードを山札の一番上（先頭）に戻す
+            // モーダル内のカードを山札の一番上（先頭）に戻す
             virtualDeck.unshift(...deckViewCards);
         } else if (actionType === 'bottom') {
             // モーダル内のカードを山札の一番下（末尾）に戻す
             virtualDeck.push(...deckViewCards);
         } else if (actionType === 'shuffleBottom') {
-                // 残ったカードだけシャッフルしてからボトムへ追加
-                shuffleArray(deckViewCards);
-                virtualDeck.push(...deckViewCards);
-            }
+            // 残ったカードだけシャッフルしてからボトムへ追加
+            shuffleArray(deckViewCards);
+            virtualDeck.push(...deckViewCards);
+        }
     }
+
+    deckViewCards = [];
+    isDeckViewOpen = false;
+
+    // 表示更新とモーダル非表示
+    const deckCountEl = document.getElementById('deckCount');
+    if (deckCountEl) deckCountEl.innerText = virtualDeck.length;
+
+    const modal = document.getElementById('deckViewModal');
+    if (modal) modal.style.display = 'none';
 
     deckViewCards = [];
     isDeckViewOpen = false;
