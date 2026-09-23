@@ -2187,7 +2187,7 @@ function closeDeckReturnModal() {
     pendingDeckReturn = null;
 }
 
-// 戻し先の確定処理
+            // 戻し先の確定処理
 function confirmDeckReturn(position) {
     if (!pendingDeckReturn) return;
 
@@ -2196,29 +2196,36 @@ function confirmDeckReturn(position) {
     // 1. 移動元データ・要素の削除処理
     if (pendingDeckReturn.type === 'trash') {
         trashCards.pop();
-        updateTrashUI();
+        if (typeof updateTrashUI === 'function') updateTrashUI();
     } else if (pendingDeckReturn.type === 'element') {
         let el = document.getElementById(pendingDeckReturn.elementId);
-        if (el) el.remove();
+        if (el && el.remove) el.remove();
     }
 
-    // 2. 山札への追加処理
-    if (position === 'top') {
-        virtualDeck.unshift(card); // 先頭（上）に追加
-    } else if (position === 'bottom') {
-        virtualDeck.push(card);    // 末尾（下）に追加
-    } else if (position === 'shuffle') {
-        virtualDeck.push(card);
-        if (typeof virtualDeck !== 'undefined') {
-            virtualDeck.push(...cards);
-            // 山札全体をシャッフル
-            shuffleArray(virtualDeck);
+    // 2. 山札（virtualDeck）への追加処理
+    if (typeof virtualDeck !== 'undefined') {
+        if (position === 'top') {
+            virtualDeck.unshift(card); // 先頭（上）に追加
+        } else if (position === 'bottom') {
+            virtualDeck.push(card);    // 末尾（下）に追加
+        } else if (position === 'shuffle') {
+            virtualDeck.push(card);    // 追加する
+            if (typeof shuffleArray === 'function') {
+                // シャッフル後の配列をしっかり代入し直す
+                virtualDeck = shuffleArray(virtualDeck);
+            }
         }
     }
 
-    // 3. UIの更新と閉じる処理
-    let deckCountEl = document.getElementById('deckCount');
-    if (deckCountEl) deckCountEl.innerText = virtualDeck.length;
+    // 3. UI（デッキ枚数）の更新処理
+    const deckCountEl = document.getElementById('deckCount');
+    if (deckCountEl && typeof virtualDeck !== 'undefined') {
+        deckCountEl.innerText = virtualDeck.length;
+    }
+
+    if (typeof updateDeckCount === 'function') {
+        updateDeckCount();
+    }
 
     closeDeckReturnModal();
 }
