@@ -614,14 +614,6 @@
             box-sizing: border-box;
         }
 
-        .search-overlay.dragging-mode {
-            background-color: rgba(0, 0, 0, 0.2);
-        }
-
-        .search-overlay.dragging-mode .search-modal {
-            opacity: 0.3;
-        }
-
         .search-modal {
             background-color: #1a1a1a;
             border: 1px solid #444;
@@ -2828,23 +2820,15 @@ function dropToVolNoise(ev) {
         ev.dataTransfer.setData('search-index', index);
     }
 
-    // ★ トラッシュモーダル表示時のみ「ドラッグ開始の瞬間に完全非表示」を適用
+    // ★ トラッシュモード時のみ、ドラッグ開始の瞬間にモーダル画面（クラス指定）を完全に非表示にする
     if (window.currentSearchMode === 'trash') {
         setTimeout(() => {
-            // モーダルおよび背景オーバーレイを即座に完全消去（非表示）
-            const ids = ['trashModal', 'searchOverlay', 'searchModalEl', 'actionOverlay'];
-            ids.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.style.display = 'none';
-                }
-            });
-
-            document.querySelectorAll('.modal, .modal-overlay, .search-modal, .action-overlay').forEach(el => {
+            // モーダルの親背景（.search-overlay）とモーダル本体（.search-modal）を確実に非表示化
+            document.querySelectorAll('.search-overlay, .search-modal, .modal-overlay, .modal').forEach(el => {
                 el.style.display = 'none';
             });
 
-            // 閉じる関数を実行
+            // 念のため各種閉じる関数もコール
             if (typeof closeTrashModal === 'function') closeTrashModal();
             if (typeof closeSearchModal === 'function') closeSearchModal();
         }, 10);
