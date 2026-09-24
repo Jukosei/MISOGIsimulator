@@ -2823,49 +2823,42 @@ function dropToVolNoise(ev) {
 
             function onSearchCardDragStart(ev, index) {
     // 1. ドラッグするカードの識別データをセット
-    ev.dataTransfer.setData('text/plain', 'search-drag');
-    ev.dataTransfer.setData('search-index', index);
+    if (ev && ev.dataTransfer) {
+        ev.dataTransfer.setData('text/plain', 'search-drag');
+        ev.dataTransfer.setData('search-index', index);
+    }
 
-    // 2. モーダル全体および背景（trashModal, searchOverlay, searchModalEl）を即座に完全透明化＆ドロップ通過設定
-    const ids = ['trashModal', 'searchOverlay', 'searchModalEl'];
-    ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.style.setProperty('opacity', '0', 'important');
-            el.style.setProperty('pointer-events', 'none', 'important');
-        }
-    });
+    // ★ トラッシュモーダル表示時のみ「ドラッグ開始の瞬間に完全非表示」を適用
+    if (window.currentSearchMode === 'trash') {
+        setTimeout(() => {
+            // モーダルおよび背景オーバーレイを即座に完全消去（非表示）
+            const ids = ['trashModal', 'searchOverlay', 'searchModalEl', 'actionOverlay'];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.style.display = 'none';
+                }
+            });
 
-    // class指定のモーダル要素も対象にする
-    document.querySelectorAll('.modal, .modal-overlay, .search-modal').forEach(el => {
-        el.style.setProperty('opacity', '0', 'important');
-        el.style.setProperty('pointer-events', 'none', 'important');
-    });
+            document.querySelectorAll('.modal, .modal-overlay, .search-modal, .action-overlay').forEach(el => {
+                el.style.display = 'none';
+            });
+
+            // 閉じる関数を実行
+            if (typeof closeTrashModal === 'function') closeTrashModal();
+            if (typeof closeSearchModal === 'function') closeSearchModal();
+        }, 10);
+    }
 }
 
 function onSearchCardDragEnd(ev) {
-    // 3. ドラッグ終了時（ドロップ時またはキャンセル時）にモーダルを完全に閉じる
-    if (typeof closeSearchModal === 'function') closeSearchModal();
-    if (typeof closeTrashModal === 'function') closeTrashModal();
-
-    // 透明度と判定をリセット
-    const ids = ['trashModal', 'searchOverlay', 'searchModalEl'];
-    ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.style.removeProperty('opacity');
-            el.style.removeProperty('pointer-events');
-            el.style.display = 'none'; // 確実に非表示化
+    // ★ トラッシュモーダル表示時のみ処理
+    if (window.currentSearchMode === 'trash') {
+        // UI（トラッシュの表示枚数等）の更新
+        if (typeof updateTrashUI === 'function') {
+            updateTrashUI();
         }
-    });
-
-    document.querySelectorAll('.modal, .modal-overlay, .search-modal').forEach(el => {
-        el.style.removeProperty('opacity');
-        el.style.removeProperty('pointer-events');
-        el.style.display = 'none';
-    });
-
-    if (typeof updateTrashUI === 'function') updateTrashUI();
+    }
 }
             
     function openVolNoiseModal() {
