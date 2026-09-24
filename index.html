@@ -1613,19 +1613,25 @@ let selectedTrashIndices = new Set();
             ev.dataTransfer.setData('application/json', JSON.stringify(cardData));
             ev.dataTransfer.setData('search-index', index);
 
-            // ドラッグ開始のイベントがブラウザに正しく認識された直後にモーダルを消去
+            // ドラッグ開始のイベントがブラウザに正しく認識された直後にモーダルと背景を完全非表示
             setTimeout(() => {
                 if (typeof closeTrashModal === 'function') closeTrashModal();
                 if (typeof closeSearchModal === 'function') closeSearchModal();
 
+                // ID指定で非表示
                 const modalIds = ['trashModal', 'searchOverlay', 'searchModalEl', 'trashModalEl', 'actionOverlay'];
                 modalIds.forEach(id => {
                     const el = document.getElementById(id);
-                    if (el) el.style.display = 'none';
+                    if (el) {
+                        el.style.display = 'none';
+                        el.style.visibility = 'hidden';
+                    }
                 });
 
-                document.querySelectorAll('.modal, .modal-overlay, .search-modal, .action-overlay').forEach(el => {
+                // ★ クラス名指定で背景（.search-overlay）含めて全て消去
+                document.querySelectorAll('.search-overlay, .search-modal, .modal, .modal-overlay, .action-overlay').forEach(el => {
                     el.style.display = 'none';
+                    el.style.visibility = 'hidden';
                 });
             }, 10);
         });
