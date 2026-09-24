@@ -614,6 +614,13 @@
             box-sizing: border-box;
         }
 
+        .hidden-drag {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+}
+
         .search-modal {
             background-color: #1a1a1a;
             border: 1px solid #444;
@@ -1613,16 +1620,28 @@ let selectedTrashIndices = new Set();
             ev.dataTransfer.setData('application/json', JSON.stringify(cardData));
             ev.dataTransfer.setData('search-index', index);
 
-            // ドラッグ開始の瞬間に画面上の全オーバーレイ・モーダルを強制完全非表示
+            // ★ ドラッグ開始の瞬間に画面上の全モーダル・黒背景を完全消去
             setTimeout(() => {
                 try {
                     if (typeof closeTrashModal === 'function') closeTrashModal();
                     if (typeof closeSearchModal === 'function') closeSearchModal();
 
-                    // クラス指定・ID指定で背景（.search-overlay等）含めて全て消去
-                    document.querySelectorAll('.search-overlay, .search-modal, .modal, .modal-overlay, .action-overlay, #trashSearchOverlay, #trashOverlay, #trashModal, #searchOverlay, #searchModalEl').forEach(el => {
+                    // 1. 消去用クラスを付与
+                    const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, .action-overlay, #trashSearchOverlay, #trashOverlay, #trashModal, #searchOverlay, #searchModalEl, #trashModalEl, #actionOverlay';
+                    document.querySelectorAll(selectors).forEach(el => {
+                        el.classList.add('hidden-drag');
                         el.style.display = 'none';
                         el.style.visibility = 'hidden';
+                    });
+
+                    // 2. モーダル画面の最外枠（親要素）も探して強制的に非表示化
+                    const modalContainers = document.querySelectorAll('div[style*="fixed"], div[style*="absolute"]');
+                    modalContainers.forEach(el => {
+                        if (el.id !== 'gameScreen' && el.id !== 'app') {
+                            el.classList.add('hidden-drag');
+                            el.style.display = 'none';
+                            el.style.visibility = 'hidden';
+                        }
                     });
                 } catch (err) {
                     console.error("モーダル閉じる処理エラー:", err);
@@ -1630,8 +1649,11 @@ let selectedTrashIndices = new Set();
             }, 10);
         });
 
-        // 3. ドラッグ終了時（ドロップ・キャンセル時）にUI更新
+        // 3. ドラッグ終了時（ドロップ・キャンセル時）にUI更新＆非表示クラス解除
         cardEl.addEventListener('dragend', (ev) => {
+            document.querySelectorAll('.hidden-drag').forEach(el => {
+                el.classList.remove('hidden-drag');
+            });
             if (typeof updateTrashUI === 'function') {
                 updateTrashUI();
             }
