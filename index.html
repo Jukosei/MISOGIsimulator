@@ -3549,43 +3549,45 @@ window.nextTime = nextTime;
         }
 
         r.ondragstart = function(ev) {
-            // トラッシュからのドラッグ時のみデータ設定とモーダルの透明化（閉じる処理）を行う
-            if (currentSearchType === 'trash') {
-                ev.dataTransfer.setData('text/plain', JSON.stringify({
-                    type: 'search-drag',
-                    trashIndex: n
-                }));
-                ev.dataTransfer.effectAllowed = 'move';
+            // 受け取り側（フィールド・手札）がどのキーでアクセスしてもいいようにカードデータを完全網羅
+            const cardData = {
+                type: 'search-drag',
+                trashIndex: n,
+                searchIndex: n,
+                index: n,
+                name: cardData.name || '',
+                cardName: cardData.name || '',
+                imagePath: cardData.imagePath || '',
+                src: cardData.imagePath || ''
+            };
 
-                // ドラッグ開始の瞬間にモーダルと背景を透明化＋すり抜け状態にする
-                setTimeout(() => {
-                    const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
-                    document.querySelectorAll(selectors).forEach(el => {
-                        el.style.opacity = '0';
-                        el.style.pointerEvents = 'none';
-                        el.style.visibility = 'hidden';
-                    });
-                }, 10);
-            } else {
-                // 通常のサーチ（山札・ノイズ等）のドラッグデータ
-                ev.dataTransfer.setData('text/plain', 'search-drag');
-                ev.dataTransfer.setData('search-index', n.toString());
-            }
+            const jsonStr = JSON.stringify(cardData);
+            ev.dataTransfer.setData('text/plain', jsonStr);
+            ev.dataTransfer.setData('application/json', jsonStr);
+            ev.dataTransfer.setData('search-index', String(n));
+            ev.dataTransfer.effectAllowed = 'move';
+
+            // ドラッグ開始直後にモーダル画面をすり抜け（透明化・クリック判定無効）にする
+            setTimeout(() => {
+                const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
+                document.querySelectorAll(selectors).forEach(el => {
+                    el.style.opacity = '0';
+                    el.style.pointerEvents = 'none';
+                });
+            }, 10);
         };
 
         r.ondragend = function(ev) {
-            // トラッシュモーダルの場合のみ、スタイルを復元してモーダルを閉じる
-            if (currentSearchType === 'trash') {
-                const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
-                document.querySelectorAll(selectors).forEach(el => {
-                    el.style.opacity = '';
-                    el.style.pointerEvents = '';
-                    el.style.visibility = '';
-                    el.style.display = 'none';
-                });
+            // ドラッグ終了時にモーダルの透明度と判定を復元する（display: 'none' は行わない）
+            const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
+            document.querySelectorAll(selectors).forEach(el => {
+                el.style.opacity = '';
+                el.style.pointerEvents = '';
+            });
 
-                if (typeof closeSearchModal === 'function') closeSearchModal();
-                if (typeof updateTrashUI === 'function') updateTrashUI();
+            // トラッシュUIの更新があれば実行
+            if (typeof updateTrashUI === 'function') {
+                updateTrashUI();
             }
         };
         
