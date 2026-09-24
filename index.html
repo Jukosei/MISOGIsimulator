@@ -3482,11 +3482,24 @@ function nextTime() {
 window.nextTime = nextTime;
             
         function openSearchModal(t) {
-            currentSearchType = t;
-            isSearchOpen = true;
-            renderSearchList();
-            document.getElementById('searchOverlay').style.display = 'flex';
+        currentSearchType = t;
+        isSearchOpen = true;
+
+        // ★ ドラッグ時に付与された非表示・透明化スタイルを完全クリアして再展開可能にする
+        const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
+        document.querySelectorAll(selectors).forEach(el => {
+            el.style.opacity = '';
+            el.style.pointerEvents = '';
+            el.style.visibility = '';
+        });
+
+        renderSearchList();
+
+        const overlay = document.getElementById('searchOverlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
         }
+    }
 
         function renderSearchList() {
     let t = document.getElementById('searchModalTitle');
@@ -3529,49 +3542,46 @@ window.nextTime = nextTime;
         }
 
         r.ondragstart = function(ev) {
-            // 1. ドロップ側で正しく判別できるデータをセット
-            ev.dataTransfer.setData('text/plain', JSON.stringify({
-                type: 'trash-card',
-                trashIndex: n
-            }));
-            ev.dataTransfer.effectAllowed = 'move';
+            // トラッシュからのドラッグ時のみデータ設定とモーダルの透明化（閉じる処理）を行う
+            if (currentSearchType === 'trash') {
+                ev.dataTransfer.setData('text/plain', JSON.stringify({
+                    type: 'trash-card',
+                    trashIndex: n
+                }));
+                ev.dataTransfer.effectAllowed = 'move';
 
-            // 2. ドラッグ開始の瞬間に全モーダル・黒背景を透明化＋マウス判定無効化（すり抜け）
-            setTimeout(() => {
-                const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, .action-overlay, #trashSearchOverlay, #trashOverlay, #trashModal, #searchOverlay, #searchModalEl, #trashModalEl, #actionOverlay';
-                document.querySelectorAll(selectors).forEach(el => {
-                    el.style.opacity = '0';
-                    el.style.pointerEvents = 'none';
-                    el.style.visibility = 'hidden';
-                });
-
-                // モーダル全体の親要素（fixed指定されている枠）もすり抜け化
-                document.querySelectorAll('div').forEach(el => {
-                    const style = window.getComputedStyle(el);
-                    if (style.position === 'fixed' && el.id !== 'gameScreen' && el.id !== 'app') {
+                // ドラッグ開始の瞬間にモーダルと背景を透明化＋すり抜け状態にする
+                setTimeout(() => {
+                    const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
+                    document.querySelectorAll(selectors).forEach(el => {
                         el.style.opacity = '0';
                         el.style.pointerEvents = 'none';
                         el.style.visibility = 'hidden';
-                    }
-                });
-            }, 10);
+                    });
+                }, 10);
+            } else {
+                // 通常のサーチ（山札・ノイズ等）のドラッグデータ
+                ev.dataTransfer.setData('text/plain', 'search-drag');
+                ev.dataTransfer.setData('search-index', n.toString());
+            }
         };
 
         r.ondragend = function(ev) {
-            // ドラッグ終了時（ドロップ時／キャンセル時）にスタイルの復元と閉じる処理
-            const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, .action-overlay, #trashSearchOverlay, #trashOverlay, #trashModal, #searchOverlay, #searchModalEl, #trashModalEl, #actionOverlay';
-            document.querySelectorAll(selectors).forEach(el => {
-                el.style.opacity = '';
-                el.style.pointerEvents = '';
-                el.style.visibility = '';
-                el.style.display = 'none';
-            });
+            // トラッシュモーダルの場合のみ、スタイルを復元してモーダルを閉じる
+            if (currentSearchType === 'trash') {
+                const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
+                document.querySelectorAll(selectors).forEach(el => {
+                    el.style.opacity = '';
+                    el.style.pointerEvents = '';
+                    el.style.visibility = '';
+                    el.style.display = 'none';
+                });
 
-            if (typeof closeTrashModal === 'function') closeTrashModal();
-            if (typeof closeSearchModal === 'function') closeSearchModal();
-            if (typeof updateTrashUI === 'function') updateTrashUI();
+                if (typeof closeSearchModal === 'function') closeSearchModal();
+                if (typeof updateTrashUI === 'function') updateTrashUI();
+            }
         };
-
+        
         r.addEventListener('touchstart', function(ev) {
             ev.preventDefault();
             dragTarget = ev.currentTarget;
