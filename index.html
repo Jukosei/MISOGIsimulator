@@ -2831,23 +2831,36 @@ function dropToVolNoise(ev) {
     }
 }
 
-            function onSearchCardDragStart(ev, index) {
-        // 1. ドラッグするカードの識別データをセット
-        if (ev && ev.dataTransfer) {
-            ev.dataTransfer.setData('text/plain', 'search-drag');
-            ev.dataTransfer.setData('search-index', index);
-        }
+            function onSearchCardDragStart(ev, index, card) {
+    if (ev && ev.dataTransfer) {
+        // カードデータオブジェクトの構築
+        const cardData = {
+            type: 'search-drag',
+            trashIndex: index,
+            searchIndex: index,
+            index: index,
+            name: card ? (card.name || card.cardName || '') : '',
+            cardName: card ? (card.name || card.cardName || '') : '',
+            imagePath: card ? (card.imagePath || card.src || card.image || '') : '',
+            src: card ? (card.imagePath || card.src || card.image || '') : ''
+        };
 
-        // ★ トラッシュモード時のみ、ドラッグ開始の瞬間にモーダル画面を完全に透明化（すり抜け）する
-        if (window.currentSearchMode === 'trash' || typeof currentSearchType !== 'undefined' && currentSearchType === 'trash') {
-            setTimeout(() => {
-                document.querySelectorAll('.search-overlay, .search-modal, .modal-overlay, .modal, #searchOverlay').forEach(el => {
-                    el.style.opacity = '0';
-                    el.style.pointerEvents = 'none';
-                });
-            }, 10);
-        }
+        const jsonStr = JSON.stringify(cardData);
+        ev.dataTransfer.setData('text/plain', jsonStr);
+        ev.dataTransfer.setData('application/json', jsonStr);
+        ev.dataTransfer.setData('search-index', String(index));
     }
+
+    // ★ トラッシュモード時のみ、ドラッグ開始の瞬間モーダル画面を完全透明化（すり抜け）する
+    if (window.currentSearchMode === 'trash' || typeof currentSearchType !== 'undefined' && currentSearchType === 'trash') {
+        setTimeout(() => {
+            document.querySelectorAll('.search-overlay, .search-modal, .modal-overlay, .modal, #searchOverlay').forEach(el => {
+                el.style.opacity = '0';
+                el.style.pointerEvents = 'none';
+            });
+        }, 10);
+    }
+}
 
     function onSearchCardDragEnd(ev) {
     // ★ ドラッグ終了時に付与した透明化スタイルを必ず元に戻す (これで再展開可能になります)
