@@ -4110,47 +4110,83 @@ window.peekDeckToModal = peekDeckToModal;
 window.closeDeckView = closeDeckView;
 
     // --- 山札ドラッグ終了時のエラー回避処理 ---
-    function dragEndDeck(ev) {
-        let overlay = document.getElementById('searchOverlay');
-        if (overlay) {
-            overlay.classList.remove('dragging-mode');
-        }
-    } // ★ 2436行目にあった余分な「}」を削除しました
+function dragEndDeck(ev) {
+    let overlay = document.getElementById('searchOverlay');
+    if (overlay) {
+        overlay.classList.remove('dragging-mode');
+    }
+}
 
-    zone.ondrop = function(ev) {
+// --- ドラッグアンドドロップ設定（安全版） ---
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.layer-2').forEach(targetZone => {
+        targetZone.ondragover = function(ev) {
             ev.preventDefault();
-            let targetZone = ev.target.closest('.layer-2') || ev.currentTarget;
-            if (targetZone) targetZone.classList.remove('drag-over');
+        };
+        
+        targetZone.ondragenter = function(ev) {
+            ev.preventDefault();
+            let zoneEl = ev.target.closest('.layer-2') || ev.currentTarget;
+            if (zoneEl) zoneEl.classList.add('drag-over');
+        };
+        
+        targetZone.ondragleave = function(ev) {
+            let zoneEl = ev.target.closest('.layer-2') || ev.currentTarget;
+            if (zoneEl) zoneEl.classList.remove('drag-over');
+        };
+        
+        targetZone.ondrop = function(ev) {
+            ev.preventDefault();
+            let zoneEl = ev.target.closest('.layer-2') || ev.currentTarget;
+            if (zoneEl) zoneEl.classList.remove('drag-over');
 
             // ドラッグデータの取得
-            let dataStr = ev.dataTransfer.getData('text/plain') || ev.dataTransfer.getData('application/json');
-            if (!dataStr) return;
+            let dataStr = ev.dataTransfer ? (ev.dataTransfer.getData('text/plain') || ev.dataTransfer.getData('application/json')) : '';
+            
+            if (dataStr) {
+                try {
+                    let cardData = JSON.parse(dataStr);
 
-            try {
-                let cardData = JSON.parse(dataStr);
-
-                // トラッシュからのドラッグの場合
-                if (cardData.type === 'trash-card' || cardData.trashIndex !== undefined) {
-                    // トラッシュからカードを引っこ抜いて対象ゾーンへ配置する処理を呼び出す
-                    if (typeof moveTrashToField === 'function') {
-                        moveTrashToField(cardData.trashIndex, targetZone);
-                    } else if (typeof dropToDirection === 'function') {
-                        // 既存のドロップ処理へ渡す
-                        dropToDirection(ev);
+                    // トラッシュからのドラッグの場合
+                    if (cardData.type === 'trash-card' || cardData.trashIndex !== undefined) {
+                        if (typeof moveTrashToField === 'function') {
+                            moveTrashToField(cardData.trashIndex, zoneEl);
+                        } else if (typeof dropToDirection === 'function') {
+                            dropToDirection(ev);
+                        }
+                        
+                        if (typeof closeTrashModal === 'function') closeTrashModal();
+                        return;
                     }
-                    
-                    // トラッシュモーダルを完全に閉じる
-                    if (typeof closeTrashModal === 'function') closeTrashModal();
-                    return;
+                } catch(e) {
+                    // 通常データのドロップ時はフォールバック
                 }
-            } catch(e) {
-                // 通常のテキストデータ等の場合のフォールバック
             }
 
             if (typeof dropToDirection === 'function') {
                 dropToDirection(ev);
             }
         };
+    });
+});
+
+// ★追加：全カードのドラッグ移動完了時 (dragend) に元の列をチェック
+document.addEventListener('dragend', function(ev) {
+    // 1. ドラッグ移動元 (sourceColumnWrapper) が記録されている場合はそれを優先チェック
+    if (window.sourceColumnWrapper) {
+        if (typeof checkAndTrashDirectionCards === 'function') {
+            checkAndTrashDirectionCards(window.sourceColumnWrapper);
+        }
+        window.sourceColumnWrapper = null;
+    }
+
+    // 2. 予備として全列に対してレイヤー2が空になっていないかチェック
+    document.querySelectorAll('.slot-column-wrapper').forEach(col => {
+        if (typeof checkAndTrashDirectionCards === 'function') {
+            checkAndTrashDirectionCards(col);
+        }
+    });
+});
     
 // ★追加：全カードのドラッグ移動完了時（dragend）に元の列をチェック
 document.addEventListener('dragend', function(ev) {
