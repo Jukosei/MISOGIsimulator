@@ -1613,28 +1613,43 @@ let selectedTrashIndices = new Set();
             ev.dataTransfer.setData('application/json', JSON.stringify(cardData));
             ev.dataTransfer.setData('search-index', index);
 
-            // ドラッグ開始のイベントがブラウザに正しく認識された直後にモーダルと背景を完全非表示
+            // ★ ドラッグ開始の瞬間に画面上の全オーバーレイ・モーダルを強制完全非表示にする
             setTimeout(() => {
+                // 1. 各種閉じる処理の呼び出し
                 if (typeof closeTrashModal === 'function') closeTrashModal();
                 if (typeof closeSearchModal === 'function') closeSearchModal();
 
-                // ID指定で非表示
-                const modalIds = ['trashModal', 'searchOverlay', 'searchModalEl', 'trashModalEl', 'actionOverlay'];
-                modalIds.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) {
-                        el.style.display = 'none';
-                        el.style.visibility = 'hidden';
+                // 2. 画面上の全 div のうち、固定配置（overlay/modal系）または黒背景を持つ要素を強制非表示化
+                document.querySelectorAll('div').forEach(el => {
+                    const style = window.getComputedStyle(el);
+                    // z-indexが高い固定表示要素、またはclass/idに overlay, modal, search, trash が含まれる要素を消す
+                    if (
+                        style.position === 'fixed' || 
+                        style.position === 'absolute' && parseInt(style.zIndex) > 100 ||
+                        el.className.toString().match(/(overlay|modal|search|trash)/i) ||
+                        el.id.toString().match(/(overlay|modal|search|trash)/i)
+                    ) {
+                        // モーダルの親（最外枠）を含めて非表示
+                        if (el.id !== 'gameScreen' && el.id !== 'app' && !el.classList.contains('card-item')) {
+                            el.style.display = 'none';
+                            el.style.visibility = 'hidden';
+                        }
                     }
                 });
 
-                // ★ クラス名指定で背景（.search-overlay）含めて全て消去
-                document.querySelectorAll('.search-overlay, .search-modal, .modal, .modal-overlay, .action-overlay').forEach(el => {
-                    el.style.display = 'none';
-                    el.style.visibility = 'hidden';
+                // 3. 念のため特定のID・Class群も直接非表示
+                const targetSelectors = [
+                    '#trashSearchOverlay', '#trashOverlay', '#trashModal', '#searchOverlay', 
+                    '#searchModalEl', '#trashModalEl', '#actionOverlay',
+                    '.search-overlay', '.search-modal', '.modal', '.modal-overlay', '.action-overlay'
+                ];
+                targetSelectors.forEach(selector => {
+                    document.querySelectorAll(selector).forEach(el => {
+                        el.style.display = 'none';
+                        el.style.visibility = 'hidden';
+                    });
                 });
             }, 10);
-        });
 
         // ★ 3. ドラッグ終了時（ドロップ・キャンセル時）にUI更新
         cardEl.addEventListener('dragend', (ev) => {
@@ -4128,15 +4143,16 @@ document.addEventListener('dragend', function(ev) {
 
             let selectedTrashIndex = null;
 
-            directionCards.forEach(card => {
-    trashZone.appendChild(card);
-    
-    // インラインスタイルのクリア
-    card.removeAttribute('style');
-    
-    // 回転やレイヤー専用クラスを削除
-    card.classList.remove('card-rotate-horizontal');
-});
+            // ★ directionCards が定義されている場合のみ安全に処理を実行
+            if (typeof directionCards !== 'undefined' && Array.isArray(directionCards)) {
+                directionCards.forEach(card => {
+                    if (typeof trashZone !== 'undefined' && trashZone && card) {
+                        trashZone.appendChild(card);
+                        card.removeAttribute('style');
+                        card.classList.remove('card-rotate-horizontal');
+                    }
+                });
+            }
             
 // --- 関数のグローバル公開 (onclick対応) ---
 if (typeof selectMode === 'function') window.selectMode = selectMode;
