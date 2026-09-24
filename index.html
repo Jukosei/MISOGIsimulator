@@ -3485,19 +3485,25 @@ window.nextTime = nextTime;
         currentSearchType = t;
         isSearchOpen = true;
 
-        // ★ ドラッグ時に付与された非表示・透明化スタイルを完全クリアして再展開可能にする
+        // 1. ドラッグや閉じる処理で付与されたスタイル（opacity, display等）を完全にリセット
         const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
         document.querySelectorAll(selectors).forEach(el => {
             el.style.opacity = '';
             el.style.pointerEvents = '';
             el.style.visibility = '';
+            el.style.display = '';
         });
 
+        // 2. モーダル内のリスト（カード描画）を再生成
         renderSearchList();
 
+        // 3. オーバーレイ要素を確実に画面上へ flex 表示
         const overlay = document.getElementById('searchOverlay');
         if (overlay) {
             overlay.style.display = 'flex';
+            overlay.style.opacity = '1';
+            overlay.style.pointerEvents = 'auto';
+            overlay.style.visibility = 'visible';
         }
     }
 
