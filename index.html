@@ -2863,21 +2863,20 @@ function dropToVolNoise(ev) {
     }
 
     function onSearchCardDragEnd(ev) {
-        // ★ ドラッグ終了時に付与した透明化スタイルを必ず元に戻す（これで再展開可能になります）
-        document.querySelectorAll('.search-overlay, .search-modal, .modal-overlay, .modal, #searchOverlay').forEach(el => {
-            el.style.opacity = '';
-            el.style.pointerEvents = '';
-        });
+    // ★ ドラッグ終了時に付与した透明化スタイルを必ず元に戻す (これで再展開可能になります)
+    document.querySelectorAll('.search-overlay, .search-modal, .modal-overlay, .modal, #searchOverlay').forEach(el => {
+        el.style.opacity = '';
+        el.style.pointerEvents = '';
+    });
 
-        // モーダルをしっかり閉じる
-        if (typeof closeTrashModal === 'function') closeTrashModal();
-        if (typeof closeSearchModal === 'function') closeSearchModal();
-
-        // UI（トラッシュの表示枚数等）の更新
+    // ドロップ処理(dropイベント)が完了する時間を確保するため、モーダル移動・閉じる処理を100ms遅延させる
+    setTimeout(() => {
+        // UI (トラッシュの表示枚数等) の更新
         if (typeof updateTrashUI === 'function') {
             updateTrashUI();
         }
-    }
+    }, 100);
+}
             
     function openVolNoiseModal() {
     let modalEl = document.getElementById('volNoiseViewModal');
@@ -4158,166 +4157,52 @@ function dragEndDeck(ev) {
     }
 }
 
-            // --- ドラッグアンドドロップ設定（全モーダル・手札・フィールド完全対応版） ---
+// --- ドラッグアンドドロップ設定（安全版） ---
     document.addEventListener('DOMContentLoaded', () => {
-        // フィールド枠(.layer-2)と手札エリアの両方をドロップ対象にする
-        document.querySelectorAll('.layer-2, #handArea, .hand-container').forEach(targetZone => {
+        document.querySelectorAll('.layer-2').forEach(targetZone => {
             targetZone.ondragover = function(ev) {
                 ev.preventDefault();
             };
 
             targetZone.ondragenter = function(ev) {
                 ev.preventDefault();
-                let zoneEl = ev.target.closest('.layer-2, #handArea, .hand-container') || ev.currentTarget;
+                let zoneEl = ev.target.closest('.layer-2') || ev.currentTarget;
                 if (zoneEl) zoneEl.classList.add('drag-over');
             };
 
             targetZone.ondragleave = function(ev) {
-                let zoneEl = ev.target.closest('.layer-2, #handArea, .hand-container') || ev.currentTarget;
+                let zoneEl = ev.target.closest('.layer-2') || ev.currentTarget;
                 if (zoneEl) zoneEl.classList.remove('drag-over');
             };
 
             targetZone.ondrop = function(ev) {
                 ev.preventDefault();
-                let zoneEl = ev.target.closest('.layer-2, #handArea, .hand-container') || ev.currentTarget;
+                let zoneEl = ev.target.closest('.layer-2') || ev.currentTarget;
                 if (zoneEl) zoneEl.classList.remove('drag-over');
 
-                // 1. 各種ドラッグデータの抽出・解析
-                let dataText = ev.dataTransfer ? (ev.dataTransfer.getData('text/plain') || '') : '';
-                let jsonText = ev.dataTransfer ? (ev.dataTransfer.getData('application/json') || '') : '';
-                let searchIndexRaw = ev.dataTransfer ? ev.dataTransfer.getData('search-index') : null;
+                // ドラッグデータの取得
+                let dataStr = ev.dataTransfer ? (ev.dataTransfer.getData('text/plain') || ev.dataTransfer.getData('application/json')) : '';
 
-                let parsedData = null;
-                let rawString = jsonText || dataText;
-                if (rawString && rawString.startsWith('{')) {
-                    try { parsedData = JSON.parse(rawString); } catch(e) {}
-                }
-
-                // インデックスの特定（JSON/Direct/DataAttribute）
-                let cardIndex = null;
-                if (searchIndexRaw !== null && searchIndexRaw !== '') {
-                    cardIndex = parseInt(searchIndexRaw, 10);
-                } else if (parsedData) {
-                    if (parsedData.trashIndex !== undefined) cardIndex = parsedData.trashIndex;
-                    else if (parsedData.searchIndex !== undefined) cardIndex = parsedData.searchIndex;
-                    else if (parsedData.viewIndex !== undefined) cardIndex = parsedData.viewIndex;
-                    else if (parsedData.index !== undefined) cardIndex = parsedData.index;
-                }
-
-                // モーダル種別の判別
-                let isModalDrag = (dataText === 'search-drag' || dataText === 'deck-zone-drag' || searchIndexRaw !== null || (parsedData && (parsedData.type === 'trash-card' || parsedData.type === 'search-drag' || parsedData.type === 'deck-view-card')));
-
-                // 2. 手札エリア(#handArea / .hand-container)へのドロップ処理
-        if (zoneEl.id === 'handArea' || zoneEl.classList.contains('hand-container')) {
-            // A) トラッシュモーダルからの手札移動
-            if (cardIndex !== null && typeof trashCards !== 'undefined' && trashCards[cardIndex]) {
-                let movedCard = trashCards.splice(cardIndex, 1)[0];
-                
-                if (movedCard) {
-                    // カードのプロパティを整えて手札へ渡す
-                    let cardName = movedCard.cardName || movedCard.name || '';
-                    let imagePath = movedCard.imagePath || movedCard.src || movedCard.image || '';
-
-                    if (typeof createGameCardToHand === 'function') {
-                        createGameCardToHand(cardName, imagePath);
-                    } else if (typeof handCards !== 'undefined') {
-                        handCards.push({
-                            cardName: cardName,
-                            name: cardName,
-                            imagePath: imagePath,
-                            src: imagePath,
-                            ...movedCard
-                        });
-                    }
-                }
-
-                if (typeof updateHandUI === 'function') updateHandUI();
-                if (typeof updateTrashUI === 'function') updateTrashUI();
-                if (typeof renderTrashList === 'function') renderTrashList();
-                if (typeof closeSearchModal === 'function') closeSearchModal();
-                if (typeof closeTrashModal === 'function') closeTrashModal();
-                return;
-            }
-
-            // B) 山札サーチモーダルからの手札移動
-            if (cardIndex !== null && typeof searchCards !== 'undefined' && searchCards[cardIndex]) {
-                let movedCard = searchCards.splice(cardIndex, 1)[0];
-                
-                if (movedCard) {
-                    let cardName = movedCard.cardName || movedCard.name || '';
-                    let imagePath = movedCard.imagePath || movedCard.src || movedCard.image || '';
-
-                    if (typeof createGameCardToHand === 'function') {
-                        createGameCardToHand(cardName, imagePath);
-                    } else if (typeof handCards !== 'undefined') {
-                        handCards.push({
-                            cardName: cardName,
-                            name: cardName,
-                            imagePath: imagePath,
-                            src: imagePath,
-                            ...movedCard
-                        });
-                    }
-                }
-
-                if (typeof updateHandUI === 'function') updateHandUI();
-                if (typeof renderSearchList === 'function') renderSearchList();
-                if (typeof closeSearchModal === 'function') closeSearchModal();
-                return;
-            }
-        }
-
-                // 3. フィールド枠(.layer-2)へのドロップ処理
-        let targetLayer2 = zoneEl.classList.contains('layer-2') ? zoneEl : zoneEl.closest('.layer-2');
-        if (targetLayer2) {
-            // A) トラッシュモーダルからの移動
-            if (cardIndex !== null && typeof trashCards !== 'undefined' && trashCards[cardIndex]) {
-                // moveTrashToField 関数が存在する場合は実行（引数の順序違いにも対応）
-                if (typeof moveTrashToField === 'function') {
+                if (dataStr) {
                     try {
-                        moveTrashToField(cardIndex, targetLayer2);
+                        let cardData = JSON.parse(dataStr);
+
+                        // トラッシュからのドラッグの場合
+                        if (cardData.type === 'trash-card' || cardData.trashIndex !== undefined) {
+                            if (typeof moveTrashToField === 'function') {
+                                moveTrashToField(cardData.trashIndex, zoneEl);
+                            } else if (typeof dropToDirection === 'function') {
+                                dropToDirection(ev);
+                            }
+
+                            if (typeof closeTrashModal === 'function') closeTrashModal();
+                            return;
+                        }
                     } catch(e) {
-                        moveTrashToField(targetLayer2, cardIndex);
-                    }
-                } else {
-                    // 関数がない場合は手動でトラッシュから取り出して枠へカードを追加
-                    let movedCard = trashCards.splice(cardIndex, 1)[0];
-                    if (movedCard) {
-                        let cardName = movedCard.cardName || movedCard.name || '';
-                        let imagePath = movedCard.imagePath || movedCard.src || movedCard.image || '';
-                        
-                        // レイヤー2内にカード要素を挿入
-                        let imgEl = document.createElement('img');
-                        imgEl.src = imagePath;
-                        imgEl.className = 'game-card';
-                        imgEl.setAttribute('data-cardname', cardName);
-                        imgEl.setAttribute('data-imagepath', imagePath);
-                        imgEl.style.width = '100%';
-                        imgEl.style.height = '100%';
-                        imgEl.style.objectFit = 'cover';
-                        
-                        targetLayer2.innerHTML = ''; // 既存のカードをクリアして配置
-                        targetLayer2.appendChild(imgEl);
+                        // 通常データのドロップ時はフォールバック
                     }
                 }
 
-                if (typeof updateTrashUI === 'function') updateTrashUI();
-                if (typeof renderTrashList === 'function') renderTrashList();
-                if (typeof closeSearchModal === 'function') closeSearchModal();
-                if (typeof closeTrashModal === 'function') closeTrashModal();
-                return;
-            }
-
-            // B) その他のモーダル/通常ドラッグの処理
-            if (typeof dropToDirection === 'function') {
-                dropToDirection(ev);
-                if (typeof closeSearchModal === 'function') closeSearchModal();
-                if (typeof closeTrashModal === 'function') closeTrashModal();
-                return;
-            }
-        }
-
-                // 4. 通常のカードドロップ（盤面間・通常の手札移動）フォールバック
                 if (typeof dropToDirection === 'function') {
                     dropToDirection(ev);
                 }
