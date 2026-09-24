@@ -3545,7 +3545,7 @@ window.nextTime = nextTime;
             // トラッシュからのドラッグ時のみデータ設定とモーダルの透明化（閉じる処理）を行う
             if (currentSearchType === 'trash') {
                 ev.dataTransfer.setData('text/plain', JSON.stringify({
-                    type: 'trash-card',
+                    type: 'search-drag',
                     trashIndex: n
                 }));
                 ev.dataTransfer.effectAllowed = 'move';
