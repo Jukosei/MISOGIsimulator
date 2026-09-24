@@ -2845,37 +2845,39 @@ function dropToVolNoise(ev) {
 }
 
             function onSearchCardDragStart(ev, index) {
-    // 1. ドラッグするカードの識別データをセット
-    if (ev && ev.dataTransfer) {
-        ev.dataTransfer.setData('text/plain', 'search-drag');
-        ev.dataTransfer.setData('search-index', index);
-    }
+        // 1. ドラッグするカードの識別データをセット
+        if (ev && ev.dataTransfer) {
+            ev.dataTransfer.setData('text/plain', 'search-drag');
+            ev.dataTransfer.setData('search-index', index);
+        }
 
-    // ★ トラッシュモード時のみ、ドラッグ開始の瞬間にモーダル画面（クラス指定）を完全に非表示にする
-    if (window.currentSearchMode === 'trash') {
+        // ★ トラッシュモード時のみ、ドラッグ開始の瞬間にモーダル画面を完全に透明化（すり抜け）する
+        if (window.currentSearchMode === 'trash' || typeof currentSearchType !== 'undefined' && currentSearchType === 'trash') {
             setTimeout(() => {
-                // ここでも display:none ではなく opacity:0 / pointerEvents:none を使用
-                document.querySelectorAll('.search-overlay, .search-modal, .modal-overlay, .modal').forEach(el => {
+                document.querySelectorAll('.search-overlay, .search-modal, .modal-overlay, .modal, #searchOverlay').forEach(el => {
                     el.style.opacity = '0';
                     el.style.pointerEvents = 'none';
                 });
-
-                // 念のため各種閉じる関数もコール
-                if (typeof closeTrashModal === 'function') closeTrashModal();
-                if (typeof closeSearchModal === 'function') closeSearchModal();
             }, 10);
         }
     }
 
-function onSearchCardDragEnd(ev) {
-    // ★ トラッシュモーダル表示時のみ処理
-    if (window.currentSearchMode === 'trash') {
+    function onSearchCardDragEnd(ev) {
+        // ★ ドラッグ終了時に付与した透明化スタイルを必ず元に戻す（これで再展開可能になります）
+        document.querySelectorAll('.search-overlay, .search-modal, .modal-overlay, .modal, #searchOverlay').forEach(el => {
+            el.style.opacity = '';
+            el.style.pointerEvents = '';
+        });
+
+        // モーダルをしっかり閉じる
+        if (typeof closeTrashModal === 'function') closeTrashModal();
+        if (typeof closeSearchModal === 'function') closeSearchModal();
+
         // UI（トラッシュの表示枚数等）の更新
         if (typeof updateTrashUI === 'function') {
             updateTrashUI();
         }
     }
-}
             
     function openVolNoiseModal() {
     let modalEl = document.getElementById('volNoiseViewModal');
