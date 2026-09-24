@@ -3529,24 +3529,47 @@ window.nextTime = nextTime;
         }
 
         r.ondragstart = function(ev) {
-            // 文字列 'search-drag' をセット
-            ev.dataTransfer.setData('text/plain', 'search-drag');
-            ev.dataTransfer.setData('search-index', n.toString());
+            // 1. ドロップ側で正しく判別できるデータをセット
+            ev.dataTransfer.setData('text/plain', JSON.stringify({
+                type: 'trash-card',
+                trashIndex: n
+            }));
+            ev.dataTransfer.effectAllowed = 'move';
 
-            // ドラッグ中にモーダルの背景がマウス判定を奪わないように設定
-            let overlay = document.getElementById('searchOverlay');
-            if (overlay) {
-                overlay.classList.add('dragging-mode');
-                overlay.style.pointerEvents = 'none'; // ★直接スタイルを追加して確実に判定を消す
-            }
+            // 2. ドラッグ開始の瞬間に全モーダル・黒背景を透明化＋マウス判定無効化（すり抜け）
+            setTimeout(() => {
+                const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, .action-overlay, #trashSearchOverlay, #trashOverlay, #trashModal, #searchOverlay, #searchModalEl, #trashModalEl, #actionOverlay';
+                document.querySelectorAll(selectors).forEach(el => {
+                    el.style.opacity = '0';
+                    el.style.pointerEvents = 'none';
+                    el.style.visibility = 'hidden';
+                });
+
+                // モーダル全体の親要素（fixed指定されている枠）もすり抜け化
+                document.querySelectorAll('div').forEach(el => {
+                    const style = window.getComputedStyle(el);
+                    if (style.position === 'fixed' && el.id !== 'gameScreen' && el.id !== 'app') {
+                        el.style.opacity = '0';
+                        el.style.pointerEvents = 'none';
+                        el.style.visibility = 'hidden';
+                    }
+                });
+            }, 10);
         };
 
         r.ondragend = function(ev) {
-            let overlay = document.getElementById('searchOverlay');
-            if (overlay) {
-                overlay.classList.remove('dragging-mode');
-                overlay.style.pointerEvents = 'auto'; // ★元に戻す
-            }
+            // ドラッグ終了時（ドロップ時／キャンセル時）にスタイルの復元と閉じる処理
+            const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, .action-overlay, #trashSearchOverlay, #trashOverlay, #trashModal, #searchOverlay, #searchModalEl, #trashModalEl, #actionOverlay';
+            document.querySelectorAll(selectors).forEach(el => {
+                el.style.opacity = '';
+                el.style.pointerEvents = '';
+                el.style.visibility = '';
+                el.style.display = 'none';
+            });
+
+            if (typeof closeTrashModal === 'function') closeTrashModal();
+            if (typeof closeSearchModal === 'function') closeSearchModal();
+            if (typeof updateTrashUI === 'function') updateTrashUI();
         };
 
         r.addEventListener('touchstart', function(ev) {
