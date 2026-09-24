@@ -1605,6 +1605,7 @@ let selectedTrashIndices = new Set();
         cardEl.setAttribute('draggable', 'true');
 
         // 2. ドラッグ開始時に即座にトラッシュモーダルと背景を非表示にする
+        // 2. ドラッグ開始時の処理
         cardEl.addEventListener('dragstart', (ev) => {
             const cardData = {
                 type: 'trash-card',
@@ -1613,51 +1614,37 @@ let selectedTrashIndices = new Set();
                 imagePath: card.imagePath,
                 src: card.imagePath,
                 trashIndex: index,
-                searchIndex: index
+                searchIndex: index,
+                index: index
             };
-            ev.dataTransfer.setData('text/plain', JSON.stringify(cardData));
-            ev.dataTransfer.setData('application/json', JSON.stringify(cardData));
-            ev.dataTransfer.setData('search-index', index);
 
+            // 受け取り側がどのような形式でも読み込めるよう、すべてのキーをセット
+            const jsonStr = JSON.stringify(cardData);
+            ev.dataTransfer.setData('text/plain', jsonStr);
+            ev.dataTransfer.setData('application/json', jsonStr);
+            ev.dataTransfer.setData('search-index', String(index));
+
+            // ドラッグ中のみモーダルを透明化して背後のフィールドを見やすくする（※破棄・削除はしない）
             setTimeout(() => {
-            try {
-                // 各種閉じる関数をコール
-                if (typeof closeTrashModal === 'function') closeTrashModal();
-                if (typeof closeSearchModal === 'function') closeSearchModal();
-
-                // 1. display:none ではなく opacity:0 で透明化し、pointerEvents:none で裏へすり抜けさせる
-                const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, .action-overlay, #trashSearchOverlay, #trashOverlay, #trashModal, #searchOverlay, #searchModalEl, #trashModalEl, #actionOverlay';
+                const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, .action-overlay, #searchOverlay';
                 document.querySelectorAll(selectors).forEach(el => {
-                    el.classList.add('hidden-drag');
-                    el.style.opacity = '0';
+                    el.style.opacity = '0.3';
                     el.style.pointerEvents = 'none';
                 });
-
-                // 2. モーダル画面の最外枠（親要素）も透明化
-                const modalContainers = document.querySelectorAll('div[style*="fixed"], div[style*="absolute"]');
-                modalContainers.forEach(el => {
-                    if (el.id !== 'gameScreen' && el.id !== 'app') {
-                        el.classList.add('hidden-drag');
-                        el.style.opacity = '0';
-                        el.style.pointerEvents = 'none';
-                    }
-                });
-            } catch (err) {
-                console.error("モーダル閉じる処理エラー:", err);
-            }
-        }, 10);
+            }, 10);
         });
 
-        // 3. ドラッグ終了時（ドロップ・キャンセル時）にUI更新＆表示状態を元に戻す
+        // 3. ドラッグ終了時（ドロップ後、またはキャンセル時）の処理
         cardEl.addEventListener('dragend', (ev) => {
-            // スタイルのリセットと完全削除
-            document.querySelectorAll('.search-overlay, .search-modal, .modal, .modal-overlay, .action-overlay, .hidden-drag').forEach(el => {
-                el.classList.remove('hidden-drag');
+            // スタイルを元に戻して再表示（display: 'none' は絶対に行わない）
+            const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, .action-overlay, #searchOverlay';
+            document.querySelectorAll(selectors).forEach(el => {
                 el.style.opacity = '';
                 el.style.pointerEvents = '';
-                el.style.display = 'none'; // ドラッグ完了後は完全に非表示（閉じ状態）にする
+                el.style.display = '';
             });
 
+            // UIの更新
             if (typeof updateTrashUI === 'function') {
                 updateTrashUI();
             }
