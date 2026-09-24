@@ -1570,9 +1570,9 @@ let selectedTrashIndices = new Set();
         }
     }
 
-    // トラッシュモード以外（山札サーチなど）の時は既存処理に任せるか、ここで抜ける
+    // トラッシュモード以外は抜ける
     if (window.currentSearchMode !== 'trash') {
-        return; 
+        return;
     }
 
     const container = document.getElementById('searchCardGrid') || document.getElementById('searchModalContent') || document.getElementById('searchContainer');
@@ -1588,17 +1588,17 @@ let selectedTrashIndices = new Set();
     }
 
     trashCards.forEach((card, index) => {
-    const cardEl = document.createElement('div');
-    cardEl.className = 'card-item';
-    cardEl.style.position = 'relative';
-    cardEl.style.cursor = 'pointer';
-    cardEl.style.borderRadius = '6px';
-    cardEl.style.transition = 'all 0.2s';
+        const cardEl = document.createElement('div');
+        cardEl.className = 'card-item';
+        cardEl.style.position = 'relative';
+        cardEl.style.cursor = 'pointer';
+        cardEl.style.borderRadius = '6px';
+        cardEl.style.transition = 'all 0.2s';
 
-    // ★ 1. カード要素をドラッグ可能にする
+        // 1. カード要素をドラッグ可能にする
         cardEl.setAttribute('draggable', 'true');
 
-        // ★ 2. ドラッグ開始時に即座にトラッシュモーダルを閉じる
+        // 2. ドラッグ開始時に即座にトラッシュモーダルと背景を非表示にする
         cardEl.addEventListener('dragstart', (ev) => {
             const cardData = {
                 type: 'trash-card',
@@ -1613,74 +1613,57 @@ let selectedTrashIndices = new Set();
             ev.dataTransfer.setData('application/json', JSON.stringify(cardData));
             ev.dataTransfer.setData('search-index', index);
 
-            // ★ ドラッグ開始の瞬間に画面上の全オーバーレイ・モーダルを強制完全非表示にする
+            // ドラッグ開始の瞬間に画面上の全オーバーレイ・モーダルを強制完全非表示
             setTimeout(() => {
-                // 1. 各種閉じる処理の呼び出し
-                if (typeof closeTrashModal === 'function') closeTrashModal();
-                if (typeof closeSearchModal === 'function') closeSearchModal();
+                try {
+                    if (typeof closeTrashModal === 'function') closeTrashModal();
+                    if (typeof closeSearchModal === 'function') closeSearchModal();
 
-                // 2. 画面上の全 div のうち、固定配置（overlay/modal系）または黒背景を持つ要素を強制非表示化
-                document.querySelectorAll('div').forEach(el => {
-                    const style = window.getComputedStyle(el);
-                    // z-indexが高い固定表示要素、またはclass/idに overlay, modal, search, trash が含まれる要素を消す
-                    if (
-                        style.position === 'fixed' || 
-                        style.position === 'absolute' && parseInt(style.zIndex) > 100 ||
-                        el.className.toString().match(/(overlay|modal|search|trash)/i) ||
-                        el.id.toString().match(/(overlay|modal|search|trash)/i)
-                    ) {
-                        // モーダルの親（最外枠）を含めて非表示
-                        if (el.id !== 'gameScreen' && el.id !== 'app' && !el.classList.contains('card-item')) {
-                            el.style.display = 'none';
-                            el.style.visibility = 'hidden';
-                        }
-                    }
-                });
-
-                // 3. 念のため特定のID・Class群も直接非表示
-                const targetSelectors = [
-                    '#trashSearchOverlay', '#trashOverlay', '#trashModal', '#searchOverlay', 
-                    '#searchModalEl', '#trashModalEl', '#actionOverlay',
-                    '.search-overlay', '.search-modal', '.modal', '.modal-overlay', '.action-overlay'
-                ];
-                targetSelectors.forEach(selector => {
-                    document.querySelectorAll(selector).forEach(el => {
+                    // クラス指定・ID指定で背景（.search-overlay等）含めて全て消去
+                    document.querySelectorAll('.search-overlay, .search-modal, .modal, .modal-overlay, .action-overlay, #trashSearchOverlay, #trashOverlay, #trashModal, #searchOverlay, #searchModalEl').forEach(el => {
                         el.style.display = 'none';
                         el.style.visibility = 'hidden';
                     });
-                });
+                } catch (err) {
+                    console.error("モーダル閉じる処理エラー:", err);
+                }
             }, 10);
+        });
 
-        // ★ 3. ドラッグ終了時（ドロップ・キャンセル時）にUI更新
+        // 3. ドラッグ終了時（ドロップ・キャンセル時）にUI更新
         cardEl.addEventListener('dragend', (ev) => {
             if (typeof updateTrashUI === 'function') {
                 updateTrashUI();
             }
         });
 
-    const isSelected = selectedTrashIndices.has(index);
-    cardEl.style.border = isSelected ? '3px solid #00ffcc' : '1px solid #444';
-    cardEl.style.boxShadow = isSelected ? '0 0 10px #00ffcc' : 'none';
+        const isSelected = typeof selectedTrashIndices !== 'undefined' && selectedTrashIndices.has(index);
+        cardEl.style.border = isSelected ? '3px solid #00ffcc' : '1px solid #444';
+        cardEl.style.boxShadow = isSelected ? '0 0 10px #00ffcc' : 'none';
 
-    cardEl.innerHTML = `
-        <img src="${card.imagePath}" alt="${card.name}" style="width: 90px; height: auto; display: block; pointer-events: none;">
-        ${isSelected ? '<div style="position: absolute; top: 4px; right: 4px; background: #00ffcc; color: #000; font-weight: bold; width: 20px; height: 20px; border-radius: 50%; text-align: center; line-height: 20px;">✓</div>' : ''}
-    `;
+        cardEl.innerHTML = `
+            <img src="${card.imagePath}" alt="${card.name}" style="width: 90px; height: auto; display: block; pointer-events: none;">
+            ${isSelected ? '<div style="position: absolute; top: 4px; right: 4px; background: #00ffcc; color: #000; font-weight: bold; width: 20px; height: 20px; border-radius: 50%; text-align: center; line-height: 20px;">✓</div>' : ''}
+        `;
 
-    cardEl.onclick = () => {
-        if (selectedTrashIndices.has(index)) {
-            selectedTrashIndices.delete(index);
-        } else {
-            selectedTrashIndices.add(index);
-        }
-        renderSearchModal();
-    };
+        cardEl.onclick = () => {
+            if (typeof selectedTrashIndices !== 'undefined') {
+                if (selectedTrashIndices.has(index)) {
+                    selectedTrashIndices.delete(index);
+                } else {
+                    selectedTrashIndices.add(index);
+                }
+            }
+            renderSearchModal();
+        };
 
-    container.appendChild(cardEl);
-});
-    updateTrashModalButtons();
+        container.appendChild(cardEl);
+    });
+
+    if (typeof updateTrashModalButtons === 'function') {
+        updateTrashModalButtons();
+    }
 }
-                       }
             
 // ボタンの活性/非活性状態を更新
 function updateTrashModalButtons() {
