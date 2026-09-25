@@ -3558,25 +3558,6 @@ window.nextTime = nextTime;
         }
 
         r.ondragstart = function(ev) {
-            // 受け取り側（フィールド・手札）がどのキーでアクセスしてもいいようにカードデータを完全網羅
-            const dragCardData = {
-                type: 'search-drag',
-                trashIndex: n,
-                searchIndex: n,
-                index: n,
-                name: cardData ? (cardData.name || cardData.cardName || '') : '',
-                cardName: cardData ? (cardData.name || cardData.cardName || '') : '',
-                imagePath: cardData ? (cardData.imagePath || cardData.src || '') : '',
-                src: cardData ? (cardData.imagePath || cardData.src || '') : ''
-            };
-
-            const jsonStr = JSON.stringify(dragCardData);
-            ev.dataTransfer.setData('text/plain', jsonStr);
-            ev.dataTransfer.setData('application/json', jsonStr);
-            ev.dataTransfer.setData('search-index', String(n));
-            ev.dataTransfer.effectAllowed = 'move';
-
-            r.ondragstart = function(ev) {
             // 受け取り側（フィールド・手札・トラッシュ・VOL等）が認識できるようカードデータをセット
             const dragCardData = {
                 type: 'search-drag',
@@ -3630,7 +3611,7 @@ window.nextTime = nextTime;
                 updateTrashUI();
             }
         };
-        
+
         r.addEventListener('touchstart', function(ev) {
             ev.preventDefault();
             dragTarget = ev.currentTarget;
@@ -3678,7 +3659,6 @@ window.nextTime = nextTime;
 
         e.appendChild(r);
     });
-    }
 }
 
         function handleTrashChoice(value) {
