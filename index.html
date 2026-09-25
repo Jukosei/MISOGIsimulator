@@ -2318,27 +2318,51 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
     else if (dataText === 'search-drag' || (data && data.type === 'search-drag')) {
         let rawIdx = ev.dataTransfer.getData('search-index');
         let idx = parseInt(rawIdx);
-        let targetList = (currentSearchType === 'deck')
-            ? virtualDeck
-            : ((currentSearchType === 'noise') ? volNoiseCards : trashCards);
+        
+        // currentSearchType に応じて対象配列を特定（フォールバック付き）
+        let targetList = null;
+        if (typeof currentSearchType !== 'undefined') {
+            if (currentSearchType === 'deck') targetList = virtualDeck;
+            else if (currentSearchType === 'noise') targetList = volNoiseCards;
+            else if (currentSearchType === 'trash') targetList = trashCards;
+        }
+        
+        // データ本体から直接カード情報が取れる場合の対応
+        let cardObj = null;
+        if (!isNaN(idx) && targetList && targetList[idx]) {
+            cardObj = targetList[idx];
+        } else if (data && (data.name || data.cardName)) {
+            cardObj = data;
+        }
 
-        if (!isNaN(idx) && targetList[idx]) {
-            let cardObj = targetList[idx];
-
-            if (cardObj && expectedType && getCardType(cardObj) !== expectedType) {
+        if (cardObj) {
+            // 要求カードタイプ（M/A/S）との一致チェック
+            if (expectedType && getCardType(cardObj) !== expectedType) {
                 console.log(`【配置不可】 Layer \({targetLayer} には\){expectedType} カードしか置けません`);
                 return;
             }
 
-            cardObj = targetList.splice(idx, 1)[0];
-            createGameCardToHand(cardObj.name || cardObj.cardName, cardObj.imagePath || cardObj.src);
-            cardElementToAppend = document.getElementById(`card-id-${cardIdCounter - 1}`);
+            // 配列から該当カードを取り出す（配列参照の場合）
+            if (!isNaN(idx) && targetList && targetList[idx]) {
+                cardObj = targetList.splice(idx, 1)[0];
+            }
 
-            if (document.getElementById('deckCount')) document.getElementById('deckCount').innerText = virtualDeck.length;
-            if (document.getElementById('volNoiseCount')) document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+            // カード要素を生成してドロップ先フレームへ渡す
+            if (typeof createGameCardToHand === 'function') {
+                createGameCardToHand(cardObj.name || cardObj.cardName, cardObj.imagePath || cardObj.src);
+                cardElementToAppend = document.getElementById(`card-id-${cardIdCounter - 1}`);
+            }
 
-            updateTrashUI();
-            renderSearchList();
+            // UIの更新
+            if (document.getElementById('deckCount') && typeof virtualDeck !== 'undefined') {
+                document.getElementById('deckCount').innerText = virtualDeck.length;
+            }
+            if (document.getElementById('volNoiseCount') && typeof volNoiseCards !== 'undefined') {
+                document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+            }
+
+            if (typeof updateTrashUI === 'function') updateTrashUI();
+            if (typeof renderSearchList === 'function') renderSearchList();
         }
     }
     // 3. トラッシュゾーンからのドロップ
