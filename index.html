@@ -2559,92 +2559,78 @@ renderSearchList();
             
         function dropToHand(ev) {
     ev.preventDefault();
-    ev.currentTarget.classList.remove('drag-over');
-
     let dataText = ev.dataTransfer.getData('text/plain');
     let jsonText = ev.dataTransfer.getData('application/json');
     let data = null;
 
-    // 1. JSONデータを安全に取得・パース
     try {
         if (jsonText) data = JSON.parse(jsonText);
         else if (dataText && dataText.startsWith('{')) data = JSON.parse(dataText);
     } catch (e) {}
 
-    // 2. 山札確認モーダル（deck-view-card）からのドロップ処理
-    if (data && data.type === 'deck-view-card') {
-        if (typeof deckViewCards !== 'undefined' && data.viewIndex !== undefined) {
-            // モーダル側からカードを取り出す
-            let cardObj = deckViewCards.splice(data.viewIndex, 1)[0];
-            if (typeof renderDeckViewCards === 'function') renderDeckViewCards();
+    // ★ 1. モーダル（トラッシュ/サーチ/ノイズ等）からのドロップ処理を追加
+    if (dataText === 'search-drag' || (data && data.type === 'search-drag')) {
+        let rawIdx = ev.dataTransfer.getData('search-index');
+        let idx = parseInt(rawIdx);
+        let cardObj = null;
 
-            // 手札にカードを追加・生成する
-            if (cardObj && typeof createGameCardToHand === 'function') {
-                createGameCardToHand(cardObj.name, cardObj.imagePath);
+        // データオブジェクトに直接名前・画像が含まれている場合
+        if (data && (data.name || data.cardName)) {
+            cardObj = {
+                name: data.name || data.cardName,
+                imagePath: data.imagePath || data.src
+            };
+            // トラッシュからの移動の場合は配列からも削除
+            if (currentSearchType === 'trash' && !isNaN(idx) && trashCards[idx]) {
+                trashCards.splice(idx, 1);
             }
-            return;
+        } else if (!isNaN(idx)) {
+            // インデックス参照の場合
+            let targetList = (currentSearchType === 'deck') 
+                ? virtualDeck 
+                : ((currentSearchType === 'noise') ? volNoiseCards : trashCards);
+            if (targetList[idx]) {
+                cardObj = targetList.splice(idx, 1)[0];
+            }
         }
-    }
 
-    // 山札からのドラッグ＆ドロップを追加
-    if (dataText === 'deck-zone-drag' && virtualDeck && virtualDeck.length > 0) {
-        let topCard = virtualDeck.shift(); // 先頭1枚を取り出す
-        createGameCardToHand(topCard.name, topCard.imagePath);
-        updateDeckUI(); // 山札の枚数と背景画像を更新
-    }
-    else if (dataText === 'search-drag') {
-        // dataTransfer から取得を試み、取れなければ属性や選択中カードから取得
-        let rawIndex = ev.dataTransfer.getData('search-index');
-        let idx = parseInt(rawIndex);
-        
-        let targetList = (currentSearchType === 'deck') ? virtualDeck : (currentSearchType === 'noise' ? volNoiseCards : trashCards);
-        
-        // インデックスが正常に取得できていれば手札へ移動
-        if (!isNaN(idx) && targetList[idx]) {
-            let cardObj = targetList.splice(idx, 1)[0];
+        if (cardObj) {
             createGameCardToHand(cardObj.name, cardObj.imagePath);
+            if (typeof updateTrashUI === 'function') updateTrashUI();
+            if (typeof updateDeckUI === 'function') updateDeckUI();
+            if (typeof renderSearchList === 'function') renderSearchList();
+        }
+        return;
+    }
 
-            updateDeckUI();
-            updateVolNoiseUI();
-            updateTrashUI();
-            renderSearchList();
+    // ★ 2. フィールド/レイヤーからの手札戻し処理（既存の処理）
+    if (dataText) {
+        let cardEl = document.getElementById(dataText);
+        if (cardEl) {
+            let cardName = cardEl.getAttribute('data-cardname') || cardEl.innerText;
+            let imagePath = cardEl.getAttribute('data-imagepath');
+            createGameCardToHand(cardName, imagePath);
+            cardEl.remove();
         }
     }
-    else if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
-        let cardObj = trashCards.pop();
-        createGameCardToHand(cardObj.name, cardObj.imagePath);
-        updateTrashUI();
-    }
-    else if (dataText) {
+            else if (dataText) {
         let a = document.getElementById(dataText);
         if (a) {
-            // ★ 移動前の親要素（レイヤー枠）を保持
+            // ★ 移動前の親要素（レイヤー枠）と列要素（.slot-column-wrapper）を保持
             let parentFrame = a.parentElement;
+            let columnWrapper = parentFrame ? parentFrame.closest('.slot-column-wrapper') : null;
 
             a.classList.remove('card-rotate-horizontal'); // 回転解除
             a.classList.remove('card-dimmed');            // 薄暗さ解除
             document.getElementById('handArea').appendChild(a);
 
-            // ★ もし移動元が Layer 2 で、カードが無くなった場合は Layer 1・3 を非活性化
+            // ★ もし移動元が Layer 2 で、カードが無くなった場合は Layer 1・3 のカードをトラッシュへ送信する
             if (parentFrame && parentFrame.classList.contains('layer-2')) {
                 let cardInLayer2 = parentFrame.querySelector('.game-card');
-
-                if (!cardInLayer2) {
-                    let columnWrapper = parentFrame.closest('.slot-column-wrapper');
-                    let layer1 = null;
-                    let layer3 = null;
-
-                    if (columnWrapper) {
-                        layer1 = columnWrapper.querySelector('.layer-1');
-                        layer3 = columnWrapper.querySelector('.layer-3');
-                    } else {
-                        let colIndex = parentFrame.getAttribute('data-col');
-                        layer1 = document.getElementById(`frame-${colIndex}-1`);
-                        layer3 = document.getElementById(`frame-${colIndex}-3`);
+                if (!cardInLayer2 && columnWrapper) {
+                    if (typeof checkAndTrashDirectionCards === 'function') {
+                        checkAndTrashDirectionCards(columnWrapper);
                     }
-
-                    if (layer1) layer1.classList.remove('layer-active');
-                    if (layer3) layer3.classList.remove('layer-active');
                 }
             }
         }
