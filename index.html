@@ -2538,15 +2538,6 @@ renderSearchList();
         let n = document.getElementById(dataText);
         let targetZone = ev.currentTarget;
 
-        // ★ 防御コード：ドロップ先がステージ枠（layer-2等）だった場合は dropToDirection の処理をスキップ
-        if (targetZone.classList.contains('frame-layer') || targetZone.classList.contains('layer-2')) {
-            // ステージ側関数へリダイレクト
-            let col = targetZone.getAttribute('data-col') || 0;
-            let layer = targetZone.getAttribute('data-layer') || 2;
-            dropToSpecificFrame(ev, parseInt(col), parseInt(layer));
-            return;
-        }
-
         let existingCard = targetZone.querySelector('.game-card');
 
         if (n && !existingCard) {
