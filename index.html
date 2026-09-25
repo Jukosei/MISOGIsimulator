@@ -2575,6 +2575,18 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
         let n = document.getElementById(dataText);
         let targetZone = ev.currentTarget;
 
+        // ★ ドロップ先がレイヤー枠（frame-layer や layer-1〜3）の場合は dropToSpecificFrame に委譲する
+        if (targetZone.classList.contains('frame-layer') || 
+            targetZone.classList.contains('layer-1') || 
+            targetZone.classList.contains('layer-2') || 
+            targetZone.classList.contains('layer-3')) {
+            
+            let col = targetZone.getAttribute('data-col') || 0;
+            let layer = targetZone.getAttribute('data-layer') || 2;
+            dropToSpecificFrame(ev, parseInt(col), parseInt(layer));
+            return;
+        }
+
         let existingCard = targetZone.querySelector('.game-card');
 
         if (n && !existingCard) {
