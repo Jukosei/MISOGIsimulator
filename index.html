@@ -3943,8 +3943,10 @@ function handleTurnBtnClick() {
         });
 
         // 暗くなっているカード（ディレクション等）を明るく戻す
-        document.querySelectorAll('.game-card.tapped, .game-card.exhausted, .direction-card.disabled').forEach(card => {
-            card.classList.remove('tapped', 'exhausted', 'disabled');
+        document.querySelectorAll('.game-card').forEach(card => {
+            // 暗くする用のクラスをすべて除去
+            card.classList.remove('tapped', 'exhausted', 'disabled', 'direction-card-disabled', 'card-dimmed', 'dimmed');
+            // インラインスタイルによる暗暗化（opacity, filter）を初期化
             card.style.filter = '';
             card.style.opacity = '';
         });
