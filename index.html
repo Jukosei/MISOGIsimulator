@@ -1624,62 +1624,41 @@ let selectedTrashIndices = new Set();
             ev.dataTransfer.setData('search-index', String(index));
             ev.dataTransfer.effectAllowed = 'move';
 
-            // ドラッグ用のゴースト要素（カスタムプレビュー）を作成
-            const dragGhost = document.createElement('div');
-            dragGhost.style.width = '100px';
-            dragGhost.style.height = '140px';
-            dragGhost.style.backgroundImage = `url('${card.imagePath}')`;
-            dragGhost.style.backgroundSize = 'cover';
-            dragGhost.style.position = 'absolute';
-            dragGhost.style.top = '-9999px';
-            dragGhost.style.left = '-9999px';
-            dragGhost.style.borderRadius = '8px';
-            dragGhost.style.boxShadow = '0 5px 15px rgba(0,0,0,0.5)';
-            document.body.appendChild(dragGhost);
-
-            // ゴースト画像をドラッグカーソルにセット
-            if (ev.dataTransfer.setDragImage) {
-                ev.dataTransfer.setDragImage(dragGhost, 50, 70);
-            }
-
-            // 1ミリ秒後にドラッグ用のゴースト要素を消去 & モーダルを完全非表示（display: none）にする
+            // ドラッグ開始直後にモーダルを透明化＆クリックすり抜け状態にする
+            // （display: none にしないため、ブラウザ標準のゴースト画像が正常に維持されます）
             setTimeout(() => {
-                if (dragGhost.parentNode) {
-                    dragGhost.parentNode.removeChild(dragGhost);
-                }
                 const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, .action-overlay, #searchOverlay';
                 document.querySelectorAll(selectors).forEach(el => {
-                    el.style.display = 'none';
+                    el.style.opacity = '0';
+                    el.style.pointerEvents = 'none';
                 });
             }, 10);
         });
 
         cardEl.addEventListener('dragend', (ev) => {
-            // ドラッグ終了（ドロップまたはキャンセル時）に表示状態をリセット
+            // 1. まずモーダルのスタイル（透明度・クリック無効）を元に戻す
             const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, .action-overlay, #searchOverlay';
             document.querySelectorAll(selectors).forEach(el => {
                 el.style.opacity = '';
                 el.style.pointerEvents = '';
             });
 
-            // ドロップに成功した場合はモーダルを閉じる
+            // 2. ドロップ成功時（dropEffect が 'none' 以外）のみモーダルを閉じる
             if (ev.dataTransfer.dropEffect !== 'none') {
                 if (typeof closeSearchModal === 'function') {
                     closeSearchModal();
-                }
-            } else {
-                // キャンセルされた場合はモーダルを再表示
-                if (document.getElementById('searchOverlay')) {
-                    document.getElementById('searchOverlay').style.display = 'flex';
+                } else {
+                    const overlay = document.getElementById('searchOverlay');
+                    if (overlay) overlay.style.display = 'none';
                 }
             }
 
-            // UIの更新
+            // 3. トラッシュUIの更新
             if (typeof updateTrashUI === 'function') {
                 updateTrashUI();
             }
         });
-
+        
         const isSelected = typeof selectedTrashIndices !== 'undefined' && selectedTrashIndices.has(index);
         cardEl.style.border = isSelected ? '3px solid #00ffcc' : '1px solid #444';
         cardEl.style.boxShadow = isSelected ? '0 0 10px #00ffcc' : 'none';
