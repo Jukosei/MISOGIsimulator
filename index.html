@@ -3568,60 +3568,67 @@ window.nextTime = nextTime;
         }
 
         r.ondragstart = function(ev) {
-    const dragCardData = {
-        type: 'search-drag',
-        trashIndex: n,
-        searchIndex: n,
-        index: n,
-        name: cardData ? (cardData.name || cardData.cardName || '') : '',
-        cardName: cardData ? (cardData.name || cardData.cardName || '') : '',
-        imagePath: cardData ? (cardData.imagePath || cardData.src || '') : '',
-        src: cardData ? (cardData.imagePath || cardData.src || '') : ''
-    };
+            // 受取側（レイヤー枠・手札・トラッシュ）へ渡すデータの構築
+            const dragCardData = {
+                type: 'search-drag',
+                trashIndex: n,
+                searchIndex: n,
+                index: n,
+                name: cardData ? (cardData.name || cardData.cardName || '') : '',
+                cardName: cardData ? (cardData.name || cardData.cardName || '') : '',
+                imagePath: cardData ? (cardData.imagePath || cardData.src || '') : '',
+                src: cardData ? (cardData.imagePath || cardData.src || '') : ''
+            };
 
-    const jsonStr = JSON.stringify(dragCardData);
-    ev.dataTransfer.setData('text/plain', jsonStr);
-    ev.dataTransfer.setData('application/json', jsonStr);
-    ev.dataTransfer.setData('search-index', String(n));
-    ev.dataTransfer.effectAllowed = 'move';
+            const jsonStr = JSON.stringify(dragCardData);
+            ev.dataTransfer.setData('text/plain', jsonStr);
+            ev.dataTransfer.setData('application/json', jsonStr);
+            ev.dataTransfer.setData('search-index', String(n));
+            ev.dataTransfer.effectAllowed = 'move';
 
-    // ★ トラッシュモーダルの時のみ：モーダルを透明＆すり抜けにして、下のエリア1〜4等へドロップ可能にする
-    if (currentSearchType === 'trash') {
-        setTimeout(() => {
-            const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
-            document.querySelectorAll(selectors).forEach(el => {
-                el.style.opacity = '0';
-                el.style.pointerEvents = 'none';
-            });
-        }, 10);
-    }
-};
-
-r.ondragend = function(ev) {
-    // トラッシュモーダルの時のみ処理を行う
-    if (currentSearchType === 'trash') {
-        // 1. モーダルの透明化・すり抜け状態を解除
-        const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
-        document.querySelectorAll(selectors).forEach(el => {
-            el.style.opacity = '';
-            el.style.pointerEvents = '';
-        });
-
-        // 2. ドロップが成功した場合（none 以外）のみトラッシュモーダルを閉じる
-        if (ev.dataTransfer.dropEffect !== 'none') {
-            if (typeof closeSearchModal === 'function') {
-                closeSearchModal();
-            } else {
-                const overlay = document.getElementById('searchOverlay');
-                if (overlay) overlay.style.display = 'none';
+            // ★ トラッシュモーダルの時のみドラッグ中のモーダルを完全にクリックすり抜け化・透明化する
+            if (currentSearchType === 'trash') {
+                setTimeout(() => {
+                    // モーダルに関連する全要素（オーバーレイ・本体・コンテナ）の判定を物理的に解除する
+                    const allModalElements = document.querySelectorAll(
+                        '#searchOverlay, .search-overlay, .search-modal, .modal, .modal-overlay, #searchModalContent, #searchCardGrid, .search-container'
+                    );
+                    allModalElements.forEach(el => {
+                        el.style.opacity = '0';
+                        el.style.pointerEvents = 'none';
+                    });
+                }, 10);
             }
-        }
+        };
 
-        if (typeof updateTrashUI === 'function') {
-            updateTrashUI();
-        }
-    }
-};
+        r.ondragend = function(ev) {
+            // ★ トラッシュモーダルの時のみドラッグ終了時のクローズ/判定復元を行う
+            if (currentSearchType === 'trash') {
+                // すり抜け状態を一度リセット
+                const allModalElements = document.querySelectorAll(
+                    '#searchOverlay, .search-overlay, .search-modal, .modal, .modal-overlay, #searchModalContent, #searchCardGrid, .search-container'
+                );
+                allModalElements.forEach(el => {
+                    el.style.opacity = '';
+                    el.style.pointerEvents = '';
+                });
+
+                // ドロップに成功した場合はトラッシュモーダルを閉じる
+                if (ev.dataTransfer.dropEffect !== 'none') {
+                    if (typeof closeSearchModal === 'function') {
+                        closeSearchModal();
+                    } else {
+                        const overlay = document.getElementById('searchOverlay');
+                        if (overlay) overlay.style.display = 'none';
+                    }
+                }
+
+                if (typeof updateTrashUI === 'function') {
+                    updateTrashUI();
+                }
+            }
+        };
+        
         r.onclick = function(ev) {
             ev.stopPropagation();
             if (currentSearchType === 'trash') {
