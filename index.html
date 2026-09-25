@@ -2268,22 +2268,28 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
         else if (dataText && dataText.startsWith('{')) data = JSON.parse(dataText);
     } catch (e) {}
 
-    // カードのプレフィックス（ハイフン前の文字 A/M/S/D）を取得する関数
-    const getCardType = (cardInput) => {
-        if (!cardInput) return '';
-        let codeStr = '';
-        if (typeof cardInput === 'string') {
-            codeStr = cardInput;
-        } else if (typeof cardInput === 'object') {
-            codeStr = cardInput.suffix || cardInput.name || cardInput.code || '';
-        }
-        return codeStr.trim().split('-')[0].toUpperCase();
-    };
+    // カードコードのハイフン直前のアルファベット1文字（A/M/S/D等）のみを抽出する関数
+        const getCardType = (cardInput) => {
+            if (!cardInput) return '';
+            let codeStr = '';
 
-    const requiredTypes = { 1: 'M', 2: 'A', 3: 'S' };
-    const expectedType = requiredTypes[targetLayer];
+            if (typeof cardInput === 'string') {
+                codeStr = cardInput;
+            } else if (typeof cardInput === 'object') {
+                // オブジェクトの場合は prefix, code, name, cardName の順で探索
+                codeStr = cardInput.prefix || cardInput.code || cardInput.name || cardInput.cardName || '';
+            }
 
-    let cardElementToAppend = null;
+            codeStr = String(codeStr).trim();
+
+            // ハイフンが存在する場合（例: "AM-1" -> ハイフン直前は "M"、"A-1" -> "A"）
+            if (codeStr.includes('-')) {
+                let parts = codeStr.split('-');
+                let beforeHyphen = parts[0].trim();
+                // ハイフン直前の最後の1文字（アルファベット）を取得
+                return beforeHyphen.slice(-1).toUpperCase();
+            }
+        };
 
     // 1. 山札確認モーダルからのドロップ
     if (data && data.type === 'deck-view-card') {
