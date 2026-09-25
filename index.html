@@ -2614,29 +2614,44 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
         else if (dataText && dataText.startsWith('{')) data = JSON.parse(dataText);
     } catch (e) {}
 
-    // ★ 1. モーダル（トラッシュ/サーチ/ノイズ等）からのドロップ処理を追加
-    if (dataText === 'search-drag' || (data && data.type === 'search-drag')) {
+    // ★ 1. モーダル（トラッシュ/サーチ/ノイズ等）およびトラッシュ枠からのドロップ処理
+    if (dataText === 'search-drag' || dataText === 'trash-zone-drag' || (data && (data.type === 'search-drag' || data.type === 'trash-zone-drag' || data.trashIndex !== undefined))) {
         let rawIdx = ev.dataTransfer.getData('search-index');
         let idx = parseInt(rawIdx);
         let cardObj = null;
 
-        // データオブジェクトに直接名前・画像が含まれている場合
+        // A. データオブジェクトに直接名前・画像が含まれている場合（トラッシュ枠からのドラッグなど）
         if (data && (data.name || data.cardName)) {
             cardObj = {
                 name: data.name || data.cardName,
                 imagePath: data.imagePath || data.src
             };
-            // トラッシュからの移動の場合は配列からも削除
-            if (currentSearchType === 'trash' && !isNaN(idx) && trashCards[idx]) {
-                trashCards.splice(idx, 1);
+            // トラッシュ配列からも1枚削除
+            if (typeof trashCards !== 'undefined' && trashCards.length > 0) {
+                if (!isNaN(idx) && trashCards[idx]) {
+                    trashCards.splice(idx, 1);
+                } else {
+                    trashCards.pop(); // インデックス指定がなければ一番上を削除
+                }
             }
-        } else if (!isNaN(idx)) {
-            // インデックス参照の場合
-            let targetList = (currentSearchType === 'deck') 
-                ? virtualDeck 
+        } 
+        // B. インデックス参照の場合（モーダル・リスト一覧からのドラッグ）
+        else {
+            let targetList = (currentSearchType === 'deck')
+                ? virtualDeck
                 : ((currentSearchType === 'noise') ? volNoiseCards : trashCards);
-            if (targetList[idx]) {
-                cardObj = targetList.splice(idx, 1)[0];
+            
+            // targetListが存在しない、または未定義の場合はデフォルトでtrashCardsを参照
+            if (!targetList && typeof trashCards !== 'undefined') {
+                targetList = trashCards;
+            }
+
+            if (targetList) {
+                if (!isNaN(idx) && targetList[idx]) {
+                    cardObj = targetList.splice(idx, 1)[0];
+                } else if (targetList.length > 0) {
+                    cardObj = targetList.pop();
+                }
             }
         }
 
@@ -2648,7 +2663,7 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
         }
         return;
     }
-
+            
     // ★ 2. フィールド/レイヤーからの手札戻し処理（既存の処理）
     if (dataText) {
         let cardEl = document.getElementById(dataText);
