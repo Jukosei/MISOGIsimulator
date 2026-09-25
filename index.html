@@ -2695,7 +2695,6 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
         if (cardObj) {
             createGameCardToHand(cardObj.name, cardObj.imagePath);
             if (typeof updateTrashUI === 'function') updateTrashUI();
-            if (typeof updateDeckUI === 'function') updateDeckUI();
             if (typeof renderSearchList === 'function') renderSearchList();
         }
         return;
