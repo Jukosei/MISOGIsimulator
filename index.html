@@ -2310,7 +2310,7 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
 
             if (cardObj && typeof createGameCardToHand === 'function') {
                 createGameCardToHand(cardObj.name, cardObj.imagePath);
-                cardElementToAppend = document.getElementById(`card-id-${cardIDCounter - 1}`);
+                cardElementToAppend = document.getElementById(`card-id-${cardIdCounter - 1}`);
             }
         }
     }
@@ -2332,7 +2332,7 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
 
             cardObj = targetList.splice(idx, 1)[0];
             createGameCardToHand(cardObj.name || cardObj.cardName, cardObj.imagePath || cardObj.src);
-            cardElementToAppend = document.getElementById(`card-id-${cardIDCounter - 1}`);
+            cardElementToAppend = document.getElementById(`card-id-${cardIdCounter - 1}`);
 
             if (document.getElementById('deckCount')) document.getElementById('deckCount').innerText = virtualDeck.length;
             if (document.getElementById('volNoiseCount')) document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
@@ -2351,7 +2351,7 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
 
         cardObj = trashCards.pop();
         createGameCardToHand(cardObj.name || cardObj.cardName, cardObj.imagePath || cardObj.src);
-        cardElementToAppend = document.getElementById(`card-id-${cardIDCounter - 1}`);
+        cardElementToAppend = document.getElementById(`card-id-${cardIdCounter - 1}`);
         updateTrashUI();
     }
     // 4. 手札・他ゾーンからの通常ドラッグ
@@ -2370,7 +2370,7 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
         }
     }
 
-    // ★ カードをレイヤー枠へ配置し、属性・回転・イベントを設定
+    // ★ カードをレイヤー枠へ移動・配置し、属性・回転・イベントを設定
     if (cardElementToAppend) {
         targetFrame.appendChild(cardElementToAppend);
 
@@ -2433,17 +2433,21 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
         else if (dataText && dataText.startsWith('{')) data = JSON.parse(dataText);
     } catch (e) {}
 
-    // カードの型（ハイフン前）が D かどうか判定するヘルパー関数
+    // カードの型（ハイフン直前の文字が D かどうか）判定するヘルパー関数
     const isDCard = (cardInput) => {
         if (!cardInput) return false;
         let codeStr = '';
         if (typeof cardInput === 'string') {
             codeStr = cardInput;
         } else if (typeof cardInput === 'object') {
-            codeStr = cardInput.suffix || cardInput.name || cardInput.code || '';
+            codeStr = cardInput.prefix || cardInput.code || cardInput.name || cardInput.cardName || '';
         }
-        const prefix = codeStr.trim().split('-')[0].toUpperCase();
-        return prefix === 'D' || prefix.endsWith('D');
+        codeStr = String(codeStr).trim();
+        if (codeStr.includes('-')) {
+            let beforeHyphen = codeStr.split('-')[0].trim();
+            return beforeHyphen.slice(-1).toUpperCase() === 'D';
+        }
+        return codeStr.charAt(0).toUpperCase() === 'D';
     };
 
     // 1. 山札確認モーダルからのドロップ受け取り処理
@@ -2453,7 +2457,7 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
 
             // ディレクション枠へ置く場合のみ D カードかチェック
             if (cardObj && !isDCard(cardObj)) {
-                console.log("【配置不可】ディレクション枠にはDカードしか置けません");
+                console.log("【配置不可】 ディレクション枠にはDカードしか置けません");
                 return;
             }
 
@@ -2466,8 +2470,8 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
                 let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
                 if (genCard) targetZone.appendChild(genCard);
             }
-            return;
         }
+        return;
     }
 
     // 2. サーチ・トラッシュモーダルからのドラッグ処理
@@ -2501,7 +2505,7 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
             cardObj = targetList.splice(idx, 1)[0];
             createGameCardToHand(cardObj.name || cardObj.cardName, cardObj.imagePath || cardObj.src);
 
-            let genCard = document.getElementById(`card-id-${cardIDCounter - 1}`);
+            let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
             if (genCard) targetZone.appendChild(genCard);
 
             if (document.getElementById('deckCount')) document.getElementById('deckCount').innerText = virtualDeck.length;
@@ -2539,7 +2543,7 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
             cardObj = trashCards.pop();
             createGameCardToHand(cardObj.name || cardObj.cardName, cardObj.imagePath || cardObj.src);
 
-            let genCard = document.getElementById(`card-id-${cardIDCounter - 1}`);
+            let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
             if (genCard) targetZone.appendChild(genCard);
 
             updateTrashUI();
@@ -2547,7 +2551,7 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
         return;
     }
 
-    // 4. 通常のカード移動（手札エリアからのドラッグ）
+    // 4. 通常のカード移動 (手札エリアからのドラッグ)
     if (dataText) {
         let n = document.getElementById(dataText);
         let targetZone = ev.currentTarget;
@@ -2557,9 +2561,9 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
         if (n && !existingCard) {
             let cardName = n.getAttribute('data-cardname') || n.getAttribute('data-cardcode') || n.innerText || '';
 
-            // ★ ディレクションエリア（Dゾーン）へ置く時のみ Dカードチェック
+            // ★ ディレクションエリア (Dゾーン) へ置く時のみ D カードチェック
             if (!isDCard(cardName)) {
-                console.log("【配置不可】ディレクション枠にはDカードしか置けません");
+                console.log("【配置不可】 ディレクション枠にはDカードしか置けません");
                 return;
             }
 
