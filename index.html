@@ -1576,11 +1576,6 @@ let selectedTrashIndices = new Set();
         }
     }
 
-    // トラッシュモード以外は抜ける
-    if (window.currentSearchMode !== 'trash') {
-        return;
-    }
-
     const container = document.getElementById('searchCardGrid') || document.getElementById('searchModalContent') || document.getElementById('searchContainer');
     if (!container) return;
 
@@ -3592,8 +3587,9 @@ window.nextTime = nextTime;
             r.style.boxShadow = isSelected ? '0 0 10px #00ffcc' : 'none';
         }
 
+        r.setAttribute('draggable', 'true');
+
         r.ondragstart = function(ev) {
-            // 受取側（レイヤー枠・手札・トラッシュ）へ渡すデータの構築
             const dragCardData = {
                 type: 'search-drag',
                 trashIndex: n,
@@ -3611,14 +3607,11 @@ window.nextTime = nextTime;
             ev.dataTransfer.setData('search-index', String(n));
             ev.dataTransfer.effectAllowed = 'move';
 
-            // ★ トラッシュモーダルの時のみドラッグ中のモーダルを完全にクリックすり抜け化・透明化する
+            // ★ トラッシュモーダルの時のみドラッグ時にモーダルを透明化＆クリックすり抜け化する
             if (currentSearchType === 'trash') {
                 setTimeout(() => {
-                    // モーダルに関連する全要素（オーバーレイ・本体・コンテナ）の判定を物理的に解除する
-                    const allModalElements = document.querySelectorAll(
-                        '#searchOverlay, .search-overlay, .search-modal, .modal, .modal-overlay, #searchModalContent, #searchCardGrid, .search-container'
-                    );
-                    allModalElements.forEach(el => {
+                    const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
+                    document.querySelectorAll(selectors).forEach(el => {
                         el.style.opacity = '0';
                         el.style.pointerEvents = 'none';
                     });
@@ -3627,18 +3620,14 @@ window.nextTime = nextTime;
         };
 
         r.ondragend = function(ev) {
-            // ★ トラッシュモーダルの時のみドラッグ終了時のクローズ/判定復元を行う
+            // ★ トラッシュモーダルの時のみ透明化解除とモーダルクローズを行う
             if (currentSearchType === 'trash') {
-                // すり抜け状態を一度リセット
-                const allModalElements = document.querySelectorAll(
-                    '#searchOverlay, .search-overlay, .search-modal, .modal, .modal-overlay, #searchModalContent, #searchCardGrid, .search-container'
-                );
-                allModalElements.forEach(el => {
+                const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
+                document.querySelectorAll(selectors).forEach(el => {
                     el.style.opacity = '';
                     el.style.pointerEvents = '';
                 });
 
-                // ドロップに成功した場合はトラッシュモーダルを閉じる
                 if (ev.dataTransfer.dropEffect !== 'none') {
                     if (typeof closeSearchModal === 'function') {
                         closeSearchModal();
