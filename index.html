@@ -2475,36 +2475,45 @@ else if (dataText === 'search-drag') {
     }
 
     // 2. サーチ・トラッシュモーダルからのドラッグ処理
-    if (dataText === 'search-drag') {
+    if (dataText === 'search-drag' || (data && data.type === 'search-drag')) {
+        let targetZone = ev.currentTarget;
+
+        // ★ ドロップ先がレイヤー2（Aゾーン）またはステージ枠（frame-layer）の場合は dropToSpecificFrame に委譲
+        if (targetZone.classList.contains('layer-2') || targetZone.classList.contains('frame-layer')) {
+            let col = targetZone.getAttribute('data-col') || 0;
+            let layer = targetZone.getAttribute('data-layer') || 2;
+            dropToSpecificFrame(ev, parseInt(col), parseInt(layer));
+            return;
+        }
+
         let rawIdx = ev.dataTransfer.getData('search-index');
         let idx = parseInt(rawIdx);
         let targetList = (currentSearchType === 'deck')
             ? virtualDeck
             : ((currentSearchType === 'noise') ? volNoiseCards : trashCards);
 
-        let targetZone = ev.currentTarget;
         let existingCard = targetZone.querySelector('.game-card');
 
         if (!existingCard && !isNaN(idx) && targetList[idx]) {
             let cardObj = targetList[idx];
 
             if (cardObj && !isDCard(cardObj)) {
-                console.log("【配置不可】ディレクション枠にはDカードしか置けません");
+                console.log("【配置不可】 ディレクション枠にはDカードしか置けません");
                 return;
             }
 
             cardObj = targetList.splice(idx, 1)[0];
-            createGameCardToHand(cardObj.name, cardObj.imagePath);
+            createGameCardToHand(cardObj.name || cardObj.cardName, cardObj.imagePath || cardObj.src);
 
-            let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
+            let genCard = document.getElementById(`card-id-${cardIDCounter - 1}`);
             if (genCard) targetZone.appendChild(genCard);
 
-           if (document.getElementById('deckCount')) document.getElementById('deckCount').innerText = virtualDeck.length;
-           if (document.getElementById('volNoiseCount')) document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+            if (document.getElementById('deckCount')) document.getElementById('deckCount').innerText = virtualDeck.length;
+            if (document.getElementById('volNoiseCount')) document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
 
-updateVolNoiseUI(); // ★ここに追加（山札画像やカウントをまとめて正しく再描画）
-updateTrashUI();
-renderSearchList();
+            updateVolNoiseUI();
+            updateTrashUI();
+            renderSearchList();
         }
         return;
     }
@@ -2512,20 +2521,29 @@ renderSearchList();
     // 3. トラッシュゾーンからのドラッグ処理
     if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
         let targetZone = ev.currentTarget;
+
+        // ★ ドロップ先がレイヤー2（Aゾーン）またはステージ枠（frame-layer）の場合は dropToSpecificFrame に委譲
+        if (targetZone.classList.contains('layer-2') || targetZone.classList.contains('frame-layer')) {
+            let col = targetZone.getAttribute('data-col') || 0;
+            let layer = targetZone.getAttribute('data-layer') || 2;
+            dropToSpecificFrame(ev, parseInt(col), parseInt(layer));
+            return;
+        }
+
         let existingCard = targetZone.querySelector('.game-card');
 
         if (!existingCard) {
             let cardObj = trashCards[trashCards.length - 1];
 
             if (cardObj && !isDCard(cardObj)) {
-                console.log("【配置不可】ディレクション枠にはDカードしか置けません");
+                console.log("【配置不可】 ディレクション枠にはDカードしか置けません");
                 return;
             }
 
             cardObj = trashCards.pop();
-            createGameCardToHand(cardObj.name, cardObj.imagePath);
+            createGameCardToHand(cardObj.name || cardObj.cardName, cardObj.imagePath || cardObj.src);
 
-            let genCard = document.getElementById(`card-id-${cardIdCounter - 1}`);
+            let genCard = document.getElementById(`card-id-${cardIDCounter - 1}`);
             if (genCard) targetZone.appendChild(genCard);
 
             updateTrashUI();
