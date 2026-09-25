@@ -3550,35 +3550,45 @@ window.nextTime = nextTime;
 
         r.ondragstart = function(ev) {
             // 受け取り側（フィールド・手札）がどのキーでアクセスしてもいいようにカードデータを完全網羅
-            const cardData = {
+            const dragCardData = {
                 type: 'search-drag',
                 trashIndex: n,
                 searchIndex: n,
                 index: n,
-                name: cardData.name || '',
-                cardName: cardData.name || '',
-                imagePath: cardData.imagePath || '',
-                src: cardData.imagePath || ''
+                name: cardData ? (cardData.name || cardData.cardName || '') : '',
+                cardName: cardData ? (cardData.name || cardData.cardName || '') : '',
+                imagePath: cardData ? (cardData.imagePath || cardData.src || '') : '',
+                src: cardData ? (cardData.imagePath || cardData.src || '') : ''
             };
 
-            const jsonStr = JSON.stringify(cardData);
+            const jsonStr = JSON.stringify(dragCardData);
             ev.dataTransfer.setData('text/plain', jsonStr);
             ev.dataTransfer.setData('application/json', jsonStr);
             ev.dataTransfer.setData('search-index', String(n));
             ev.dataTransfer.effectAllowed = 'move';
 
-            // ドラッグ開始直後にモーダル画面をすり抜け（透明化・クリック判定無効）にする
-            setTimeout(() => {
-                const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
-                document.querySelectorAll(selectors).forEach(el => {
-                    el.style.opacity = '0';
-                    el.style.pointerEvents = 'none';
-                });
-            }, 10);
+            // ★ トラッシュモーダルの時のみ、ドラッグ開始時に即座にモーダルを閉じる
+            if (currentSearchType === 'trash') {
+                if (typeof closeSearchModal === 'function') {
+                    closeSearchModal();
+                } else {
+                    const overlay = document.getElementById('searchOverlay');
+                    if (overlay) overlay.style.display = 'none';
+                }
+            } else {
+                // 山札・ノイズ等のサーチモーダルの場合はすり抜け透明化
+                setTimeout(() => {
+                    const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
+                    document.querySelectorAll(selectors).forEach(el => {
+                        el.style.opacity = '0';
+                        el.style.pointerEvents = 'none';
+                    });
+                }, 10);
+            }
         };
 
         r.ondragend = function(ev) {
-            // ドラッグ終了時にモーダルの透明度と判定を復元する（display: 'none' は行わない）
+            // ドラッグ終了時にモーダルの透明度・判定を元に戻す
             const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
             document.querySelectorAll(selectors).forEach(el => {
                 el.style.opacity = '';
