@@ -3689,27 +3689,31 @@ window.nextTime = nextTime;
 }
 
         function handleTrashChoice(value) {
-            if (!pendingActionData) return;
-            let idx = pendingActionData.index;
-            let list = pendingActionData.list;
-            let cut = list.splice(idx, 1)[0];
-            let letters = cut.name.toUpperCase();
-            let suff = letters.slice(-1);
+    if (!pendingActionData) return;
+    let idx = pendingActionData.index;
+    let list = pendingActionData.list;
+    let cut = list.splice(idx, 1)[0];
+    let letters = cut.name.toUpperCase();
+    let suff = letters.slice(-1);
 
-            if (value === "hand") {
-                createGameCardToHand(cut.name, cut.imagePath);
-            } else if (value === "top") {
-                virtualDeck.unshift({ name: cut.name, suffix: suff, imagePath: cut.imagePath });
-            } else if (value === "bottom") {
-                virtualDeck.push({ name: cut.name, suffix: suff, imagePath: cut.imagePath });
-            }
+    if (value === "hand") {
+        createGameCardToHand(cut.name, cut.imagePath);
+    } else if (value === "top") {
+        // 山札の一番上に追加（シャッフルはしない）
+        virtualDeck.unshift({ name: cut.name, suffix: suff, imagePath: cut.imagePath });
+    } else if (value === "bottom") {
+        // 山札の一番下に追加（シャッフルはしない）
+        virtualDeck.push({ name: cut.name, suffix: suff, imagePath: cut.imagePath });
+    }
 
-            document.getElementById('deckCount').innerText = virtualDeck.length;
-            document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-            updateTrashUI();
-            closeActionMenu();
-            renderSearchList();
-        }
+    // UIとカウントの更新
+    if (typeof updateDeckUI === 'function') updateDeckUI();
+    if (typeof updateTrashUI === 'function') updateTrashUI();
+    if (typeof updateVolNoiseUI === 'function') updateVolNoiseUI();
+
+    closeActionMenu();
+    if (typeof closeSearchModal === 'function') closeSearchModal();
+}
 
         function handleOverlayClick(t) {
             if (t.target.id === "searchOverlay" || t.target.id === "searchCardGrid") {
