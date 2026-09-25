@@ -477,6 +477,43 @@
             text-align: center;
         }
 
+        /* 右側コントロールパネルのボタン色分け */
+
+/* 1. リセット（危険操作：赤） */
+.control-btn[onclick*="resetGame"] {
+    background-color: #dc3545 !important;
+}
+
+/* 3. ダイスを振る（青緑・ティール） */
+.control-btn[onclick*="rollDice"] {
+    background-color: #0d9488 !important;
+}
+
+/* 4. 手札操作（ランダムハンデス・手札を全て山札へ：パープル） */
+.control-btn[onclick*="randomHandDiscard"],
+.control-btn[onclick*="returnAllHandToDeck"] {
+    background-color: #6f42c1 !important;
+}
+
+/* 5. 山札操作（シャッフル・サーチ・上を見る・下からドロー：ロイヤルブルー） */
+.control-btn[onclick*="shuffleDeck"],
+.control-btn[onclick*="openSearchModal"],
+.control-btn[onclick*="openDeckViewModal"],
+.control-btn[onclick*="drawBottomCard"] {
+    background-color: #2563eb !important;
+}
+
+/* 6. 特殊アクション（ディメンションワープ・ネクストタイム：インディゴ） */
+.control-btn[onclick*="dimensionWarp"],
+.control-btn[onclick*="nextTime"] {
+    background-color: #4f46e5 !important;
+}
+
+/* 7. メニューへ戻る（シックなグレー） */
+.control-btn[onclick*="backToMenu"] {
+    background-color: #444 !important;
+}
+
         .control-btn.orange { background-color: #ff9f00; }
         .control-btn.gray { background-color: #444; }
 
@@ -933,6 +970,7 @@
         </div><!-- /center-panel -->
 
         <div class="control-panel">
+            <button class="control-btn gray" style="margin-top:10px;" onclick="backToMenu()">メニューへ戻る</button>
             <button class="control-btn" onclick="resetGameBtn()">リセット</button>
             <button class="control-btn" onclick="mulliganBtn()">マリガン</button>
             <button class="control-btn" onclick="rollDice()">ダイスを振る</button>
@@ -945,8 +983,7 @@
             <button class="control-btn" onclick="dimensionWarp()">ディメンションワープ</button>
             <button class="control-btn" onclick="nextTime()">ネクストタイム</button>
             <button id="turnBtn" class="control-btn orange" onclick="handleTurnBtnClick()">ターンエンド</button>
-            <button class="control-btn gray" style="margin-top:10px;" onclick="backToMenu()">メニューへ戻る</button>
-
+            
             <!-- 山札確認用モーダル -->
 <div id="deckViewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 9999; justify-content: center; align-items: center; pointer-events: none;">
     
