@@ -3576,35 +3576,56 @@ window.nextTime = nextTime;
             ev.dataTransfer.setData('search-index', String(n));
             ev.dataTransfer.effectAllowed = 'move';
 
-            // ★ トラッシュモーダルの時のみ、ドラッグ開始時に即座にモーダルを閉じる
-            if (currentSearchType === 'trash') {
-                if (typeof closeSearchModal === 'function') {
-                    closeSearchModal();
-                } else {
-                    const overlay = document.getElementById('searchOverlay');
-                    if (overlay) overlay.style.display = 'none';
-                }
-            } else {
-                // 山札・ノイズ等のサーチモーダルの場合はすり抜け透明化
-                setTimeout(() => {
-                    const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
-                    document.querySelectorAll(selectors).forEach(el => {
-                        el.style.opacity = '0';
-                        el.style.pointerEvents = 'none';
-                    });
-                }, 10);
-            }
+            r.ondragstart = function(ev) {
+            // 受け取り側（フィールド・手札・トラッシュ・VOL等）が認識できるようカードデータをセット
+            const dragCardData = {
+                type: 'search-drag',
+                trashIndex: n,
+                searchIndex: n,
+                index: n,
+                name: cardData ? (cardData.name || cardData.cardName || '') : '',
+                cardName: cardData ? (cardData.name || cardData.cardName || '') : '',
+                imagePath: cardData ? (cardData.imagePath || cardData.src || '') : '',
+                src: cardData ? (cardData.imagePath || cardData.src || '') : ''
+            };
+
+            const jsonStr = JSON.stringify(dragCardData);
+            ev.dataTransfer.setData('text/plain', jsonStr);
+            ev.dataTransfer.setData('application/json', jsonStr);
+            ev.dataTransfer.setData('search-index', String(n));
+            ev.dataTransfer.effectAllowed = 'move';
+
+            // ★ トラッシュ含む「すべてのモーダル」で共通処理：
+            // ドラッグ開始直後にモーダルを「非表示（display:none）」ではなく「透明＆すり抜け（pointer-events:none）」にする。
+            // これにより、カードのゴースト画像が消えず、モーダル直下の領域（フィールド/手札）へドロップできるようになります。
+            setTimeout(() => {
+                const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
+                document.querySelectorAll(selectors).forEach(el => {
+                    el.style.opacity = '0';
+                    el.style.pointerEvents = 'none';
+                });
+            }, 10);
         };
 
         r.ondragend = function(ev) {
-            // ドラッグ終了時にモーダルの透明度・判定を元に戻す
+            // 1. モーダルの透明化とすり抜け状態を解除（元の状態に戻す）
             const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
             document.querySelectorAll(selectors).forEach(el => {
                 el.style.opacity = '';
                 el.style.pointerEvents = '';
             });
 
-            // トラッシュUIの更新があれば実行
+            // 2. ドロップが成功した場合（dropEffectが 'none' 以外）、モーダルを閉じる
+            if (ev.dataTransfer.dropEffect !== 'none') {
+                if (typeof closeSearchModal === 'function') {
+                    closeSearchModal();
+                } else {
+                    const overlay = document.getElementById('searchOverlay');
+                    if (overlay) overlay.style.display = 'none';
+                }
+            }
+
+            // 3. UIの最新化
             if (typeof updateTrashUI === 'function') {
                 updateTrashUI();
             }
@@ -4231,9 +4252,9 @@ function dragEndDeck(ev) {
         });
     });
 
-// ★追加：全カードのドラッグ移動完了時 (dragend) に元の列をチェック
+// ★追加：全カードのドラッグ移動完了時（dragend）に元の列をチェック
 document.addEventListener('dragend', function(ev) {
-    // 1. ドラッグ移動元 (sourceColumnWrapper) が記録されている場合はそれを優先チェック
+    // 1. ドラッグ移動元（sourceColumnWrapper）が記録されている場合はそれを優先チェック
     if (window.sourceColumnWrapper) {
         if (typeof checkAndTrashDirectionCards === 'function') {
             checkAndTrashDirectionCards(window.sourceColumnWrapper);
@@ -4246,20 +4267,6 @@ document.addEventListener('dragend', function(ev) {
         if (typeof checkAndTrashDirectionCards === 'function') {
             checkAndTrashDirectionCards(col);
         }
-    });
-});
-    
-// ★追加：全カードのドラッグ移動完了時（dragend）に元の列をチェック
-document.addEventListener('dragend', function(ev) {
-    // 1. ドラッグ移動元（sourceColumnWrapper）が記録されている場合はそれを優先チェック
-    if (window.sourceColumnWrapper) {
-        checkAndTrashDirectionCards(window.sourceColumnWrapper);
-        window.sourceColumnWrapper = null;
-    }
-
-    // 2. 予備として全列に対してレイヤー2が空になっていないかチェック
-    document.querySelectorAll('.slot-column-wrapper').forEach(col => {
-        checkAndTrashDirectionCards(col);
     });
 });
 
