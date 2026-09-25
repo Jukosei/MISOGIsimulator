@@ -2304,31 +2304,40 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
         }
     }
     // 2. サーチ・ノイズ・山札モーダルからのドロップ
-    else if (dataText === 'search-drag') {
-        let rawIdx = ev.dataTransfer.getData('search-index');
-        let idx = parseInt(rawIdx);
-        let targetList = (currentSearchType === 'deck')
-            ? virtualDeck
-            : ((currentSearchType === 'noise') ? volNoiseCards : trashCards);
+    // 2. サーチ・ノイズ・山札・トラッシュモーダルからのドロップ
+else if (dataText === 'search-drag') {
+    let rawIdx = ev.dataTransfer.getData('search-index');
+    let idx = parseInt(rawIdx);
+    let targetList = (currentSearchType === 'deck') 
+        ? virtualDeck 
+        : ((currentSearchType === 'noise') ? volNoiseCards : trashCards);
 
-        if (!isNaN(idx) && targetList[idx]) {
-            let cardObj = targetList[idx];
-            if (cardObj && expectedType && !getCardType(cardObj).endsWith(expectedType)) {
-                console.log(`【配置不可】Layer ${targetLayer} には ${expectedType} カードしか置けません`);
-                return;
-            }
-
-            cardObj = targetList.splice(idx, 1)[0];
-            createGameCardToHand(cardObj.name, cardObj.imagePath);
-            cardElementToAppend = document.getElementById(`card-id-${cardIdCounter - 1}`);
-
-            if (document.getElementById('deckCount')) document.getElementById('deckCount').innerText = virtualDeck.length;
-            if (document.getElementById('volNoiseCount')) document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-
-            updateTrashUI();
-            renderSearchList();
+    if (!isNaN(idx) && targetList[idx]) {
+        let cardObj = targetList[idx];
+        
+        // 属性・カードタイプ一致チェック
+        if (cardObj && expectedType && !getCardType(cardObj).endsWith(expectedType)) {
+            console.log(`【配置不可】 Layer \({targetLayer} には\){expectedType} カードしか置けません`);
+            return;
         }
+
+        // 配列から削除してカードを作成・手札/フィールド用要素に割り当て
+        cardObj = targetList.splice(idx, 1)[0];
+        
+        // カード要素を作成してドロップ先へセット
+        if (typeof createGameCardToHand === 'function') {
+            createGameCardToHand(cardObj.name || cardObj.cardName, cardObj.imagePath || cardObj.src);
+            cardElementToAppend = document.getElementById(`card-id-${cardIDCounter - 1}`);
+        }
+
+        if (document.getElementById('deckCount')) document.getElementById('deckCount').innerText = virtualDeck.length;
+        if (document.getElementById('volNoiseCount')) document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+
+        updateTrashUI();
+        renderSearchList();
     }
+}
+    
     // 3. トラッシュゾーンからのドロップ
     else if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
         let cardObj = trashCards[trashCards.length - 1];
@@ -2342,6 +2351,7 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
         cardElementToAppend = document.getElementById(`card-id-${cardIdCounter - 1}`);
         updateTrashUI();
     }
+        
     // 4. 手札・他ゾーンからの通常ドラッグ
     else if (dataText) {
         let n = document.getElementById(dataText);
@@ -3558,76 +3568,60 @@ window.nextTime = nextTime;
         }
 
         r.ondragstart = function(ev) {
-            // 受け取り側（フィールド・手札・トラッシュ・VOL等）が認識できるようカードデータをセット
-            const dragCardData = {
-                type: 'search-drag',
-                trashIndex: n,
-                searchIndex: n,
-                index: n,
-                name: cardData ? (cardData.name || cardData.cardName || '') : '',
-                cardName: cardData ? (cardData.name || cardData.cardName || '') : '',
-                imagePath: cardData ? (cardData.imagePath || cardData.src || '') : '',
-                src: cardData ? (cardData.imagePath || cardData.src || '') : ''
-            };
+    const dragCardData = {
+        type: 'search-drag',
+        trashIndex: n,
+        searchIndex: n,
+        index: n,
+        name: cardData ? (cardData.name || cardData.cardName || '') : '',
+        cardName: cardData ? (cardData.name || cardData.cardName || '') : '',
+        imagePath: cardData ? (cardData.imagePath || cardData.src || '') : '',
+        src: cardData ? (cardData.imagePath || cardData.src || '') : ''
+    };
 
-            const jsonStr = JSON.stringify(dragCardData);
-            ev.dataTransfer.setData('text/plain', jsonStr);
-            ev.dataTransfer.setData('application/json', jsonStr);
-            ev.dataTransfer.setData('search-index', String(n));
-            ev.dataTransfer.effectAllowed = 'move';
+    const jsonStr = JSON.stringify(dragCardData);
+    ev.dataTransfer.setData('text/plain', jsonStr);
+    ev.dataTransfer.setData('application/json', jsonStr);
+    ev.dataTransfer.setData('search-index', String(n));
+    ev.dataTransfer.effectAllowed = 'move';
 
-            // ★ トラッシュ含む「すべてのモーダル」で共通処理：
-            // ドラッグ開始直後にモーダルを「非表示（display:none）」ではなく「透明＆すり抜け（pointer-events:none）」にする。
-            // これにより、カードのゴースト画像が消えず、モーダル直下の領域（フィールド/手札）へドロップできるようになります。
-            setTimeout(() => {
-                const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
-                document.querySelectorAll(selectors).forEach(el => {
-                    el.style.opacity = '0';
-                    el.style.pointerEvents = 'none';
-                });
-            }, 10);
-        };
-
-        r.ondragend = function(ev) {
-            // 1. モーダルの透明化とすり抜け状態を解除（元の状態に戻す）
+    // ★ トラッシュモーダルの時のみ：モーダルを透明＆すり抜けにして、下のエリア1〜4等へドロップ可能にする
+    if (currentSearchType === 'trash') {
+        setTimeout(() => {
             const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
             document.querySelectorAll(selectors).forEach(el => {
-                el.style.opacity = '';
-                el.style.pointerEvents = '';
+                el.style.opacity = '0';
+                el.style.pointerEvents = 'none';
             });
+        }, 10);
+    }
+};
 
-            // 2. ドロップが成功した場合（dropEffectが 'none' 以外）、モーダルを閉じる
-            if (ev.dataTransfer.dropEffect !== 'none') {
-                if (typeof closeSearchModal === 'function') {
-                    closeSearchModal();
-                } else {
-                    const overlay = document.getElementById('searchOverlay');
-                    if (overlay) overlay.style.display = 'none';
-                }
+r.ondragend = function(ev) {
+    // トラッシュモーダルの時のみ処理を行う
+    if (currentSearchType === 'trash') {
+        // 1. モーダルの透明化・すり抜け状態を解除
+        const selectors = '.search-overlay, .search-modal, .modal, .modal-overlay, #searchOverlay';
+        document.querySelectorAll(selectors).forEach(el => {
+            el.style.opacity = '';
+            el.style.pointerEvents = '';
+        });
+
+        // 2. ドロップが成功した場合（none 以外）のみトラッシュモーダルを閉じる
+        if (ev.dataTransfer.dropEffect !== 'none') {
+            if (typeof closeSearchModal === 'function') {
+                closeSearchModal();
+            } else {
+                const overlay = document.getElementById('searchOverlay');
+                if (overlay) overlay.style.display = 'none';
             }
+        }
 
-            // 3. UIの最新化
-            if (typeof updateTrashUI === 'function') {
-                updateTrashUI();
-            }
-        };
-
-        r.addEventListener('touchstart', function(ev) {
-            ev.preventDefault();
-            dragTarget = ev.currentTarget;
-            let touch = ev.touches[0];
-            let c = dragTarget.getBoundingClientRect();
-            startX = touch.clientX - c.left;
-            startY = touch.clientY - c.top;
-            dragTarget.classList.add('dragging');
-            dragTarget.setAttribute('data-from-search', 'true');
-            dragTarget.setAttribute('data-search-index', n);
-            dragTarget.style.backgroundImage = `url('${cardData.imagePath}')`;
-            dragTarget.innerText = cardData.name;
-            document.body.appendChild(dragTarget);
-            if (isSearchOpen) document.getElementById('searchOverlay').classList.add('dragging-mode');
-        }, { passive: false });
-
+        if (typeof updateTrashUI === 'function') {
+            updateTrashUI();
+        }
+    }
+};
         r.onclick = function(ev) {
             ev.stopPropagation();
             if (currentSearchType === 'trash') {
