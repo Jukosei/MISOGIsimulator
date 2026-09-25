@@ -2245,7 +2245,11 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
 
     let targetFrame = ev.currentTarget;
 
-    // ★ レイヤー1または3に置く場合、同じ列のレイヤー2にカードが置かれているかチェック
+    // ★ レイヤーごとの要求カードタイプを定義（Layer 1: M, Layer 2: A, Layer 3: S）
+    const requiredTypes = { 1: 'M', 2: 'A', 3: 'S' };
+    const expectedType = requiredTypes[targetLayer] || '';
+
+    // ★ レイヤー1または3に置く場合、同列のレイヤー2にカードが置かれているかチェック
     if (targetLayer === 1 || targetLayer === 3) {
         const parentColumn = targetFrame.closest('.slot-column-wrapper') || targetFrame.parentElement;
         const layer2Frame = parentColumn ? parentColumn.querySelector('.layer-2') : null;
@@ -2269,34 +2273,35 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
     } catch (e) {}
 
     // カードコードのハイフン直前のアルファベット1文字（A/M/S/D等）のみを抽出する関数
-        const getCardType = (cardInput) => {
-            if (!cardInput) return '';
-            let codeStr = '';
+    const getCardType = (cardInput) => {
+        if (!cardInput) return '';
+        let codeStr = '';
 
-            if (typeof cardInput === 'string') {
-                codeStr = cardInput;
-            } else if (typeof cardInput === 'object') {
-                // オブジェクトの場合は prefix, code, name, cardName の順で探索
-                codeStr = cardInput.prefix || cardInput.code || cardInput.name || cardInput.cardName || '';
-            }
+        if (typeof cardInput === 'string') {
+            codeStr = cardInput;
+        } else if (typeof cardInput === 'object') {
+            codeStr = cardInput.prefix || cardInput.code || cardInput.name || cardInput.cardName || '';
+        }
 
-            codeStr = String(codeStr).trim();
+        codeStr = String(codeStr).trim();
 
-            // ハイフンが存在する場合（例: "AM-1" -> ハイフン直前は "M"、"A-1" -> "A"）
-            if (codeStr.includes('-')) {
-                let parts = codeStr.split('-');
-                let beforeHyphen = parts[0].trim();
-                // ハイフン直前の最後の1文字（アルファベット）を取得
-                return beforeHyphen.slice(-1).toUpperCase();
-            }
-        };
+        if (codeStr.includes('-')) {
+            let parts = codeStr.split('-');
+            let beforeHyphen = parts[0].trim();
+            return beforeHyphen.slice(-1).toUpperCase();
+        }
+
+        return codeStr.charAt(0).toUpperCase();
+    };
+
+    let cardElementToAppend = null;
 
     // 1. 山札確認モーダルからのドロップ
     if (data && data.type === 'deck-view-card') {
         if (typeof deckViewCards !== 'undefined' && data.viewIndex !== undefined) {
             let cardObj = deckViewCards[data.viewIndex];
-            if (cardObj && expectedType && !getCardType(cardObj).endsWith(expectedType)) {
-                console.log(`【配置不可】Layer ${targetLayer} には ${expectedType} カードしか置けません`);
+            if (cardObj && expectedType && getCardType(cardObj) !== expectedType) {
+                console.log(`【配置不可】 Layer \({targetLayer} には\){expectedType} カードしか置けません`);
                 return;
             }
 
@@ -2305,59 +2310,50 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
 
             if (cardObj && typeof createGameCardToHand === 'function') {
                 createGameCardToHand(cardObj.name, cardObj.imagePath);
-                cardElementToAppend = document.getElementById(`card-id-${cardIdCounter - 1}`);
+                cardElementToAppend = document.getElementById(`card-id-${cardIDCounter - 1}`);
             }
         }
     }
-    // 2. サーチ・ノイズ・山札モーダルからのドロップ
     // 2. サーチ・ノイズ・山札・トラッシュモーダルからのドロップ
-else if (dataText === 'search-drag') {
-    let rawIdx = ev.dataTransfer.getData('search-index');
-    let idx = parseInt(rawIdx);
-    let targetList = (currentSearchType === 'deck') 
-        ? virtualDeck 
-        : ((currentSearchType === 'noise') ? volNoiseCards : trashCards);
+    else if (dataText === 'search-drag' || (data && data.type === 'search-drag')) {
+        let rawIdx = ev.dataTransfer.getData('search-index');
+        let idx = parseInt(rawIdx);
+        let targetList = (currentSearchType === 'deck')
+            ? virtualDeck
+            : ((currentSearchType === 'noise') ? volNoiseCards : trashCards);
 
-    if (!isNaN(idx) && targetList[idx]) {
-        let cardObj = targetList[idx];
-        
-        // 属性・カードタイプ一致チェック
-        if (cardObj && expectedType && !getCardType(cardObj).endsWith(expectedType)) {
+        if (!isNaN(idx) && targetList[idx]) {
+            let cardObj = targetList[idx];
+
+            if (cardObj && expectedType && getCardType(cardObj) !== expectedType) {
+                console.log(`【配置不可】 Layer \({targetLayer} には\){expectedType} カードしか置けません`);
+                return;
+            }
+
+            cardObj = targetList.splice(idx, 1)[0];
+            createGameCardToHand(cardObj.name || cardObj.cardName, cardObj.imagePath || cardObj.src);
+            cardElementToAppend = document.getElementById(`card-id-${cardIDCounter - 1}`);
+
+            if (document.getElementById('deckCount')) document.getElementById('deckCount').innerText = virtualDeck.length;
+            if (document.getElementById('volNoiseCount')) document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
+
+            updateTrashUI();
+            renderSearchList();
+        }
+    }
+    // 3. トラッシュゾーンからのドロップ
+    else if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
+        let cardObj = trashCards[trashCards.length - 1];
+        if (cardObj && expectedType && getCardType(cardObj) !== expectedType) {
             console.log(`【配置不可】 Layer \({targetLayer} には\){expectedType} カードしか置けません`);
             return;
         }
 
-        // 配列から削除してカードを作成・手札/フィールド用要素に割り当て
-        cardObj = targetList.splice(idx, 1)[0];
-        
-        // カード要素を作成してドロップ先へセット
-        if (typeof createGameCardToHand === 'function') {
-            createGameCardToHand(cardObj.name || cardObj.cardName, cardObj.imagePath || cardObj.src);
-            cardElementToAppend = document.getElementById(`card-id-${cardIDCounter - 1}`);
-        }
-
-        if (document.getElementById('deckCount')) document.getElementById('deckCount').innerText = virtualDeck.length;
-        if (document.getElementById('volNoiseCount')) document.getElementById('volNoiseCount').innerText = volNoiseCards.length;
-
-        updateTrashUI();
-        renderSearchList();
-    }
-}
-    
-    // 3. トラッシュゾーンからのドロップ
-    else if (dataText === 'trash-zone-drag' && trashCards.length > 0) {
-        let cardObj = trashCards[trashCards.length - 1];
-        if (cardObj && expectedType && !getCardType(cardObj).endsWith(expectedType)) {
-            console.log(`【配置不可】Layer ${targetLayer} には ${expectedType} カードしか置けません`);
-            return;
-        }
-
         cardObj = trashCards.pop();
-        createGameCardToHand(cardObj.name, cardObj.imagePath);
-        cardElementToAppend = document.getElementById(`card-id-${cardIdCounter - 1}`);
+        createGameCardToHand(cardObj.name || cardObj.cardName, cardObj.imagePath || cardObj.src);
+        cardElementToAppend = document.getElementById(`card-id-${cardIDCounter - 1}`);
         updateTrashUI();
     }
-        
     // 4. 手札・他ゾーンからの通常ドラッグ
     else if (dataText) {
         let n = document.getElementById(dataText);
@@ -2365,8 +2361,8 @@ else if (dataText === 'search-drag') {
             let cardName = n.getAttribute('data-cardname') || n.getAttribute('data-cardcode') || n.innerText || '';
             let cardType = getCardType(cardName);
 
-            if (expectedType && !cardType.endsWith(expectedType)) {
-                console.log(`【配置不可】Layer ${targetLayer} には ${expectedType} カードしか置けません (ドラッグされた型: ${cardType})`);
+            if (expectedType && cardType !== expectedType) {
+                console.log(`【配置不可】 Layer \({targetLayer} には\){expectedType} カードしか置けません (ドラッグされた型: ${cardType})`);
                 return;
             }
 
@@ -2382,15 +2378,13 @@ else if (dataText === 'search-drag') {
         cardElementToAppend.setAttribute('draggable', 'true');
         cardElementToAppend.ondragstart = function(e) {
             e.dataTransfer.setData('text/plain', cardElementToAppend.id);
-            // ★追加：ドラッグ開始時に移動元の列要素を覚えておく
             window.sourceColumnWrapper = cardElementToAppend.closest('.slot-column-wrapper');
         };
 
         // レイヤーごとの回転制御
         if (targetLayer === 2) {
-            // ★ レイヤー2 (Aゾーン) のみ横回転を付与＆クリックで回転切り替え可能
+            // レイヤー2 (Aゾーン) のみ横回転を付与＆クリックで回転切り替え可能
             cardElementToAppend.classList.add('card-rotate-horizontal');
-            
             cardElementToAppend.onclick = function(e) {
                 e.stopPropagation();
                 this.classList.toggle('card-rotate-horizontal');
@@ -2411,16 +2405,18 @@ else if (dataText === 'search-drag') {
                 if (frame3) frame3.classList.add('layer-active');
             }
         } else {
-            // ★ レイヤー1および3は常に縦向き固定（横回転を強制解除＆クリック回転無効化）
+            // レイヤー1および3は常に縦向き固定 (回転無効化)
             cardElementToAppend.classList.remove('card-rotate-horizontal');
             cardElementToAppend.onclick = null;
         }
 
         // ★追加：移動元のレイヤー2が空になったかチェックしてトラッシュへ送る
-    if (window.sourceColumnWrapper) {
-        checkAndTrashDirectionCards(window.sourceColumnWrapper);
-        window.sourceColumnWrapper = null; // リセット
-    }
+        if (window.sourceColumnWrapper) {
+            if (typeof checkAndTrashDirectionCards === 'function') {
+                checkAndTrashDirectionCards(window.sourceColumnWrapper);
+            }
+            window.sourceColumnWrapper = null;
+        }
     }
 }
             
