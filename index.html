@@ -1473,7 +1473,7 @@ function showToast(text) {
     ev.dataTransfer.effectAllowed = 'move';
 }
 
-            // レイヤー2が空になった際、レイヤー1・3のカードをトラッシュ（trashCards配列）へ移動する関数
+            // レイヤー2が空になった際、同列のレイヤー1・3のカードを即座にトラッシュへ送る関数
 function checkAndTrashDirectionCards(columnWrapper) {
     if (!columnWrapper) return;
 
@@ -1483,20 +1483,15 @@ function checkAndTrashDirectionCards(columnWrapper) {
 
     // レイヤー2にカードが存在しない（空になった）場合
     if (layer2Cards.length === 0) {
-        // レイヤー1と3に残っているカードを取得
-        // 修正後（1485行目〜1506行目）
-    if (layer2Cards.length === 0) {
-        // レイヤー1と3（レイヤー2以外）に含まれるすべてのカード要素を確実に取得
+        // レイヤー1と3のカード（レイヤー2以外）を取得
         const allCardEls = columnWrapper.querySelectorAll('.game-card');
         const directionCards = Array.from(allCardEls).filter(card => {
-            // レイヤー2の中に含まれていないカード（＝レイヤー1または3のカード）を抽出
-            return !layer2.contains(card);
+            return layer2 ? !layer2.contains(card) : true;
         });
 
         if (directionCards.length === 0) return;
 
         directionCards.forEach(card => {
-            // カード情報（名前・画像パス）を複数の属性からフォールバック取得
             const cardName = card.getAttribute('data-cardname') || card.dataset.cardname || card.innerText || '';
             const imgEl = card.querySelector('img');
             const imagePath = card.getAttribute('data-imagepath') || card.dataset.imagepath || (imgEl ? imgEl.src : '') || card.src || '';
@@ -1509,11 +1504,11 @@ function checkAndTrashDirectionCards(columnWrapper) {
                 });
             }
 
-            // 2. フィールド上からカード要素（DOM）をその場ですぐ削除
+            // 2. フィールド上からカード要素を削除
             card.remove();
         });
 
-        // 3. トラッシュ領域の表示（枚数カウント等）を公式関数で更新
+        // 3. トラッシュUIの更新
         if (typeof updateTrashUI === 'function') {
             updateTrashUI();
         }
@@ -4368,7 +4363,7 @@ if (typeof mulliganBtn === 'function') {
 }
 if (typeof drawBottomCard === 'function') window.drawBottomCard = drawBottomCard;
 if (typeof shuffleVolNoise === 'function') window.shuffleVolNoise = shuffleVolNoise;
-    
+            
 </script>
 </body>
 </html>
