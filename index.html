@@ -2703,39 +2703,43 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
         return;
     }
             
-    // ★ 2. フィールド/レイヤーからの手札戻し処理（既存の処理）
-    if (dataText) {
-        let cardEl = document.getElementById(dataText);
-        if (cardEl) {
-            let cardName = cardEl.getAttribute('data-cardname') || cardEl.innerText;
-            let imagePath = cardEl.getAttribute('data-imagepath');
-            createGameCardToHand(cardName, imagePath);
-            cardEl.remove();
-        }
-    }
-            else if (dataText) {
-        let a = document.getElementById(dataText);
-        if (a) {
-            // ★ 移動前の親要素（レイヤー枠）と列要素（.slot-column-wrapper）を保持
-            let parentFrame = a.parentElement;
-            let columnWrapper = parentFrame ? parentFrame.closest('.slot-column-wrapper') : null;
+    // ★ 2. フィールド/レイヤーからの手札戻し処理
+        if (dataText) {
+            let cardEl = document.getElementById(dataText);
+            if (cardEl) {
+                let cardName = cardEl.getAttribute('data-cardname') || cardEl.innerText;
+                let imagePath = cardEl.getAttribute('data-imagepath');
+                createGameCardToHand(cardName, imagePath);
+                cardEl.remove();
+            }
+            else {
+                let a = document.getElementById(dataText);
+                if (!a) {
+                    // querySelectorなどで要素を探すフォールバック
+                    a = document.querySelector(`[id="${dataText}"]`);
+                }
 
-            a.classList.remove('card-rotate-horizontal'); // 回転解除
-            a.classList.remove('card-dimmed');            // 薄暗さ解除
-            document.getElementById('handArea').appendChild(a);
+                if (a) {
+                    // 移動前の親要素と列Wrapperを【手札移動前】に保持
+                    let parentFrame = a.parentElement;
+                    let columnWrapper = a.closest('.slot-column-wrapper') || (parentFrame ? parentFrame.closest('.slot-column-wrapper') : null);
+                    let isFromLayer2 = parentFrame && (parentFrame.classList.contains('layer-2') || parentFrame.getAttribute('data-layer') === '2');
 
-            // ★ もし移動元が Layer 2 で、カードが無くなった場合は Layer 1・3 のカードをトラッシュへ送信する
-            if (parentFrame && parentFrame.classList.contains('layer-2')) {
-                let cardInLayer2 = parentFrame.querySelector('.game-card');
-                if (!cardInLayer2 && columnWrapper) {
-                    if (typeof checkAndTrashDirectionCards === 'function') {
-                        checkAndTrashDirectionCards(columnWrapper);
+                    // 手札エリアへ移動
+                    a.classList.remove('card-rotate-horizontal');
+                    a.classList.remove('card-dimmed');
+                    document.getElementById('handArea').appendChild(a);
+
+                    // ★ レイヤー2から取り除かれた場合、同列のレイヤー1・3をトラッシュへ送信
+                    if (isFromLayer2 && columnWrapper) {
+                        if (typeof checkAndTrashDirectionCards === 'function') {
+                            checkAndTrashDirectionCards(columnWrapper);
+                        }
                     }
                 }
             }
         }
-    }
-}
+        }
 
         function dropToTrash(ev) {
     ev.preventDefault();
