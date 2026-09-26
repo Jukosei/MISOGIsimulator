@@ -2703,39 +2703,28 @@ function dropToSpecificFrame(ev, colIndex, targetLayer) {
         return;
     }
             
-    // ★ 2. フィールド/レイヤーからの手札戻し処理
+    // ★ 2. フィールド/レイヤーからの手札戻し処理（即時トラッシュ連携版）
         if (dataText) {
-            let cardEl = document.getElementById(dataText);
-            if (cardEl) {
-                let cardName = cardEl.getAttribute('data-cardname') || cardEl.innerText;
-                let imagePath = cardEl.getAttribute('data-imagepath');
-                createGameCardToHand(cardName, imagePath);
-                cardEl.remove();
-            }
-            else {
-                let a = document.getElementById(dataText);
-                if (!a) {
-                    // querySelectorなどで要素を探すフォールバック
-                    a = document.querySelector(`[id="${dataText}"]`);
-                }
+            let a = document.getElementById(dataText) || document.querySelector(`[id="${dataText}"]`);
 
-                if (a) {
-                    // 移動前の親要素と列Wrapperを【手札移動前】に保持
-                    let parentFrame = a.parentElement;
-                    let columnWrapper = a.closest('.slot-column-wrapper') || (parentFrame ? parentFrame.closest('.slot-column-wrapper') : null);
-                    let isFromLayer2 = parentFrame && (parentFrame.classList.contains('layer-2') || parentFrame.getAttribute('data-layer') === '2');
+            if (a) {
+                // 移動前の親枠と列Wrapperを【カード移動前に保持】
+                let parentFrame = a.parentElement;
+                let columnWrapper = a.closest('.slot-column-wrapper') || (parentFrame ? parentFrame.closest('.slot-column-wrapper') : null);
+                let isFromLayer2 = parentFrame && (parentFrame.classList.contains('layer-2') || parentFrame.getAttribute('data-layer') === '2');
 
-                    // 手札エリアへ移動
-                    a.classList.remove('card-rotate-horizontal');
-                    a.classList.remove('card-dimmed');
-                    document.getElementById('handArea').appendChild(a);
+                // 手札エリアへ移動
+                a.classList.remove('card-rotate-horizontal');
+                a.classList.remove('card-dimmed');
+                document.getElementById('handArea').appendChild(a);
 
-                    // ★ レイヤー2から取り除かれた場合、同列のレイヤー1・3をトラッシュへ送信
-                    if (isFromLayer2 && columnWrapper) {
+                // レイヤー2からの移動だった場合、同列のレイヤー1・3を即座にトラッシュへ
+                if (isFromLayer2 && columnWrapper) {
+                    setTimeout(() => {
                         if (typeof checkAndTrashDirectionCards === 'function') {
                             checkAndTrashDirectionCards(columnWrapper);
                         }
-                    }
+                    }, 0);
                 }
             }
         }
