@@ -1150,6 +1150,23 @@
     }
 
     // --- 既存の変数群 ---
+let activePlayer = 1; // 現在操作中のプレイヤー (1 or 2)
+let gameState = {
+    1: { deck: [], hand: [], trash: [] },
+    2: { deck: [], hand: [], trash: [] }
+};
+
+let currentMode = 2;
+let turn = 1;
+let counters = { vol: 0, alpha: 0, beta: 0, omega: 0 };
+let selectedColumnIndex = null;
+let cardIdCounter = 0;
+let virtualDeck = [];
+let dragTarget = null;
+let startX = 0;
+let startY = 0;
+let volNoiseCards = [];
+let trashCards = [];
     let currentMode = 2;
     let turn = 1;
     let counters = { vol: 0, alpha: 0, beta: 0, omega: 0 };
@@ -1177,6 +1194,37 @@
 
     // --- グローバル登録 (onclick保証) ---
     window.clearInput = clearInput;
+
+            // --- プレイヤー切り替え関数（1ボタン用） ---
+function toggleActivePlayer() {
+    const currentMisogiMode = parseInt(localStorage.getItem('misogi_mode')) || 1;
+    if (currentMisogiMode !== 2) return;
+
+    // 現在の操作プレイヤーを交互に切り替え (1 ↔ 2)
+    activePlayer = (activePlayer === 1) ? 2 : 1;
+
+    // ボタンのテキスト表示更新
+    const toggleBtn = document.getElementById('btnPlayerToggle');
+    if (toggleBtn) {
+        toggleBtn.innerText = `プレイヤー切替 (P${activePlayer}操作中)`;
+        toggleBtn.style.backgroundColor = (activePlayer === 2) ? '#ff4757' : '';
+    }
+
+    // 参照データを切り替え
+    if (gameState[activePlayer]) {
+        virtualDeck = gameState[activePlayer].deck;
+        trashCards = gameState[activePlayer].trash;
+    }
+
+    // UI更新
+    if (typeof updateDeckCountUI === 'function') updateDeckCountUI();
+    if (typeof updateTrashUI === 'function') updateTrashUI();
+    if (typeof renderHand === 'function') renderHand();
+
+    if (typeof showToast === 'function') {
+        showToast(`P${activePlayer}操作モードに切り替えました`);
+    }
+}
             
             function selectMode(mode) {
     localStorage.setItem('misogi_mode', mode);
@@ -1277,172 +1325,188 @@ function shuffleArray(array) {
     return array;
 }
 
-            // ゲーム開始時・再スタート時の状態リセット処理
-function startGame() {
-    // ★ 1. 盤面（ステージ・ディレクション・チェンジ・スロット等）のカード要素をすべて削除
-    const boardCards = document.querySelectorAll('.stage-zone *, .direction-zone *, [class*="stage"] *, [class*="direction"] *, [class*="change"] *, [class*="slot"] *');
-    boardCards.forEach(el => {
-        if (el.classList.contains('card') || el.classList.contains('game-card') || el.tagName === 'IMG' || el.getAttribute('draggable') === 'true') {
-            el.remove();
+            function startGame() {
+        // ★ 1. 盤面（ステージ・ディレクション・チェンジ・スロット等）のカード要素をすべて削除
+        const boardCards = document.querySelectorAll('.stage-zone *, .direction-zone *, [class*="stage"] *, [class*="direction"] *, [class*="change"] *, [class*="slot"] *');
+        boardCards.forEach(el => {
+            if (el.classList.contains('card') || el.classList.contains('game-card') || el.tagName === 'IMG' || el.getAttribute('draggable') === 'true') {
+                el.remove();
+            }
+        });
+
+        // ★ 2. VOLノイズおよびトラッシュ枠内のカード表示DOM要素を直接削除（山札deckは除く）
+        const specialZoneCards = document.querySelectorAll('#volNoise *, .vol-noise *, [class*="volnoise"] *, #trash *, .trash *, [class*="trash"] *');
+        specialZoneCards.forEach(el => {
+            if (el.classList.contains('card') || el.classList.contains('game-card') || el.tagName === 'IMG') {
+                el.remove();
+            }
+        });
+
+        // ★ 3. トラッシュ・VOLノイズの配列データを完全クリア
+        trashCards = [];
+        volNoiseCards = [];
+        if (typeof trash !== 'undefined' && Array.isArray(trash)) trash.length = 0;
+        if (typeof volNoise !== 'undefined' && Array.isArray(volNoise)) volNoise.length = 0;
+
+        // トラッシュ・VOLノイズのテキストカウントを 0 に設定
+        const countIds = ['trashCount', 'trash-count', 'val-trash', 'volNoiseCount', 'vol-noise-count', 'volnoiseCount', 'val-volnoise'];
+        countIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.innerText = '0';
+        });
+
+        // ★ 4. UI描画関数の安全呼び出し（トラッシュ・VOLノイズの表示を完全リセット）
+        if (typeof updateTrashUI === 'function') updateTrashUI();
+        if (typeof updateVolNoiseUI === 'function') updateVolNoiseUI();
+
+        // 5. ターン数のリセット
+        turn = 1;
+        const turnEl = document.getElementById('turnCount');
+        if (turnEl) turnEl.innerText = '1';
+
+        // 6. マリガン回数のリセット
+        mulliganCount = 0;
+        const mulliganEl = document.getElementById('mulliganCount');
+        if (mulliganEl) mulliganEl.innerText = '0';
+
+        // 7. ダイス結果のクリア
+        const lastDiceEl = document.getElementById('lastDiceResult');
+        if (lastDiceEl) lastDiceEl.innerText = '-';
+        const diceContainer = document.getElementById('diceDisplayArea');
+        if (diceContainer) diceContainer.innerHTML = '';
+
+        // 8. 各種魔力カウンター（VOL, alpha, beta, omega）のリセット
+        const counterTypes = ['vol', 'alpha', 'beta', 'omega'];
+        counterTypes.forEach(type => {
+            const el = document.getElementById('val-' + type);
+            if (el) el.innerText = '0';
+
+            if (typeof counters === 'object' && counters !== null && counters[type] !== undefined) {
+                counters[type] = 0;
+            }
+        });
+
+        // 9. ターンエンドボタンのリセット
+        isTurnEnded = false;
+        const turnBtn = document.getElementById('turnBtn');
+        if (turnBtn) {
+            turnBtn.innerText = 'ターンエンド';
+            turnBtn.style.backgroundColor = '#ffa500';
         }
-    });
 
-    // ★ 2. VOLノイズおよびトラッシュ枠内のカード表示DOM要素を直接削除（山札deckは除く）
-    const specialZoneCards = document.querySelectorAll('#volNoise *, .vol-noise *, [class*="volnoise"] *, #trash *, .trash *, [class*="trash"] *');
-    specialZoneCards.forEach(el => {
-        if (el.classList.contains('card') || el.classList.contains('game-card') || el.tagName === 'IMG') {
-            el.remove();
+        // ★ 10. プレイヤー切替ボタンの表示制御
+        const switchContainer = document.getElementById('playerSwitchContainer');
+        const toggleBtn = document.getElementById('btnPlayerToggle');
+        activePlayer = 1; // 初期状態はP1
+
+        if (toggleBtn) {
+            toggleBtn.innerText = 'プレイヤー切替 (P1操作中)';
+            toggleBtn.style.backgroundColor = '';
         }
-    });
 
-    // ★ 3. トラッシュ・VOLノイズの配列データを完全クリア
-    trashCards = [];
-    volNoiseCards = [];
-    if (typeof trash !== 'undefined' && Array.isArray(trash)) trash.length = 0;
-    if (typeof volNoise !== 'undefined' && Array.isArray(volNoise)) volNoise.length = 0;
-
-    // トラッシュ・VOLノイズのテキストカウントを 0 に設定
-    const countIds = ['trashCount', 'trash-count', 'val-trash', 'volNoiseCount', 'vol-noise-count', 'volnoiseCount', 'val-volnoise'];
-    countIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerText = '0';
-    });
-
-    // ★ 4. UI描画関数の安全呼び出し（トラッシュ・VOLノイズの表示を完全リセット）
-    if (typeof updateTrashUI === 'function') updateTrashUI();
-    if (typeof updateVolNoiseUI === 'function') updateVolNoiseUI();
-
-    // 5. ターン数のリセット
-    turn = 1;
-    const turnEl = document.getElementById('turnCount');
-    if (turnEl) turnEl.innerText = '1';
-
-    // 6. マリガン回数のリセット
-    mulliganCount = 0;
-    const mulliganEl = document.getElementById('mulliganCount');
-    if (mulliganEl) mulliganEl.innerText = '0';
-
-    // 7. ダイス結果のクリア
-    const lastDiceEl = document.getElementById('lastDiceResult');
-    if (lastDiceEl) lastDiceEl.innerText = '-';
-    const diceContainer = document.getElementById('diceDisplayArea');
-    if (diceContainer) diceContainer.innerHTML = '';
-
-    // 8. 各種魔力カウンター（VOL, alpha, beta, omega）のリセット
-    const counterTypes = ['vol', 'alpha', 'beta', 'omega'];
-    counterTypes.forEach(type => {
-        const el = document.getElementById('val-' + type);
-        if (el) el.innerText = '0';
-
-        if (typeof counters === 'object' && counters !== null && counters[type] !== undefined) {
-            counters[type] = 0;
-        }
-    });
-
-    // 9. ターンエンドボタンのリセット
-    isTurnEnded = false;
-    const turnBtn = document.getElementById('turnBtn');
-    if (turnBtn) {
-        turnBtn.innerText = 'ターンエンド';
-        turnBtn.style.backgroundColor = '#ffa500';
-    }
-
-    // ★ 10. デッキコードの取得と山札の生成（改行・スラッシュの両区切りに対応）
-    let inputEl = document.getElementById('deckInput1');
-    if (!inputEl || !inputEl.value.trim()) {
-        return alert('デッキコードを入力してください！');
-    }
-
-    let t = inputEl.value;
-    // 改行 または スラッシュ(/) で分割
-    let e = t.split(/[\r\n/]+/).map(str => str.trim()).filter(str => str.length > 0);
-
-    let a = [];
-    e.forEach(codeStr => {
-        let p = codeStr.split('-');
-        if (p.length >= 2) {
-            let prefix = p[0].toUpperCase();
-            let r = prefix.charAt(prefix.length - 1);
-            a.push({ name: codeStr, suffix: r, imagePath: `images/${codeStr}.png` });
-        }
-    });
-    
-   // シャッフル処理
-virtualDeck = shuffleArray(a);
-
-    // ★ 11. 手札の消去と初期ドロー
-    let handArea = document.getElementById('handArea');
-    if (handArea) handArea.innerHTML = "";
-
-    const drawCount = Math.min(7, virtualDeck.length);
-    for (let i = 0; i < drawCount; i++) {
-        let drawnCard = virtualDeck.shift();
-        if (drawnCard) {
-            createGameCardToHand(drawnCard.name, drawnCard.imagePath);
-        }
-    }
-
-        // ★ 12. 山札（デッキ）エリアの画像と枚数カウントのUI更新
-    const deckContainer = document.getElementById('deck') || document.querySelector('.deck-zone');
-    if (deckContainer) {
-        deckContainer.innerHTML = '';
-        deckContainer.style.position = 'relative';
-
-        // 1. 裏面カード画像を配置（正確なファイル名 card_back.png を指定）
-        const backImg = document.createElement('img');
-        backImg.src = 'images/card_back.png';
-        backImg.style.width = '100%';
-        backImg.style.height = '100%';
-        backImg.style.objectFit = 'cover';
-        backImg.style.borderRadius = '6px';
-        backImg.style.display = 'block';
-        backImg.style.pointerEvents = 'none'; // 画像単体の標準ドラッグを無効化（画面ズレ防止）
-        backImg.onerror = function() { this.style.display = 'none'; };
-        deckContainer.appendChild(backImg);
-
-        // 2. 枚数テキスト要素を配置
-        const countSpan = document.createElement('span');
-        countSpan.id = 'deckCount';
-        countSpan.innerText = virtualDeck.length;
-        countSpan.style.position = 'absolute';
-        countSpan.style.top = '50%';
-        countSpan.style.left = '50%';
-        countSpan.style.transform = 'translate(-50%, -50%)';
-        countSpan.style.zIndex = '2';
-        countSpan.style.fontWeight = 'bold';
-        countSpan.style.color = '#fff';
-        countSpan.style.pointerEvents = 'none';
-        deckContainer.appendChild(countSpan);
-
-        // 3. 元の山札ドラッグ関数（dragStartDeck / dragEndDeck）を安全に実行
-        deckContainer.setAttribute('draggable', 'true');
-        deckContainer.ondragstart = function(e) {
-            if (typeof dragStartDeck === 'function') {
-                dragStartDeck(e);
+        if (switchContainer) {
+            const currentMisogiMode = parseInt(localStorage.getItem('misogi_mode')) || 1;
+            if (currentMisogiMode === 2) {
+                switchContainer.style.display = 'block'; // 2デッキモードのみ表示
             } else {
-                if (!virtualDeck || virtualDeck.length === 0) {
-                    e.preventDefault();
-                    return;
+                switchContainer.style.display = 'none';  // 1デッキモードは非表示
+            }
+        }
+
+        // ★ 11. デッキコードの取得と山札の生成（改行・スラッシュの両区切りに対応）
+        let inputEl = document.getElementById('deckInput1');
+        if (!inputEl || !inputEl.value.trim()) {
+            return alert('デッキコードを入力してください！');
+        }
+
+        let t = inputEl.value;
+        let e = t.split(/[\r\n/]+/).map(str => str.trim()).filter(str => str.length > 0);
+
+        let a = [];
+        e.forEach(codeStr => {
+            let p = codeStr.split('-');
+            if (p.length >= 2) {
+                let prefix = p[0].toUpperCase();
+                let r = prefix.charAt(prefix.length - 1);
+                a.push({ name: codeStr, suffix: r, imagePath: `images/${codeStr}.png` });
+            }
+        });
+
+        // シャッフル処理
+        virtualDeck = shuffleArray(a);
+
+        // ★ 12. 手札の消去と初期ドロー
+        let handArea = document.getElementById('handArea');
+        if (handArea) handArea.innerHTML = "";
+
+        const drawCount = Math.min(7, virtualDeck.length);
+        for (let i = 0; i < drawCount; i++) {
+            let drawnCard = virtualDeck.shift();
+            if (drawnCard) {
+                createGameCardToHand(drawnCard.name, drawnCard.imagePath);
+            }
+        }
+
+        // ★ 13. 山札（デッキ）エリアの画像と枚数カウントのUI更新
+        const deckContainer = document.getElementById('deck') || document.querySelector('.deck-zone');
+        if (deckContainer) {
+            deckContainer.innerHTML = '';
+            deckContainer.style.position = 'relative';
+
+            // 裏面カード画像を配置
+            const backImg = document.createElement('img');
+            backImg.src = 'images/card_back.png';
+            backImg.style.width = '100%';
+            backImg.style.height = '100%';
+            backImg.style.objectFit = 'cover';
+            backImg.style.borderRadius = '6px';
+            backImg.style.display = 'block';
+            backImg.style.pointerEvents = 'none';
+            backImg.onerror = function() { this.style.display = 'none'; };
+            deckContainer.appendChild(backImg);
+
+            // 枚数テキスト要素を配置
+            const countSpan = document.createElement('span');
+            countSpan.id = 'deckCount';
+            countSpan.innerText = virtualDeck.length;
+            countSpan.style.position = 'absolute';
+            countSpan.style.top = '50%';
+            countSpan.style.left = '50%';
+            countSpan.style.transform = 'translate(-50%, -50%)';
+            countSpan.style.zIndex = '2';
+            countSpan.style.fontWeight = 'bold';
+            countSpan.style.color = '#fff';
+            countSpan.style.pointerEvents = 'none';
+            deckContainer.appendChild(countSpan);
+
+            // 山札ドラッグイベント
+            deckContainer.setAttribute('draggable', 'true');
+            deckContainer.ondragstart = function(e) {
+                if (typeof dragStartDeck === 'function') {
+                    dragStartDeck(e);
+                } else {
+                    if (!virtualDeck || virtualDeck.length === 0) {
+                        e.preventDefault();
+                        return;
+                    }
+                    e.dataTransfer.setData('text/plain', 'deck-zone-drag');
+                    e.dataTransfer.effectAllowed = 'move';
                 }
-                e.dataTransfer.setData('text/plain', 'deck-zone-drag');
-                e.dataTransfer.effectAllowed = 'move';
-            }
-        };
+            };
+            deckContainer.ondragend = function(e) {
+                if (typeof dragEndDeck === 'function') {
+                    dragEndDeck(e);
+                }
+            };
+        }
 
-        deckContainer.ondragend = function(e) {
-            if (typeof dragEndDeck === 'function') {
-                dragEndDeck(e);
-            }
-        };
+        // ★ 14. 画面切り替え（ゲーム開始）
+        const menuScr = document.getElementById('menuScreen');
+        if (menuScr) menuScr.style.display = 'none';
+
+        const gameScr = document.getElementById('gameScreen');
+        if (gameScr) gameScr.style.display = 'flex';
     }
-
-    // ★ 画面切り替え（ゲーム開始）
-    const menuScr = document.getElementById('menuScreen');
-    if (menuScr) menuScr.style.display = 'none';
-
-    const gameScr = document.getElementById('gameScreen');
-    if (gameScr) gameScr.style.display = 'flex';
-}
     
             // 自動消滅トースト表示関数
 function showToast(text) {
