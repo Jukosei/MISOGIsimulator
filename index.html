@@ -1484,14 +1484,22 @@ function checkAndTrashDirectionCards(columnWrapper) {
     // レイヤー2にカードが存在しない（空になった）場合
     if (layer2Cards.length === 0) {
         // レイヤー1と3に残っているカードを取得
-        const directionCards = columnWrapper.querySelectorAll('.layer-1 .game-card, .layer-3 .game-card, [data-layer="1"] .game-card, [data-layer="3"] .game-card');
-        
+        // 修正後（1485行目〜1506行目）
+    if (layer2Cards.length === 0) {
+        // レイヤー1と3（レイヤー2以外）に含まれるすべてのカード要素を確実に取得
+        const allCardEls = columnWrapper.querySelectorAll('.game-card');
+        const directionCards = Array.from(allCardEls).filter(card => {
+            // レイヤー2の中に含まれていないカード（＝レイヤー1または3のカード）を抽出
+            return !layer2.contains(card);
+        });
+
         if (directionCards.length === 0) return;
 
         directionCards.forEach(card => {
-            // カード情報（名前・画像パス）をDOMのdata属性またはdatasetから取得
-            const cardName = card.getAttribute('data-cardname') || card.dataset.cardname || '';
-            const imagePath = card.getAttribute('data-imagepath') || card.dataset.imagepath || card.src || '';
+            // カード情報（名前・画像パス）を複数の属性からフォールバック取得
+            const cardName = card.getAttribute('data-cardname') || card.dataset.cardname || card.innerText || '';
+            const imgEl = card.querySelector('img');
+            const imagePath = card.getAttribute('data-imagepath') || card.dataset.imagepath || (imgEl ? imgEl.src : '') || card.src || '';
 
             // 1. システムのトラッシュ管理配列(trashCards)へ追加
             if (typeof trashCards !== 'undefined' && Array.isArray(trashCards)) {
@@ -1501,7 +1509,7 @@ function checkAndTrashDirectionCards(columnWrapper) {
                 });
             }
 
-            // 2. フィールド上からカード要素を削除
+            // 2. フィールド上からカード要素（DOM）をその場ですぐ削除
             card.remove();
         });
 
