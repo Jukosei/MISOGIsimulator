@@ -853,7 +853,7 @@
             <button class="clear-btn" onclick="clearInput(1)" style="margin-top: 4px; padding: 10px 30px; font-size: 14px; font-weight: bold; align-self: flex-start; cursor: pointer;">クリア</button>
         </div>
         <!-- プレイヤー2 -->
-        <div class="deck-code-area" id="areaPlayer2" style="width: 1500px !important; max-width: 90% !important; display: flex; flex-direction: column; align-items: flex-start;">
+        <div class="deck-code-area" id="areaPlayer2" style="width: 1500px !important; max-width: 90% !important; display: none; flex-direction: column; align-items: flex-start;">
             <div class="label-text" style="margin-bottom: 6px; font-size: 18px; font-weight: bold; align-self: center;">プレイヤー2のデッキ</div>
             <div class="textarea-container" style="width: 100%;">
                 <textarea id="deckInput2" oninput="saveDeckInputs()" style="width: 100% !important; height: 140px !important; font-size: 20px; padding: 8px; box-sizing: border-box; resize: vertical;"></textarea>
@@ -1178,26 +1178,25 @@
     // --- グローバル登録 (onclick保証) ---
     window.clearInput = clearInput;
             
-            // --- モード選択関数 ---
             function selectMode(mode) {
-        localStorage.setItem('misogi_mode', mode);
-        const btn1 = document.getElementById('btn1Deck');
-        const btn2 = document.getElementById('btn2Deck');
-        const areaPlayer2 = document.getElementById('areaPlayer2');
-        const labelPlayer1 = document.getElementById('labelPlayer1');
+    localStorage.setItem('misogi_mode', mode);
+    const btn1 = document.getElementById('btn1Deck');
+    const btn2 = document.getElementById('btn2Deck');
+    const areaPlayer2 = document.getElementById('areaPlayer2');
+    const labelPlayer1 = document.getElementById('labelPlayer1');
 
-        if (mode === 1) {
-            if (btn1) btn1.classList.add('active');
-            if (btn2) btn2.classList.remove('active');
-            if (areaPlayer2) areaPlayer2.style.display = 'none';
-            if (labelPlayer1) labelPlayer1.textContent = 'デッキリストを入力してください';
-        } else {
-            if (btn1) btn1.classList.remove('active');
-            if (btn2) btn2.classList.add('active');
-            if (areaPlayer2) areaPlayer2.style.display = 'flex';
-            if (labelPlayer1) labelPlayer1.textContent = 'プレイヤー1のデッキ';
-        }
+    if (mode === 1) {
+        if (btn1) btn1.classList.add('active');
+        if (btn2) btn2.classList.remove('active');
+        if (areaPlayer2) areaPlayer2.style.display = 'none';
+        if (labelPlayer1) labelPlayer1.textContent = 'デッキリストを入力してください';
+    } else {
+        if (btn1) btn1.classList.remove('active');
+        if (btn2) btn2.classList.add('active');
+        if (areaPlayer2) areaPlayer2.style.display = 'flex';
+        if (labelPlayer1) labelPlayer1.textContent = 'プレイヤー1のデッキ';
     }
+}
             
             window.onload = function() {
     // 初期状態は確実にメニューを表示し、ゲーム画面を非表示にする
