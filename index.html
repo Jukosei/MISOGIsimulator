@@ -1068,8 +1068,13 @@
     <span style="color: #ccc; font-size:16px; font-weight: bold; margin-bottom: 2px;">ダイス</span>
     <span id="lastDiceResult" style="color: #ffffff; font-weight: bold; font-size: 24px;">-</span>
 </div>
-        </div>
-    </div>
+            <div id="playerSwitchContainer" style="width: 100%; margin-top: 10px; margin-bottom: 10px; display: none;">
+    <button id="btnPlayerToggle" class="control-btn" onclick="toggleActivePlayer()" style="width: 100%; font-weight: bold; cursor: pointer; background-color: #4a69bd; color: #ffffff;">
+        プレイヤー切替 (P1操作中)
+    </button>
+</div>
+
+<div class="turn-display">TURN<span id="turnCount">1</span></div>
 
     <div class="search-overlay" id="searchOverlay" onclick="handleOverlayClick(event)">
         <div class="search-modal" id="searchModalEl" ondragover="allowDrop(event)" ondrop="dropReturnToSearch(event)">
