@@ -4279,19 +4279,23 @@ function peekDeckToModal() {
         cardEl.style.borderRadius = '6px';
         cardEl.setAttribute('draggable', 'true');
 
-        // ★追加：クリックしたときに手札に加えてリストから削除する
         cardEl.onclick = function() {
             const clickedCard = deckViewCards.splice(index, 1)[0];
             if (clickedCard) {
-                if (typeof hand !== 'undefined' && Array.isArray(hand)) {
-                    hand.push(clickedCard);
+                // 山札からドローする時と同じ関数を呼び出して手札に追加
+                if (typeof createGameCardToHand === 'function') {
+                    createGameCardToHand(clickedCard.name, clickedCard.imagePath || clickedCard.image || clickedCard);
                 }
-                if (typeof renderHand === 'function') renderHand();
+                
+                // モーダル内の表示とデッキ枚数を更新
                 if (typeof renderDeckViewCards === 'function') renderDeckViewCards();
-                if (typeof updateDeckCountUI === 'function') updateDeckCountUI();
+                const deckCountEl = document.getElementById('deckCount');
+                if (deckCountEl && typeof virtualDeck !== 'undefined') {
+                    deckCountEl.innerText = virtualDeck.length;
+                }
             }
         };
-
+            
         // ドラッグ開始時に情報をセット
         cardEl.ondragstart = function(ev) {
             const cardData = {
