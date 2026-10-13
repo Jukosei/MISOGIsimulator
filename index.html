@@ -4270,25 +4270,38 @@ function peekDeckToModal() {
         container.innerHTML = '';
 
         deckViewCards.forEach((card, index) => {
-            const cardEl = document.createElement('div');
-            cardEl.className = 'card';
-            cardEl.style.width = '100px';
-            cardEl.style.height = '140px';
-            cardEl.style.backgroundImage = `url('${card.imagePath || card.image || card}')`;
-            cardEl.style.backgroundSize = 'cover';
-            cardEl.style.borderRadius = '6px';
-            cardEl.setAttribute('draggable', 'true');
+        const cardEl = document.createElement('div');
+        cardEl.className = 'card';
+        cardEl.style.width = '100px';
+        cardEl.style.height = '140px';
+        cardEl.style.backgroundImage = `url('${card.imagePath || card.image || card}')`;
+        cardEl.style.backgroundSize = 'cover';
+        cardEl.style.borderRadius = '6px';
+        cardEl.setAttribute('draggable', 'true');
 
-            // ドラッグ開始時に情報をセット
-            cardEl.ondragstart = function(ev) {
-                const cardData = {
-                    type: 'deck-view-card',
-                    name: card.name,
-                    cardName: card.name,
-                    imagePath: card.imagePath,
-                    src: card.imagePath,
-                    viewIndex: index
-                };
+        // ★追加：クリックしたときに手札に加えてリストから削除する
+        cardEl.onclick = function() {
+            const clickedCard = deckViewCards.splice(index, 1)[0];
+            if (clickedCard) {
+                if (typeof hand !== 'undefined' && Array.isArray(hand)) {
+                    hand.push(clickedCard);
+                }
+                if (typeof renderHand === 'function') renderHand();
+                if (typeof renderDeckViewCards === 'function') renderDeckViewCards();
+                if (typeof updateDeckCountUI === 'function') updateDeckCountUI();
+            }
+        };
+
+        // ドラッグ開始時に情報をセット
+        cardEl.ondragstart = function(ev) {
+            const cardData = {
+                type: 'deck-view-card',
+                name: card.name,
+                cardName: card.cardName,
+                imagePath: card.imagePath,
+                src: card.imagePath,
+                viewIndex: index
+            };
                 ev.dataTransfer.setData('text/plain', JSON.stringify(cardData));
                 ev.dataTransfer.setData('application/json', JSON.stringify(cardData));
             };
