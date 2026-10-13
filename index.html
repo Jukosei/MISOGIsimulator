@@ -1188,40 +1188,45 @@ let gameState = {
     // --- グローバル登録 (onclick保証) ---
     window.clearInput = clearInput;
 
-// --- プレイヤー切り替え関数（手札・ステージ・山札・トラッシュ・VOLノイズ完全同期版） ---
+// --- プレイヤー切り替え関数（安全チェック＆自動初期化付き） ---
 function toggleActivePlayer() {
-    const currentMisogiMode = parseInt(localStorage.getItem('misogi_mode')) || 1;
-    if (currentMisogiMode !== 2) return;
-
-    // 1. 現在のプレイヤーの状態を gameState に保存
-    if (typeof gameState !== 'undefined' && gameState[activePlayer]) {
-        gameState[activePlayer].deck = Array.isArray(virtualDeck) ? [...virtualDeck] : [];
-        gameState[activePlayer].hand = Array.isArray(handCards) ? [...handCards] : [];
-        gameState[activePlayer].stage = Array.isArray(stageCards) ? [...stageCards] : [];
-        gameState[activePlayer].trash = Array.isArray(trashCards) ? [...trashCards] : [];
-        gameState[activePlayer].volNoiseCards = Array.isArray(volNoiseCards) ? [...volNoiseCards] : [];
+    // 1. activePlayer の初期化確認
+    if (typeof activePlayer === 'undefined' || !activePlayer) {
+        window.activePlayer = 1;
     }
 
-    // 2. プレイヤーを交互に切り替え (1 ⇄ 2)
+    // 2. gameState の初期化確認
+    if (typeof gameState === 'undefined' || !gameState) {
+        window.gameState = { 1: {}, 2: {} };
+    }
+    if (!gameState[1]) gameState[1] = {};
+    if (!gameState[2]) gameState[2] = {};
+
+    // 3. 現在のプレイヤーの状態を gameState に保存
+    gameState[activePlayer].deck = Array.isArray(virtualDeck) ? [...virtualDeck] : [];
+    gameState[activePlayer].hand = Array.isArray(handCards) ? [...handCards] : [];
+    gameState[activePlayer].stage = Array.isArray(stageCards) ? [...stageCards] : [];
+    gameState[activePlayer].trash = Array.isArray(trashCards) ? [...trashCards] : [];
+    gameState[activePlayer].volNoiseCards = Array.isArray(volNoiseCards) ? [...volNoiseCards] : [];
+
+    // 4. プレイヤーを交互に切り替え (1 ⇄ 2)
     activePlayer = (activePlayer === 1) ? 2 : 1;
 
-    // 3. 切り替え先プレイヤーの状態を gameState から復元
-    if (typeof gameState !== 'undefined' && gameState[activePlayer]) {
-        virtualDeck = gameState[activePlayer].deck ? [...gameState[activePlayer].deck] : [];
-        handCards = gameState[activePlayer].hand ? [...gameState[activePlayer].hand] : [];
-        stageCards = gameState[activePlayer].stage ? [...gameState[activePlayer].stage] : [];
-        trashCards = gameState[activePlayer].trash ? [...gameState[activePlayer].trash] : [];
-        volNoiseCards = gameState[activePlayer].volNoiseCards ? [...gameState[activePlayer].volNoiseCards] : [];
-    }
+    // 5. 切り替え先プレイヤーの状態を gameState から復元
+    virtualDeck = gameState[activePlayer].deck ? [...gameState[activePlayer].deck] : [];
+    handCards = gameState[activePlayer].hand ? [...gameState[activePlayer].hand] : [];
+    stageCards = gameState[activePlayer].stage ? [...gameState[activePlayer].stage] : [];
+    trashCards = gameState[activePlayer].trash ? [...gameState[activePlayer].trash] : [];
+    volNoiseCards = gameState[activePlayer].volNoiseCards ? [...gameState[activePlayer].volNoiseCards] : [];
 
-    // 4. ボタンのテキスト・色の表示更新
+    // 6. ボタンのテキスト・色の表示更新
     const toggleBtn = document.getElementById('btnPlayerToggle');
     if (toggleBtn) {
         toggleBtn.innerText = `プレイヤー切替 (P${activePlayer}操作中)`;
         toggleBtn.style.backgroundColor = (activePlayer === 2) ? '#e74c3c' : '#4a69bd';
     }
 
-    // 5. 画面上の全UI・カード表示・VOLノイズUIを再描画
+    // 7. 画面上の全UI・カード表示・VOLノイズUIを再描画
     if (typeof updateDeckCountUI === 'function') updateDeckCountUI();
     if (typeof updateTrashCountUI === 'function') updateTrashCountUI();
     if (typeof renderHand === 'function') renderHand();
