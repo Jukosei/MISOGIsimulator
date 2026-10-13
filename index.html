@@ -1188,31 +1188,45 @@ let gameState = {
     // --- グローバル登録 (onclick保証) ---
     window.clearInput = clearInput;
 
-            // --- プレイヤー切り替え関数（1ボタン用） ---
+// --- プレイヤー切り替え関数（手札・ステージ・山札・トラッシュ・VOLノイズ完全同期版） ---
 function toggleActivePlayer() {
     const currentMisogiMode = parseInt(localStorage.getItem('misogi_mode')) || 1;
     if (currentMisogiMode !== 2) return;
 
-    // 現在の操作プレイヤーを交互に切り替え (1 ↔ 2)
+    // 1. 現在のプレイヤーの状態を gameState に保存
+    if (typeof gameState !== 'undefined' && gameState[activePlayer]) {
+        gameState[activePlayer].deck = Array.isArray(virtualDeck) ? [...virtualDeck] : [];
+        gameState[activePlayer].hand = Array.isArray(handCards) ? [...handCards] : [];
+        gameState[activePlayer].stage = Array.isArray(stageCards) ? [...stageCards] : [];
+        gameState[activePlayer].trash = Array.isArray(trashCards) ? [...trashCards] : [];
+        gameState[activePlayer].volNoiseCards = Array.isArray(volNoiseCards) ? [...volNoiseCards] : [];
+    }
+
+    // 2. プレイヤーを交互に切り替え (1 ⇄ 2)
     activePlayer = (activePlayer === 1) ? 2 : 1;
 
-    // ボタンのテキスト表示更新
+    // 3. 切り替え先プレイヤーの状態を gameState から復元
+    if (typeof gameState !== 'undefined' && gameState[activePlayer]) {
+        virtualDeck = gameState[activePlayer].deck ? [...gameState[activePlayer].deck] : [];
+        handCards = gameState[activePlayer].hand ? [...gameState[activePlayer].hand] : [];
+        stageCards = gameState[activePlayer].stage ? [...gameState[activePlayer].stage] : [];
+        trashCards = gameState[activePlayer].trash ? [...gameState[activePlayer].trash] : [];
+        volNoiseCards = gameState[activePlayer].volNoiseCards ? [...gameState[activePlayer].volNoiseCards] : [];
+    }
+
+    // 4. ボタンのテキスト・色の表示更新
     const toggleBtn = document.getElementById('btnPlayerToggle');
     if (toggleBtn) {
         toggleBtn.innerText = `プレイヤー切替 (P${activePlayer}操作中)`;
-        toggleBtn.style.backgroundColor = (activePlayer === 2) ? '#ff4757' : '';
+        toggleBtn.style.backgroundColor = (activePlayer === 2) ? '#e74c3c' : '#4a69bd';
     }
 
-    // 参照データを切り替え
-    if (gameState[activePlayer]) {
-        virtualDeck = gameState[activePlayer].deck;
-        trashCards = gameState[activePlayer].trash;
-    }
-
-    // UI更新
+    // 5. 画面上の全UI・カード表示・VOLノイズUIを再描画
     if (typeof updateDeckCountUI === 'function') updateDeckCountUI();
-    if (typeof updateTrashUI === 'function') updateTrashUI();
+    if (typeof updateTrashCountUI === 'function') updateTrashCountUI();
     if (typeof renderHand === 'function') renderHand();
+    if (typeof renderStage === 'function') renderStage();
+    if (typeof updateVolNoiseUI === 'function') updateVolNoiseUI();
 
     if (typeof showToast === 'function') {
         showToast(`P${activePlayer}操作モードに切り替えました`);
