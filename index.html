@@ -1188,7 +1188,7 @@ let gameState = {
     // --- グローバル登録 (onclick保証) ---
     window.clearInput = clearInput;
 
-// --- プレイヤー切り替え関数（安全チェック＆自動初期化付き） ---
+// --- プレイヤー切り替え関数（正しい変数名対応版） ---
 function toggleActivePlayer() {
     // 1. activePlayer の初期化確認
     if (typeof activePlayer === 'undefined' || !activePlayer) {
@@ -1204,8 +1204,8 @@ function toggleActivePlayer() {
 
     // 3. 現在のプレイヤーの状態を gameState に保存
     gameState[activePlayer].deck = Array.isArray(virtualDeck) ? [...virtualDeck] : [];
-    gameState[activePlayer].hand = Array.isArray(handCards) ? [...handCards] : [];
-    gameState[activePlayer].stage = Array.isArray(stageCards) ? [...stageCards] : [];
+    gameState[activePlayer].hand = (typeof hand !== 'undefined' && Array.isArray(hand)) ? [...hand] : [];
+    gameState[activePlayer].stage = (typeof stageCards !== 'undefined' && Array.isArray(stageCards)) ? [...stageCards] : [];
     gameState[activePlayer].trash = Array.isArray(trashCards) ? [...trashCards] : [];
     gameState[activePlayer].volNoiseCards = Array.isArray(volNoiseCards) ? [...volNoiseCards] : [];
 
@@ -1213,11 +1213,21 @@ function toggleActivePlayer() {
     activePlayer = (activePlayer === 1) ? 2 : 1;
 
     // 5. 切り替え先プレイヤーの状態を gameState から復元
-    virtualDeck = gameState[activePlayer].deck ? [...gameState[activePlayer].deck] : [];
-    handCards = gameState[activePlayer].hand ? [...gameState[activePlayer].hand] : [];
-    stageCards = gameState[activePlayer].stage ? [...gameState[activePlayer].stage] : [];
-    trashCards = gameState[activePlayer].trash ? [...gameState[activePlayer].trash] : [];
-    volNoiseCards = gameState[activePlayer].volNoiseCards ? [...gameState[activePlayer].volNoiseCards] : [];
+    if (typeof virtualDeck !== 'undefined') {
+        virtualDeck = gameState[activePlayer].deck ? [...gameState[activePlayer].deck] : [];
+    }
+    if (typeof hand !== 'undefined') {
+        hand = gameState[activePlayer].hand ? [...gameState[activePlayer].hand] : [];
+    }
+    if (typeof stageCards !== 'undefined') {
+        stageCards = gameState[activePlayer].stage ? [...gameState[activePlayer].stage] : [];
+    }
+    if (typeof trashCards !== 'undefined') {
+        trashCards = gameState[activePlayer].trash ? [...gameState[activePlayer].trash] : [];
+    }
+    if (typeof volNoiseCards !== 'undefined') {
+        volNoiseCards = gameState[activePlayer].volNoiseCards ? [...gameState[activePlayer].volNoiseCards] : [];
+    }
 
     // 6. ボタンのテキスト・色の表示更新
     const toggleBtn = document.getElementById('btnPlayerToggle');
@@ -1226,7 +1236,7 @@ function toggleActivePlayer() {
         toggleBtn.style.backgroundColor = (activePlayer === 2) ? '#e74c3c' : '#4a69bd';
     }
 
-    // 7. 画面上の全UI・カード表示・VOLノイズUIを再描画
+    // 7. 画面上の全UI・カード表示を再描画
     if (typeof updateDeckCountUI === 'function') updateDeckCountUI();
     if (typeof updateTrashCountUI === 'function') updateTrashCountUI();
     if (typeof renderHand === 'function') renderHand();
