@@ -1973,6 +1973,115 @@ function updateVolNoiseUI() {
         }
     }
 }
+
+            let activePointerDrag = null;
+let dragGhostEl = null;
+
+function ensureDragGhost() {
+  if (!dragGhostEl) {
+    dragGhostEl = document.createElement('div');
+    dragGhostEl.className = 'drag-ghost';
+    dragGhostEl.style.position = 'fixed';
+    dragGhostEl.style.left = '0px';
+    dragGhostEl.style.top = '0px';
+    dragGhostEl.style.pointerEvents = 'none';
+    dragGhostEl.style.zIndex = '9999';
+    dragGhostEl.style.display = 'none';
+    document.body.appendChild(dragGhostEl);
+  }
+  return dragGhostEl;
+}
+
+function clearPointerDrag() {
+  if (!activePointerDrag) return;
+
+  window.removeEventListener('pointermove', onPointerMove);
+  window.removeEventListener('pointerup', onPointerUp);
+  window.removeEventListener('pointercancel', onPointerCancel);
+  window.removeEventListener('blur', onPointerCancel);
+
+  if (activePointerDrag.sourceEl) {
+    activePointerDrag.sourceEl.classList.remove('is-dragging');
+  }
+  if (dragGhostEl) {
+    dragGhostEl.style.display = 'none';
+    dragGhostEl.style.transform = '';
+  }
+  activePointerDrag = null;
+}
+
+function onPointerMove(e) {
+  if (!activePointerDrag || e.pointerId !== activePointerDrag.pointerId) return;
+  const x = e.clientX - activePointerDrag.offsetX;
+  const y = e.clientY - activePointerDrag.offsetY;
+  dragGhostEl.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+}
+
+function onPointerUp(e) {
+  if (!activePointerDrag || e.pointerId !== activePointerDrag.pointerId) return;
+
+  const { sourceEl } = activePointerDrag;
+  const dropTargets = document.elementsFromPoint(e.clientX, e.clientY);
+
+  // 例：ドロップ先ゾーン（フィールドのレイヤーや手札など）を探す
+  const slotTarget = dropTargets.find((el) => el.closest && el.closest('.frame-layer, .hand-area'));
+
+  clearPointerDrag();
+
+  if (slotTarget && sourceEl) {
+    // ここで既存のドロップ処理（配置・移動ロジック）を呼び出す
+    // handleCardDropToTarget(sourceEl, slotTarget, e);
+  }
+}
+
+function onPointerCancel(e) {
+  if (activePointerDrag && (!e || e.pointerId === undefined || e.pointerId === activePointerDrag.pointerId)) {
+    clearPointerDrag();
+  }
+}
+
+function attachPointerDragToCard(cardEl) {
+  // HTML5の標準ドラッグは使わないので無効化
+  cardEl.setAttribute('draggable', 'false');
+  cardEl.style.touchAction = 'none';
+
+  cardEl.addEventListener('pointerdown', (e) => {
+    // 左クリック、またはタッチ／ペン操作のみ対象
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+    clearPointerDrag();
+
+    const rect = cardEl.getBoundingClientRect();
+    const ghost = ensureDragGhost();
+
+    ghost.style.width = `${rect.width}px`;
+    ghost.style.height = `${rect.height}px`;
+    ghost.style.backgroundImage = cardEl.style.backgroundImage;
+    ghost.style.backgroundSize = 'cover';
+    ghost.style.backgroundPosition = 'center';
+    ghost.style.display = 'block';
+
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+    ghost.style.transform = `translate3d(${e.clientX - offsetX}px, ${e.clientY - offsetY}px, 0)`;
+
+    cardEl.classList.add('is-dragging');
+    window.draggedElement = cardEl;
+    window.sourceColumnWrapper = cardEl.closest('.slot-column-wrapper');
+
+    activePointerDrag = {
+      pointerId: e.pointerId,
+      sourceEl: cardEl,
+      offsetX,
+      offsetY,
+    };
+
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerCancel);
+    window.addEventListener('blur', onPointerCancel);
+  });
+}
             
         function createGameCardToHand(t, e) {
     let a = document.getElementById('handArea');
@@ -1983,23 +2092,24 @@ function updateVolNoiseUI() {
     n.style.backgroundImage = `url('${e}')`;
     
     // ドラッグ可能属性を付与
-    n.setAttribute('draggable', 'true');
+    //n.setAttribute('draggable', 'true');
     n.setAttribute('data-cardname', t);
     n.setAttribute('data-cardcode', t);
     n.setAttribute('data-imagepath', e);
+    attachPointerDragToCard(n);
 
     // ★ ドラッグ開始処理
-        n.ondragstart = function(ev) {
-            window.draggedElement = n; // グローバル変数にドラッグ中の要素を保持
-            
-            // ★追加: 移動前にカードが属していた「列」を覚えておく
-            window.sourceColumnWrapper = n.closest('.slot-column-wrapper');
+    //    n.ondragstart = function(ev) {
+    //        window.draggedElement = n; // グローバル変数にドラッグ中の要素を保持
+          
+    //        ★追加: 移動前にカードが属していた「列」を覚えておく
+    //        window.sourceColumnWrapper = n.closest('.slot-column-wrapper');
 
-            if (ev.dataTransfer) {
-                ev.dataTransfer.setData('text/plain', n.id);
-                ev.dataTransfer.effectAllowed = 'move';
-            }
-        };
+     //       if (ev.dataTransfer) {
+     //           ev.dataTransfer.setData('text/plain', n.id);
+     //           ev.dataTransfer.effectAllowed = 'move';
+     //       }
+     //   };
 
     // ★ クリック時の処理（黄色ゾーンは90°回転、ディレクションエリアは暗転）
     n.onclick = function(ev) {
