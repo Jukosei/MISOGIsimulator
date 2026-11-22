@@ -2025,8 +2025,10 @@ function onPointerUp(e) {
 
   // 実際のドロップ先ゾーン（レイヤー枠・列・手札・山札・トラッシュなど）を探す
   const slotTarget = dropTargets.find((el) =>
-    el.closest && el.closest('.frame-layer, .layer-1, .layer-2, .layer-3, .slot-column-wrapper, .hand-area, #handArea, #deckZone, #trashZone')
-  );
+  el.closest && el.closest(
+    '.direction-placeholder, [id*="dir-slot"], .frame-layer, .layer-1, .layer-2, .layer-3, .slot-column-wrapper, .hand-area, #handArea, #deckZone, #trashZone'
+  )
+);
 
   clearPointerDrag();
 
