@@ -2023,17 +2023,48 @@ function onPointerUp(e) {
   const { sourceEl } = activePointerDrag;
   const dropTargets = document.elementsFromPoint(e.clientX, e.clientY);
 
-  // 例：ドロップ先ゾーン（フィールドのレイヤーや手札など）を探す
-  const slotTarget = dropTargets.find((el) => el.closest && el.closest('.frame-layer, .hand-area'));
+  // 実際のドロップ先ゾーン（レイヤー枠・列・手札・山札・トラッシュなど）を探す
+  const slotTarget = dropTargets.find((el) =>
+    el.closest && el.closest('.frame-layer, .layer-1, .layer-2, .layer-3, .slot-column-wrapper, .hand-area, #handArea, #deckZone, #trashZone')
+  );
 
   clearPointerDrag();
 
   if (slotTarget && sourceEl) {
-    // ここで既存のドロップ処理（配置・移動ロジック）を呼び出す
-    // handleCardDropToTarget(sourceEl, slotTarget, e);
+    window.draggedElement = sourceEl;
+    window.sourceColumnWrapper = sourceEl.closest('.slot-column-wrapper');
+
+    const dataTransfer = {
+      dropEffect: 'move',
+      effectAllowed: 'move',
+      types: ['text/plain'],
+      getData: (format) => {
+        if (format === 'text/plain' || format === 'text') return sourceEl.id || '';
+        return '';
+      },
+      setData: () => {},
+    };
+
+    let dropEvent;
+    try {
+      dropEvent = new DragEvent('drop', {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer,
+      });
+    } catch (_) {
+      dropEvent = new Event('drop', { bubbles: true, cancelable: true });
+      dropEvent.dataTransfer = dataTransfer;
+    }
+
+    dropEvent.clientX = e.clientX;
+    dropEvent.clientY = e.clientY;
+
+    slotTarget.classList.remove('drag-over');
+    slotTarget.dispatchEvent(dropEvent);
   }
 }
-
+            
 function onPointerCancel(e) {
   if (activePointerDrag && (!e || e.pointerId === undefined || e.pointerId === activePointerDrag.pointerId)) {
     clearPointerDrag();
